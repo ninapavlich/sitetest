@@ -1,7 +1,8 @@
 sitetest
 ========
 
-Python library for testing websites
+Sitetest is a python utility for testing websites. The test results are uploaded
+to an AWS bucket as static HTML and notifications are sent to a Slack channel.
 
 ##Requirements:
 ```
@@ -47,7 +48,11 @@ domain_aliases = [
 ]
 """
 Test id is a unique identifier for this test. Tests will be uploaded to AWS at 
-this url: "http://s3.amazonaws.com/AWS_STORAGE_BUCKET_NAME/AWS_RESULTS_PATH/test_id/time-and-date-of-test.html"
+this url: 
+	
+	"http://s3.amazonaws.com/AWS_STORAGE_BUCKET_NAME
+	/AWS_RESULTS_PATH/test_id/time-and-date-of-test.html"
+
 """
 test_id = "example-site-test-full"
 
@@ -86,5 +91,7 @@ ignore_validation_errors is a list of validation messages from w3c to ignore
 ignore_validation_errors = ['Bad value X-UA-Compatible for attribute http-equiv on element meta.', ]
 
 
-testSite(credentials, canonical_domain, domain_aliases, test_id, full, recursive=True, special_dictionary = None, ignore_query_string_keys=None, ignore_validation_errors=None)
+testSite(credentials, canonical_domain, domain_aliases, test_id, full, 
+	recursive=True, special_dictionary = None, ignore_query_string_keys=None, 
+	ignore_validation_errors=None)
 ```
