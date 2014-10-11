@@ -83,7 +83,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
 
 
     html = render_results(results)
-    report_url = save_results(html, test_id, credentials)
+    report_url = save_results(html, test_id, credentials, verbose)
     results['report_url'] = report_url
     open_results(report_url)
 
@@ -124,7 +124,7 @@ def render_results(results, template_file = 'templates/results.html'):
     rendered = template.render( results )
     return rendered
 
-def save_results(html, test_id, credentials):
+def save_results(html, test_id, credentials, verbose):
 
     results_dir = os.path.join(os.path.dirname(__file__), 'test_results')
     if not os.path.exists(results_dir):
@@ -133,16 +133,16 @@ def save_results(html, test_id, credentials):
     filename = "%s.html"%(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M"))
     results_file = os.path.join(results_dir, filename)
 
-    save_results_local(html, results_file, test_id)
-    report_url = save_results_aws(results_file, test_id, credentials)
-    delete_results_local(results_file)
+    save_results_local(html, results_file, test_id, verbose)
+    report_url = save_results_aws(results_file, test_id, credentials, verbose)
+    delete_results_local(results_file, verbose)
 
     return report_url
 
-def delete_results_local(output_path):
+def delete_results_local(output_path, verbose):
     os.remove(output_path)
 
-def save_results_local(html, output_path, test_id):
+def save_results_local(html, output_path, test_id, verbose):
     import codecs
     
 
@@ -155,7 +155,7 @@ def save_results_local(html, output_path, test_id):
     # file.write(html)
     file.close()
 
-def save_results_aws(file_name, test_id, credentials):
+def save_results_aws(file_name, test_id, credentials, verbose):
     import boto.s3
 
     AWS_ACCESS_KEY_ID = credentials['aws']['AWS_ACCESS_KEY_ID']

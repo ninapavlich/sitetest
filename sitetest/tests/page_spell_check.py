@@ -4,6 +4,9 @@ import re
 from bs4 import BeautifulSoup, SoupStrainer, Comment
 import enchant
 from enchant.tokenize import get_tokenizer
+import string
+
+
 
 from ..core.retrieve_all_urls import TYPE_INTERNAL
 
@@ -60,21 +63,27 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                 if has_lorem_ipsum == False:
                     for text in visible_texts:
                     
-                        # words = text.split(" ")
-                        # cleaned_words = [re.sub('[^A-Za-z]+', '', word) for word in words]
-                        # real_words = [word.lower().strip() for word in cleaned_words if (word.strip() != '')]
+                        words = text.replace('-',' ').split(" ")
                         
-                        tokenized_words = [w for w in tknzr(text)]
-                        real_words = [w[0] for w in tokenized_words]
+                        cleaned_words = [word.strip().rstrip('?:!.,;()[]"').lstrip('?:!.,;()[]"') for word in words]
+                        real_words = [word for word in cleaned_words if (word.strip() != '')]
+                        
+                        #tokenized_words = [w for w in tknzr(text)]
+                        #real_words = [w[0] for w in tokenized_words]
                         #print "Returned: %s"%(real_words)
 
                         for word in real_words: 
-                            #print "test word %s"%(word)
                             word_exists = d.check(word) or check_special_dictionary(word, special_dictionary)
-                            word_is_proper_noun = word[0].isupper()
                             
-                            # print "%s ==> %s"%(word, word_exists)
-                            if not word_exists and not word_is_proper_noun:
+                            word_is_proper_noun = word[0].isupper()
+
+                            deordinaled = word.lower().replace("st", "").replace("nd", "").replace("rd", "").replace("th", "")
+                            denumbered = translate_non_alphanumerics(deordinaled)                            
+                            is_numeric = denumbered == '' or denumbered == None
+
+                            is_email = re.match(r"^[a-zA-Z0-9._]+\@[a-zA-Z0-9._]+\.[a-zA-Z]{3,}$", word) != None                            
+
+                            if not word_exists and not word_is_proper_noun and not is_numeric and not is_email:
                                 if word not in misspelled_words:
                                     message = "Notice: Word &ldquo;%s&rdquo; misspelled in <a href='#%s' class='alert-link'>%s</a>."%(word, link['internal_page_url'], link_url)
                                     link['messages']['info'].append(message)
@@ -109,6 +118,11 @@ def check_special_dictionary(word, special_dictionary):
             return True
     return False
 
+
+def translate_non_alphanumerics(to_translate, translate_to=u''):
+    not_letters_or_digits = u'!"#%\'()*+,-./:;<=>?@[\]^_`{|}~0123456789'
+    translate_table = dict((ord(char), translate_to) for char in not_letters_or_digits)
+    return to_translate.translate(translate_table)
 
 def visible(element):
     #print 'is element visible? %s'%(element)
