@@ -91,7 +91,7 @@ def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recu
             for child_link in page_link['links']:
                 if child_link not in parsed_links:
                     #print 'parse child page %s'%(child_link)
-                    current_links, parsed_links, messages = retrieve_all_urls(child_link, canonical_domain, domain_aliases, messages, recursive, include_media, ignore_query_string_keys, normalized_page_url, current_links, parsed_links)
+                    current_links, parsed_links, messages = retrieve_all_urls(child_link, canonical_domain, domain_aliases, messages, recursive, include_media, ignore_query_string_keys, normalized_page_url, current_links, parsed_links, verbose)
     if verbose:           
         print "Parsed %s links"%(len(parsed_links))
 
