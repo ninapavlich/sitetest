@@ -11,6 +11,18 @@ import string
 from ..core.retrieve_all_urls import TYPE_INTERNAL
 
 
+CONTRACTION_LIST = ["aren't", "can't", "couldn't", 
+    "didn't", "doesn't", "don't", "hadn't", "hasn't", 
+    "haven't", "he'd", "he'll", "he's", "i'd", "i'll", 
+    "i'm", "i've", "isn't", "let's", "mightn't", 
+    "mustn't", "shan't", "she'd", "she'll", "she's", 
+    "shouldn't", "that's", "there's", "they'd", 
+    "they'll", "they're", "they've", "we'd", "we're", 
+    "we've", "weren't", "what'll", "what're", "what's", 
+    "what've", "where's", "who's", "who'll", "who're", 
+    "who's", "who've", "won't", "wouldn't", "you'd", 
+    "you'll", "you're", "you've"]
+
 def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, special_dictionary, verbose=False):
     """
     For each page, make sure that visible text is spelled correctly
@@ -65,8 +77,11 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                     
                         words = text.replace('-',' ').split(" ")
                         
-                        cleaned_words = [word.strip().rstrip('?:!.,;()[]"').lstrip('?:!.,;()[]"') for word in words]
-                        real_words = [word for word in cleaned_words if (word.strip() != '')]
+                        cleaned_words = [word.strip().rstrip(u'?:!.,;()[]"“”’\'').lstrip(u'?:!.,;()[]"“”’\'') for word in words]
+                        depossessive_words = [word.replace(u"'s", "").replace(u"’s", "") for word in cleaned_words]
+                        real_words = [word for word in depossessive_words if (word.strip() != '')]
+
+
                         
                         #tokenized_words = [w for w in tknzr(text)]
                         #real_words = [w[0] for w in tokenized_words]
@@ -74,16 +89,18 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
 
                         for word in real_words: 
                             word_exists = d.check(word) or check_special_dictionary(word, special_dictionary)
-                            
+
                             word_is_proper_noun = word[0].isupper()
 
                             deordinaled = word.lower().replace("st", "").replace("nd", "").replace("rd", "").replace("th", "")
                             denumbered = translate_non_alphanumerics(deordinaled)                            
                             is_numeric = denumbered == '' or denumbered == None
 
-                            is_email = re.match(r"^[a-zA-Z0-9._]+\@[a-zA-Z0-9._]+\.[a-zA-Z]{3,}$", word) != None                            
+                            is_email = re.match(r"^[a-zA-Z0-9._]+\@[a-zA-Z0-9._]+\.[a-zA-Z]{3,}$", word) != None   
 
-                            if not word_exists and not word_is_proper_noun and not is_numeric and not is_email:
+                            is_contraction = word.lower().replace(u"’",u"'") in CONTRACTION_LIST     
+
+                            if not word_exists and not word_is_proper_noun and not is_numeric and not is_email and not is_contraction:
                                 if word not in misspelled_words:
                                     message = "Notice: Word &ldquo;%s&rdquo; misspelled in <a href='#%s' class='alert-link'>%s</a>."%(word, link['internal_page_url'], link_url)
                                     link['messages']['info'].append(message)
