@@ -90,8 +90,13 @@ ignore_validation_errors is a list of validation messages from w3c to ignore
 """
 ignore_validation_errors = ['Bad value X-UA-Compatible for attribute http-equiv on element meta.', ]
 
+"""
+If verbose == True, you will see log output of the urls as they're parsed and 
+the overall test status
+"""
+verbose = True
 
 testSite(credentials, canonical_domain, domain_aliases, test_id, full, 
 	recursive=True, special_dictionary = None, ignore_query_string_keys=None, 
-	ignore_validation_errors=None)
+	ignore_validation_errors=None, verbose)
 ```

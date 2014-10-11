@@ -8,12 +8,13 @@ from enchant.tokenize import get_tokenizer
 from ..core.retrieve_all_urls import TYPE_INTERNAL
 
 
-def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, special_dictionary):
+def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, special_dictionary, verbose=False):
     """
     For each page, make sure that visible text is spelled correctly
     """
 
-    print "Spell check site using special_dictionary: %s"%(special_dictionary)
+    if verbose:
+        print "Spell check site using special_dictionary: %s"%(special_dictionary)
 
     lorem_ipsum_count = 0
     spelling_issue_count = 0
@@ -117,6 +118,6 @@ def visible(element):
     elif re.match(u'<!--.*-->', str(element_ascii)):
         return False
     elif re.match(u'<!(|--)\[[^\]]+\]>.+?<!\[endif\](|--)>', str(element_ascii)):
-        print "Its a conditional comment!"
+        #print "Its a conditional comment!"
         return False
     return True

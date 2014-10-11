@@ -1,7 +1,7 @@
 from ..core.retrieve_all_urls import get_or_create_link_object, load_link_object
 
 
-def test_basic_site_quality(current_urls, canonical_domain, domain_aliases, messages):
+def test_basic_site_quality(current_urls, canonical_domain, domain_aliases, messages, verbose=False):
 	"""
 	This tests for robots.txt, sitemap.xml, top-level favicon.ico, test 400 page
 	"""

@@ -20,7 +20,7 @@ MEDIA_SUFFIXES = [
     '.gz','.fla','.html','.ogg','.sql'
 ]
 
-def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recursive, include_media, ignore_query_string_keys=None, referer=None, current_links=None, parsed_links=None,):
+def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recursive, include_media, ignore_query_string_keys=None, referer=None, current_links=None, parsed_links=None, verbose=False):
     if current_links is None:
         current_links = {}
 
@@ -38,7 +38,8 @@ def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recu
     if page_link['is_media'] and include_media == False:
         return (current_links, parsed_links, messages)
 
-    print ">>> Parse %s (<<< %s)"%(normalized_page_url, referer)
+    if verbose:
+        print ">>> Parse %s (<<< %s)"%(normalized_page_url, referer)
 
 
     #If page is a real link (e.g. not mailto or ftp), actually test the url
@@ -54,6 +55,9 @@ def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recu
     #record that we have parsed it
     if normalized_page_url not in parsed_links:
         parsed_links.append(normalized_page_url)
+    else:
+        #if it's already in there, dont parse children
+        return (current_links, parsed_links, messages)
     
     #parse child links of internal pages only
     if response and page_link_type == TYPE_INTERNAL:
@@ -88,8 +92,8 @@ def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recu
                 if child_link not in parsed_links:
                     #print 'parse child page %s'%(child_link)
                     current_links, parsed_links, messages = retrieve_all_urls(child_link, canonical_domain, domain_aliases, messages, recursive, include_media, ignore_query_string_keys, normalized_page_url, current_links, parsed_links)
-                
-    print "Parsed %s links"%(len(parsed_links))
+    if verbose:           
+        print "Parsed %s links"%(len(parsed_links))
 
     return (current_links, parsed_links, messages)
 

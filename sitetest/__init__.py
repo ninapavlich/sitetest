@@ -12,11 +12,12 @@ from .tests.w3c_compliance import test_w3c_compliance
 from .tests.screenshots import test_screenshots
 
 
-def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False, recursive=True, special_dictionary = None, ignore_query_string_keys=None, ignore_validation_errors=None):
-    if full:
-        print "FULL SITE TEST :: %s"%(canonical_domain)
-    else:
-        print "BASIC SITE TEST :: %s"%(canonical_domain)
+def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False, recursive=True, special_dictionary = None, ignore_query_string_keys=None, ignore_validation_errors=None, verbose=False):
+    if verbose:
+        if full:
+            print "FULL SITE TEST :: %s"%(canonical_domain)
+        else:
+            print "BASIC SITE TEST :: %s"%(canonical_domain)
 
     #TODO: boolean for check files and images
     #TODO: Add screenshots from browserstack http://www.browserstack.com/screenshots/api
@@ -43,27 +44,27 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         'warning':[],
         'info':[],
     }
-    current_links, parsed_links, messages = retrieve_all_urls(canonical_domain, canonical_domain, domain_aliases, messages, recursive, full, ignore_query_string_keys)
+    current_links, parsed_links, messages = retrieve_all_urls(canonical_domain, canonical_domain, domain_aliases, messages, recursive, full, ignore_query_string_keys, verbose)
     
     if recursive:
         #1. Site quality test
-        current_links, messages = test_basic_site_quality(current_links, canonical_domain, domain_aliases, messages)
+        current_links, messages = test_basic_site_quality(current_links, canonical_domain, domain_aliases, messages, verbose)
 
     #2. Page quality test
-    current_links, messages = test_basic_page_quality(current_links, canonical_domain, domain_aliases, messages)
+    current_links, messages = test_basic_page_quality(current_links, canonical_domain, domain_aliases, messages, verbose)
 
     #3. Spell Check test
-    current_links, messages = test_basic_spell_check(current_links, canonical_domain, domain_aliases, messages, special_dictionary)
+    current_links, messages = test_basic_spell_check(current_links, canonical_domain, domain_aliases, messages, special_dictionary, verbose)
 
     if full:
         #4. W3C Compliance test
-        current_links, messages = test_w3c_compliance(current_links, canonical_domain, domain_aliases, messages, ignore_validation_errors)
+        current_links, messages = test_w3c_compliance(current_links, canonical_domain, domain_aliases, messages, ignore_validation_errors, verbose)
 
         #5. Browser Screenshots
-        #current_links, messages = test_screenshots(current_links, canonical_domain, domain_aliases, messages)
+        #current_links, messages = test_screenshots(current_links, canonical_domain, domain_aliases, messages, verbose)
 
         #6. Lint JS and CSS
-        #current_links, messages = test_basic_page_quality(current_links, canonical_domain, domain_aliases, messages)
+        #current_links, messages = test_basic_page_quality(current_links, canonical_domain, domain_aliases, messages, verbose)
 
 
     sorted_links = sorted(current_links)
@@ -170,12 +171,13 @@ def save_results_aws(file_name, test_id, credentials):
 
     current_dir = os.path.dirname(__file__)
 
-    print 'Uploading %s to Amazon S3 from %s' % (base_name, file_name)
+    if verbose:
+        print 'Uploading %s to Amazon S3 from %s' % (base_name, file_name)
 
-    import sys
-    def percent_cb(complete, total):
-        sys.stdout.write('.')
-        sys.stdout.flush()
+        import sys
+        def percent_cb(complete, total):
+            sys.stdout.write('.')
+            sys.stdout.flush()
 
     from boto.s3.key import Key
     k = Key(bucket)

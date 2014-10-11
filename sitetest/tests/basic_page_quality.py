@@ -1,7 +1,7 @@
 from ..core.retrieve_all_urls import TYPE_INTERNAL
 from bs4 import BeautifulSoup, SoupStrainer
 
-def test_basic_page_quality(links, canonical_domain, domain_aliases, messages):
+def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, verbose=False):
     """
     For each page, make sure there is a unique title and description
     """

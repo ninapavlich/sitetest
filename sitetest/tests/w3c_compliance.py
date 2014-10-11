@@ -1,13 +1,14 @@
 from ..core.retrieve_all_urls import TYPE_INTERNAL
 from w3c_validator.validator import Validator
 
-def test_w3c_compliance(links, canonical_domain, domain_aliases, messages, ignore_validation_errors):
+def test_w3c_compliance(links, canonical_domain, domain_aliases, messages, ignore_validation_errors, verbose=False):
     """
     TODO: Test w3c compliance
     Documentation: http://validator.w3.org/docs/api.html
     """
 
-    print "Testing W3C Compliance, ignoring the following errors %s"%(ignore_validation_errors)
+    if verbose:
+        print "Testing W3C Compliance, ignoring the following errors %s"%(ignore_validation_errors)
 
     timeout_found_count = 0
     warnings_found_count = 0
