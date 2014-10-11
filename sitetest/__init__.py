@@ -11,7 +11,7 @@ from .tests.page_spell_check import test_basic_spell_check
 from .tests.w3c_compliance import test_w3c_compliance
 from .tests.screenshots import test_screenshots
 
-
+            
 def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False, recursive=True, special_dictionary = None, ignore_query_string_keys=None, ignore_validation_errors=None, verbose=False):
     if verbose:
         if full:
@@ -44,7 +44,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         'warning':[],
         'info':[],
     }
-    current_links, parsed_links, messages = retrieve_all_urls(canonical_domain, canonical_domain, domain_aliases, messages, recursive, full, ignore_query_string_keys, verbose)
+    current_links, parsed_links, messages = retrieve_all_urls(canonical_domain, canonical_domain, domain_aliases, messages, recursive, full, ignore_query_string_keys, None, None, None, verbose)
     
     if recursive:
         #1. Site quality test
