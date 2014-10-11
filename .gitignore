@@ -53,6 +53,7 @@ docs/_build/
 # PyBuilder
 target/
 
+.DS_Store
 
 #test folders
 test_results/

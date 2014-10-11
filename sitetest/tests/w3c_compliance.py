@@ -10,18 +10,32 @@ def test_w3c_compliance(links, canonical_domain, domain_aliases, messages, ignor
     if verbose:
         print "Testing W3C Compliance, ignoring the following errors %s"%(ignore_validation_errors)
 
+    #Calculate total number of links to validate
+    target_count = 0
+    for link_url in links:
+        link = links[link_url]
+        link_type = link['type']        
+        if link_type == TYPE_INTERNAL and not page_link['is_media']:
+            target_count += 1
+
+
     timeout_found_count = 0
     warnings_found_count = 0
     errors_found_count = 0
+    validated_count = 0
     for link_url in links:
         link = links[link_url]
         link_type = link['type']
         
-        if link_type == TYPE_INTERNAL:
+        if link_type == TYPE_INTERNAL and not page_link['is_media']:
+
+            validated_count += 1
+            if verbose:
+                print ">>>> Validating %s of %s"%(validated_count, target_count)
+
             link_html = link['html']
             link_url = link['url']
             if link_html:
-                
 
                 validator = get_test(link_html)
                 #print "validator? %s"%(validator)

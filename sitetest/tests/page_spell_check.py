@@ -88,7 +88,12 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                         #print "Returned: %s"%(real_words)
 
                         for word in real_words: 
-                            word_exists = d.check(word) or check_special_dictionary(word, special_dictionary)
+
+                            try:
+                                word_exists = d.check(word) or check_special_dictionary(word, special_dictionary)
+                            except:
+                                word_exists = True
+                                print "Error checking word on "%(link['url'])
 
                             word_is_proper_noun = word[0].isupper()
 
@@ -110,12 +115,6 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                 else:
                     message = "Notice: Spell check skipped on this page because Lorem Ipsum was found"
                     link['messages']['info'].append(message)
-                
-                
-                    
-                
-
-                
                                                 
                         
                 # except:
