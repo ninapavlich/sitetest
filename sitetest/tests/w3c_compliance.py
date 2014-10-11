@@ -15,7 +15,7 @@ def test_w3c_compliance(links, canonical_domain, domain_aliases, messages, ignor
     for link_url in links:
         link = links[link_url]
         link_type = link['type']        
-        if link_type == TYPE_INTERNAL and not page_link['is_media']:
+        if link_type == TYPE_INTERNAL and not link['is_media']:
             target_count += 1
 
 
@@ -27,7 +27,7 @@ def test_w3c_compliance(links, canonical_domain, domain_aliases, messages, ignor
         link = links[link_url]
         link_type = link['type']
         
-        if link_type == TYPE_INTERNAL and not page_link['is_media']:
+        if link_type == TYPE_INTERNAL and not link['is_media']:
 
             validated_count += 1
             if verbose:
@@ -81,7 +81,7 @@ def test_w3c_compliance(links, canonical_domain, domain_aliases, messages, ignor
                     counter = 0
                     enumerated_html = ''
                     for line in enumerated_html_list:
-                        new_line = "<strong>%s:</strong> %s"%(counter, line)
+                        new_line = "%s: %s"%(counter, line)
                         enumerated_html += "%s\n"%(new_line)
                         counter += 1
 
