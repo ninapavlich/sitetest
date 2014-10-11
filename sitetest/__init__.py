@@ -11,13 +11,8 @@ from .tests.page_spell_check import test_basic_spell_check
 from .tests.w3c_compliance import test_w3c_compliance
 from .tests.screenshots import test_screenshots
 
-def testSiteBasic(credentials, canonical_domain, domain_aliases, test_id, recursive=True, special_dictionary = None, ignore_query_string_keys=None, ignore_validation_errors=None):
-    testSite(credentials, False, canonical_domain, domain_aliases, test_id, recursive, special_dictionary, ignore_query_string_keys, ignore_validation_errors)
 
-def testSiteFull(credentials, canonical_domain, domain_aliases, test_id, recursive=True, special_dictionary = None, ignore_query_string_keys=None, ignore_validation_errors=None):
-    testSite(credentials, True, canonical_domain, domain_aliases, test_id, recursive, special_dictionary, ignore_query_string_keys, ignore_validation_errors)
-
-def testSite(credentials, full, canonical_domain, domain_aliases, test_id, recursive=True, special_dictionary = None, ignore_query_string_keys=None, ignore_validation_errors=None):
+def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False, recursive=True, special_dictionary = None, ignore_query_string_keys=None, ignore_validation_errors=None):
     if full:
         print "FULL SITE TEST :: %s"%(canonical_domain)
     else:

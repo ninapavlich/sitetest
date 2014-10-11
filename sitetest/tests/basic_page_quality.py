@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup, SoupStrainer
 
 def test_basic_page_quality(links, canonical_domain, domain_aliases, messages):
     """
-    For each page, make sure there is a unique title and description, analytics
+    For each page, make sure there is a unique title and description
     """
 
     unique_titles = {}
