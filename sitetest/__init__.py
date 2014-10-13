@@ -19,11 +19,9 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         else:
             print "BASIC SITE TEST :: %s"%(canonical_domain)
 
-    #TODO: boolean for check files and images
+    
     #TODO: Add screenshots from browserstack http://www.browserstack.com/screenshots/api
-    #TODO: Add w3c validation
     #TODO: Add linting for css and js files and make sure they are being served as GZIP
-    #TODO: testSiteBasic, testURL, testSiteFull (include w3c compliance and browserstack)
     #TODO: Add to python index and readthedocs
 
 

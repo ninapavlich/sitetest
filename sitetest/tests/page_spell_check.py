@@ -75,12 +75,21 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                 if has_lorem_ipsum == False:
                     for text in visible_texts:
                     
+                        #replace curly quotes and emdashes
+                        text = text.replace(u"’", "'").replace(u"“", "\"").replace(u"”", "\"").replace(u"–","-").replace(u"—","-")
+
                         words = text.replace('-',' ').split(" ")
                         
                         cleaned_words = [word.strip().rstrip(u'?:!.,;()[]"“”’\'').lstrip(u'?:!.,;()[]"“”’\'') for word in words]
-                        depossessive_words = [word.replace(u"'s", "").replace(u"’s", "") for word in cleaned_words]
+                        depossessive_words = [word.replace(u"'s", "") for word in cleaned_words]
                         real_words = [word for word in depossessive_words if (word.strip() != '')]
 
+                        #TODO: Handle
+                        #‘term
+                        #non–medically
+                        #handle suffixes
+                        #1–3
+                        #it—so
 
                         
                         #tokenized_words = [w for w in tknzr(text)]
@@ -100,12 +109,14 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                             deordinaled = word.lower().replace("st", "").replace("nd", "").replace("rd", "").replace("th", "")
                             denumbered = translate_non_alphanumerics(deordinaled)                            
                             is_numeric = denumbered == '' or denumbered == None
+                            is_link = 'http' in word or 'www' in word
+
 
                             is_email = re.match(r"^[a-zA-Z0-9._]+\@[a-zA-Z0-9._]+\.[a-zA-Z]{3,}$", word) != None   
 
                             is_contraction = word.lower().replace(u"’",u"'") in CONTRACTION_LIST     
 
-                            if not word_exists and not word_is_proper_noun and not is_numeric and not is_email and not is_contraction:
+                            if not word_exists and not word_is_proper_noun and not is_numeric and not is_email and not is_contraction and not is_email:
                                 if word not in misspelled_words:
                                     message = "Notice: Word &ldquo;%s&rdquo; misspelled in <a href='#%s' class='alert-link'>%s</a>."%(word, link['internal_page_url'], link_url)
                                     link['messages']['info'].append(message)
