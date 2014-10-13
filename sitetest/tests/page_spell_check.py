@@ -23,6 +23,21 @@ CONTRACTION_LIST = ["aren't", "can't", "couldn't",
     "who's", "who've", "won't", "wouldn't", "you'd", 
     "you'll", "you're", "you've"]
 
+PREFIX_LIST = ['a', 'anti', 'arch', 'be', 'co', 'counter', 'de', 'dis', 'dis', 
+'en', 'ex', 'fore', 'hind', 'mal', 'mid', 'midi', 'mini', 'mis', 'out', 'over', 
+'post', 'pre', 'pro', 're', 'self', 'step', 'trans', 'twi', 'un', 'un', 'under', 
+'up', 'with', 'Afro', 'ambi', 'amphi', 'an', 'ana', 'Anglo', 'ante', 'anti', 
+'apo', 'astro', 'auto', 'bi', 'bio', 'circum', 'cis', 'con', 'contra', 'cryo', 
+'crypto', 'de', 'demi', 'demo', 'deuter', 'di', 'dia', 'dis', 'du', 'eco', 
+'electro', 'en', 'epi', 'Euro', 'ex', 'extra', 'Franco', 'geo', 'gyro', 
+'hetero', 'hemi', 'homo', 'hydro', 'hyper', 'hypo', 'ideo', 'idio', 'in', 
+'Indo', 'in', 'infra', 'inter', 'intra', 'iso', 'macro', 'maxi', 'mega', 'meta',
+'micro', 'mono, mon', 'multi', 'neo', 'non', 'omni', 'ortho', 'paleo', 'pan', 
+'para', 'ped', 'per', 'peri', 'photo', 'pod', 'poly', 'post', 'pre', 'preter', 
+'pro', 'pro', 'pros', 'proto', 'pseudo', 'pyro', 'quasi', 'retro', 'semi', 
+'socio', 'sub', 'super', 'supra', 'sur', 'syn', 'tele', 'trans', 'tri', 
+'ultra', 'uni', 'vice']
+
 def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, special_dictionary, verbose=False):
     """
     For each page, make sure that visible text is spelled correctly
@@ -109,14 +124,19 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                             deordinaled = word.lower().replace("st", "").replace("nd", "").replace("rd", "").replace("th", "")
                             denumbered = translate_non_alphanumerics(deordinaled)                            
                             is_numeric = denumbered == '' or denumbered == None
-                            is_link = 'http' in word or 'www' in word
+                            is_prefix = word.lower() in PREFIX_LIST
+                            
 
 
-                            is_email = re.match(r"^[a-zA-Z0-9._]+\@[a-zA-Z0-9._]+\.[a-zA-Z]{3,}$", word) != None   
+                            is_technological = (re.match(r"^[a-zA-Z0-9._]+\@[a-zA-Z0-9._]+\.[a-zA-Z]{3,}$", word) != None) or \
+                                ('http' in word.lower() or 'www' in word.lower()) or \
+                                (word[0].lower() == '@') or \
+                                (word[0].lower() == '#')
+
 
                             is_contraction = word.lower().replace(u"’",u"'") in CONTRACTION_LIST     
 
-                            if not word_exists and not word_is_proper_noun and not is_numeric and not is_email and not is_contraction and not is_email:
+                            if not word_exists and not word_is_proper_noun and not is_numeric and not is_technological and not is_contraction and not is_prefix:
                                 if word not in misspelled_words:
                                     message = "Notice: Word &ldquo;%s&rdquo; misspelled in <a href='#%s' class='alert-link'>%s</a>."%(word, link['internal_page_url'], link_url)
                                     link['messages']['info'].append(message)
