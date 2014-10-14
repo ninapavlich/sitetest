@@ -66,8 +66,31 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                         message = "Warning: Page description is missing from <a href='#%s' class='alert-link'>%s</a>."%(link['internal_page_url'], link_url)
                         link['messages']['warning'].append(message)
 
+                    #3 - Test Meta tags
+                    og_site_name = get_meta_property(link, 'og:site_name', "property")
+                    og_title = get_meta_property(link, 'og:title', "property")         
+                    og_description = get_meta_property(link, 'og:description', "property")         
+                    og_type = get_meta_property(link, 'og:type', "property")         
+                    og_url = get_meta_property(link, 'og:url', "property")         
+                    og_image = get_meta_property(link, 'og:image', "property")    
+
+                    twitter_card = get_meta_property(link, 'twitter:card', 'name')         
+                    twitter_title = get_meta_property(link, 'twitter:title', 'name')         
+                    twitter_description = get_meta_property(link, 'twitter:description', 'name')         
+                    twitter_url = get_meta_property(link, 'twitter:url', 'name')         
+                    twitter_image = get_meta_property(link, 'twitter:image', 'name')    
+
+                    google_name = get_meta_property(link, 'name', 'itemprop')
+                    google_description = get_meta_property(link, 'description', 'itemprop')
+                    google_image = get_meta_property(link, 'image', 'itemprop')
+                    
+
+
+
                     #3 - Test Analytics
                     #TODO
+
+
                         
                 except:
                     pass
@@ -80,3 +103,17 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
 
     return links, messages
 
+def get_meta_item(link, property_name, prop_type):
+    property = None
+    properties = soup.findAll(attrs={prop_type:property_name})
+    for property_item in properties:
+        try:
+            property = property_item['content'].strip()
+        except:
+            pass  
+
+    if not property:
+        message = "Warning: Meta tag %s:%s is missing from page"%(prop_type, property)
+        link['messages']['warning'].append(message)
+
+    return property

@@ -22,8 +22,10 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
     
     #TODO: Add screenshots from browserstack http://www.browserstack.com/screenshots/api
     #TODO: Add linting for css and js files and make sure they are being served as GZIP
-    #TODO: Add to python index and readthedocs
+    #TODO: Add social meta tag verification
+    #TODO: Pagespeed Insights: https://developers.google.com/speed/docs/insights/v1/getting_started#intro
 
+    #TODO: Add to python index and readthedocs
 
     start_time = datetime.datetime.now()
 
