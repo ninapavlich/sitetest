@@ -11,6 +11,7 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
 
     unique_title_error_count = 0
     unique_description_error_count = 0
+    social_tag_error_count = 0
     
     for link_url in links:
         link = links[link_url]
@@ -100,6 +101,7 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                                 value = None
                         
                         if not value:
+                            social_tag_error_count += 1
                             message = "Warning: Meta tag %s:%s is missing from page"%(prop_type, property_name)
                             link['messages']['warning'].append(message)
 
@@ -117,7 +119,10 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
         messages['info'].append("Notice: %s pages were found to non-unique page titles"%(unique_title_error_count))
 
     if unique_description_error_count > 0:
-        messages['info'].append("Notice: %s pages were found to non-unique page descriptions"%(unique_description_error_count))             
+        messages['info'].append("Notice: %s pages were found to non-unique page descriptions"%(unique_description_error_count)) 
+
+    if social_tag_error_count > 0:
+        messages['info'].append("Notice: %s pages were found to be missing social meta tags"%(social_tag_error_count))             
 
     return links, messages
 
