@@ -93,8 +93,7 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                     for text in visible_texts:
                     
                         #replace curly quotes and emdashes
-                        text = text.replace(u"’", "'").replace(u"“", "\"").replace(u"”", "\"").replace(u"–","-").replace(u"‘","'").replace(u"’","'").replace(u"—","-")
-
+                        text = text.replace(u"’", "'").replace(u"“", "\"").replace(u"”", "\"").replace(u"–","-").replace(u"‘","'").replace(u"’","'").replace(u"—","-").replace("…", '.')
 
                         words = text.replace('-',' ').replace('/',' ').split(" ")
                         
@@ -137,7 +136,7 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
 
 
                             is_technological = (re.match(r"^[a-zA-Z0-9._]+\@[a-zA-Z0-9._]+\.[a-zA-Z]{3,}$", word) != None) or \
-                                ('http' in word.lower() or 'www' in word.lower()) or \
+                                ('http' in word.lower() or 'www' in word.lower() or '.com' in word.lower()) or \
                                 (word[0].lower() == '@') or \
                                 (word[0].lower() == '#')
 
