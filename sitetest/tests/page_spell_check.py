@@ -93,7 +93,7 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                     for text in visible_texts:
                     
                         #replace curly quotes and emdashes
-                        text = text.replace(u"’", "'").replace(u"“", "\"").replace(u"”", "\"").replace(u"–","-").replace(u"‘","'").replace(u"’","'").replace(u"—","-").replace("…", '.')
+                        text = text.replace(u"’", "'").replace(u"“", "\"").replace(u"”", "\"").replace(u"–","-").replace(u"‘","'").replace(u"’","'").replace(u"—","-").replace(u"…", '.')
 
                         words = text.replace('-',' ').replace('/',' ').split(" ")
                         
