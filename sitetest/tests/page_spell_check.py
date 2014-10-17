@@ -17,11 +17,12 @@ CONTRACTION_LIST = ["aren't", "can't", "couldn't",
     "i'm", "i've", "isn't", "let's", "mightn't", 
     "mustn't", "shan't", "she'd", "she'll", "she's", 
     "shouldn't", "that's", "there's", "they'd", 
-    "they'll", "they're", "they've", "we'd", "we're", 
+    "they'll", "they're", "they've", "wasn't", "we'd", "we're", 
     "we've", "weren't", "what'll", "what're", "what's", 
     "what've", "where's", "who's", "who'll", "who're", 
     "who's", "who've", "won't", "wouldn't", "you'd", 
     "you'll", "you're", "you've"]
+
 
 PREFIX_LIST = ['a', 'anti', 'arch', 'be', 'co', 'counter', 'de', 'dis', 'dis', 
 'en', 'ex', 'fore', 'hind', 'mal', 'mid', 'midi', 'mini', 'mis', 'out', 'over', 
@@ -37,6 +38,7 @@ PREFIX_LIST = ['a', 'anti', 'arch', 'be', 'co', 'counter', 'de', 'dis', 'dis',
 'pro', 'pro', 'pros', 'proto', 'pseudo', 'pyro', 'quasi', 'retro', 'semi', 
 'socio', 'sub', 'super', 'supra', 'sur', 'syn', 'tele', 'trans', 'tri', 
 'ultra', 'uni', 'vice']
+
 
 def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, special_dictionary, verbose=False):
     """
@@ -91,9 +93,10 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                     for text in visible_texts:
                     
                         #replace curly quotes and emdashes
-                        text = text.replace(u"’", "'").replace(u"“", "\"").replace(u"”", "\"").replace(u"–","-").replace(u"—","-")
+                        text = text.replace(u"’", "'").replace(u"“", "\"").replace(u"”", "\"").replace(u"–","-").replace(u"‘","'").replace(u"’","'").replace(u"—","-")
 
-                        words = text.replace('-',' ').split(" ")
+
+                        words = text.replace('-',' ').replace('/',' ').split(" ")
                         
                         cleaned_words = [word.strip().rstrip(u'?:!.,;()[]"“”’\'').lstrip(u'?:!.,;()[]"“”’\'') for word in words]
                         depossessive_words = [word.replace(u"'s", "") for word in cleaned_words]
@@ -105,6 +108,11 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                         #handle suffixes
                         #1–3
                         #it—so
+                        #$2,500
+                        #of…
+                        #e.g
+                        #mentor/mentee
+                        #1990s
 
                         
                         #tokenized_words = [w for w in tknzr(text)]
@@ -123,7 +131,7 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
 
                             deordinaled = word.lower().replace("st", "").replace("nd", "").replace("rd", "").replace("th", "")
                             denumbered = translate_non_alphanumerics(deordinaled)                            
-                            is_numeric = denumbered == '' or denumbered == None
+                            is_numeric = denumbered == '' or denumbered == None or denumbered == 's'
                             is_prefix = word.lower() in PREFIX_LIST
                             
 
@@ -133,16 +141,19 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                                 (word[0].lower() == '@') or \
                                 (word[0].lower() == '#')
 
+                            money_regex = re.compile(r'^\$?(\d*(\d\.?|\.\d{1,2}))$')
+                            is_money = money_regex.match(word) 
+
 
                             is_contraction = word.lower().replace(u"’",u"'") in CONTRACTION_LIST     
 
-                            if not word_exists and not word_is_proper_noun and not is_numeric and not is_technological and not is_contraction and not is_prefix:
+                            if not word_exists and not word_is_proper_noun and not is_numeric and not is_technological and not is_contraction and not is_prefix and not is_money:
                                 if word not in misspelled_words:
                                     message = "Notice: Word &ldquo;%s&rdquo; misspelled in <a href='#%s' class='alert-link'>%s</a>."%(word, link['internal_page_url'], link_url)
                                     link['messages']['info'].append(message)
                                     misspelled_words.append(word)
 
-                                spelling_issue_count += 1    
+                                    spelling_issue_count += 1    
                 else:
                     message = "Notice: Spell check skipped on this page because Lorem Ipsum was found"
                     link['messages']['info'].append(message)

@@ -122,7 +122,7 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
         messages['info'].append("Notice: %s pages were found to non-unique page descriptions"%(unique_description_error_count)) 
 
     if social_tag_error_count > 0:
-        messages['info'].append("Notice: %s pages were found to be missing social meta tags"%(social_tag_error_count))             
+        messages['info'].append("Notice: %s social meta tags are missing"%(social_tag_error_count))             
 
     return links, messages
 

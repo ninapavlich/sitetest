@@ -73,11 +73,11 @@ def test_w3c_compliance(links, canonical_domain, domain_aliases, messages, ignor
                     warnings_found_count += len(actual_warnings)
                     errors_found_count += len(actual_errors)
 
-                    if validator.error_count > 0:
+                    if len(actual_errors) > 0:
                         message = "Warning: Found %s validation errors on page %s."%(len(actual_errors), link_url)
                         link['messages']['warning'].append(message)
 
-                    if validator.warning_count > 0:
+                    if len(actual_warnings) > 0:
                         message = "Notice: Found %s validation warnings on page %s."%(len(actual_warnings), link_url)
                         link['messages']['info'].append(message)
 
