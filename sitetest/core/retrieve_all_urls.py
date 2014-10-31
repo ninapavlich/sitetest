@@ -72,13 +72,10 @@ def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recu
         if soup:
 
             page_link['html'] = soup.prettify()
-            for a in soup.findAll('a'):
 
-                try:
-                    href = a['href']        
-                except:
-                    href = ''
-                
+            page_urls = get_urls_on_page(soup)
+
+            for href in page_urls:
 
                 normalized_href = get_normalized_href(href, canonical_domain, domain_aliases, page_url, ignore_query_string_keys)                
                 link = get_or_create_link_object(normalized_href, current_links, canonical_domain, domain_aliases, page_url)
@@ -97,9 +94,55 @@ def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recu
 
     return (current_links, parsed_links, messages)
 
+def get_urls_on_page(soup):
+    output = []
+
+    #Traditional hyperlinks
+    for a in soup.findAll('a'):
+
+        try:
+            href = a['href']  
+            output.append(href)      
+        except:
+            href = None
+    
+
+    #Sitemap links
+    for url in soup.findAll('url'):
+        url_loc = None
+        for loc in url.findAll('loc'):
+            if loc.text:
+                output.append(loc.text)
+
+    #CSS Links
+    for a in soup.findAll('link'):
+        try:
+            href = a['href']  
+            rel = a['rel'][0].strip()
+            if rel == 'stylesheet':
+                output.append(href)      
+        except:
+            href = None 
+
+    #JS Links
+    for a in soup.findAll('script'):
+        try:
+            src = a['src']  
+            output.append(src)      
+        except:
+            href = None 
+
+    return output
+
 def get_normalized_href(url, canonical_domain, domain_aliases, normalized_parent_url=None, ignore_query_string_keys=None):
     if ignore_query_string_keys is None:
         ignore_query_string_keys = []
+
+    if url.startswith('//'):
+        if canonical_domain.startswith('https'):
+            url = u"https:%s"%(url)
+        else:
+            url = u"http:%s"%(url)
 
     #Normalize url by converting to lowercase: 
     normalized = url.lower()
@@ -196,6 +239,8 @@ def load_link_object(link, canonical_domain, domain_aliases, messages, expected_
         end_time = datetime.datetime.now()
         link['response_code'] = 200
         link['response'] = u"%s"%(response)
+        link['response_content_type'] = response.info().getheader('Content-Type')
+
 
         load_time = end_time - start_time
         milliseconds = timedelta_milliseconds(load_time)
@@ -274,12 +319,14 @@ def create_link_object(url, canonical_domain, domain_aliases):
         'path':parsed.path,
         'response_code':None,
         'response':None,
+        'response_content_type':None,
         'html':None,
         'title':None,
         'content':None,
         'response_load_time':None,
         'description':None,
-        'is_media':(extension.lower() in MEDIA_SUFFIXES)
+        'is_media':(extension.lower() in MEDIA_SUFFIXES),
+        'sitemap_entry':None
     }
 
 def get_link_type(url, canonical_domain, domain_aliases):
@@ -290,7 +337,7 @@ def get_link_type(url, canonical_domain, domain_aliases):
     elif (':' in url.lower()) and (not 'http' in url.lower()):
         return TYPE_OTHER
     else:
-        if 'http' not in url.lower():
+        if '//' not in url.lower():
             return TYPE_INTERNAL
         else:
 

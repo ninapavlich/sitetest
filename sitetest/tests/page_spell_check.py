@@ -162,7 +162,7 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                 #   pass
 
     if lorem_ipsum_count > 0:
-        messages['warning'].append("Notice: %s pages were found to have Lorem Ipsum"%(lorem_ipsum_count))
+        messages['warning'].append("Warning: %s pages were found to have Lorem Ipsum"%(lorem_ipsum_count))
 
     if spelling_issue_count > 0:
         messages['info'].append("Notice: %s spelling issues found"%(spelling_issue_count))

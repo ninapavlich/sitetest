@@ -19,6 +19,8 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         else:
             print "BASIC SITE TEST :: %s"%(canonical_domain)
 
+    # recursive = False
+
     
     #TODO: Add screenshots from browserstack http://www.browserstack.com/screenshots/api
     #TODO: Add linting for css and js files and make sure they are being served as GZIP
@@ -44,7 +46,13 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         'warning':[],
         'info':[],
     }
+
+    #Load from homepage
     current_links, parsed_links, messages = retrieve_all_urls(canonical_domain, canonical_domain, domain_aliases, messages, recursive, full, ignore_query_string_keys, None, None, None, verbose)
+
+    #Load any additional from sitemap
+    sitemap_url = "%ssitemap.xml"%(canonical_domain) if canonical_domain.endswith("/") else "%s/sitemap.xml"%(canonical_domain)
+    current_links, parsed_links, messages = retrieve_all_urls(sitemap_url, canonical_domain, domain_aliases, messages, recursive, full, ignore_query_string_keys, None, current_links, parsed_links, verbose)
     
     if recursive:
         #1. Site quality test
