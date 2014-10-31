@@ -38,6 +38,7 @@ def test_basic_site_quality(current_urls, canonical_domain, domain_aliases, mess
 
 
     #5 - Verify that sitemap matches up with the actual pages
+    #TODO -- work with compound sitemaps
     if sitemap_link['response_code'] == 200:
 
         sitemap_soup = BeautifulSoup(sitemap_link['html'])

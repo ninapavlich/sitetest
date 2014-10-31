@@ -18,8 +18,7 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
         link_type = link['type']
         content_type = link['response_content_type']
 
-        if link_type == TYPE_INTERNAL and link['response_content_type'] \
-            and 'html' in link['response_content_type'].lower():
+        if link_type == TYPE_INTERNAL and content_type and 'html' in content_type.lower():
 
             link_html = link['html']
             if link_html:

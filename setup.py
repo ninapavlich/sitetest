@@ -66,7 +66,7 @@ setup(
     # project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/technical.html#install-requires-vs-requirements-files
-    install_requires=['setuptools','httplib2','beautifulsoup4', 'jinja2', 'w3c-validator', 'pyenchant', 'pyslack', 'boto'],
+    install_requires=['setuptools','httplib2','beautifulsoup4', 'jinja2', 'w3c-validator', 'pyenchant', 'pyjslint','pyslack', 'boto', 'jsbeautifier'],
 
     # List additional groups of dependencies here (e.g. development dependencies).
     # You can install these using the following syntax, for example:

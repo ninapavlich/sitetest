@@ -10,6 +10,7 @@ from .tests.basic_page_quality import test_basic_page_quality
 from .tests.page_spell_check import test_basic_spell_check
 from .tests.w3c_compliance import test_w3c_compliance
 from .tests.screenshots import test_screenshots
+from .tests.lint_js import test_lint_js
 
             
 def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False, recursive=True, special_dictionary = None, ignore_query_string_keys=None, ignore_validation_errors=None, verbose=False):
@@ -63,6 +64,10 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
 
     #3. Spell Check test
     current_links, messages = test_basic_spell_check(current_links, canonical_domain, domain_aliases, messages, special_dictionary, verbose)
+
+    #4. Lint JS
+    current_links, messages = test_lint_js(current_links, canonical_domain, domain_aliases, messages, verbose)
+
 
     if full:
         #4. W3C Compliance test

@@ -238,9 +238,8 @@ def load_link_object(link, canonical_domain, domain_aliases, messages, expected_
         response = urllib2.urlopen(request)
         end_time = datetime.datetime.now()
         link['response_code'] = 200
-        link['response'] = u"%s"%(response)
+        link['response'] = response#u"%s"%(response)
         link['response_content_type'] = response.info().getheader('Content-Type')
-
 
         load_time = end_time - start_time
         milliseconds = timedelta_milliseconds(load_time)

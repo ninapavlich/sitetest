@@ -150,7 +150,7 @@
 							  {% if links[link].validation.warnings|length > 0 or links[link].validation.errors|length > 0 %}
 							  <li><a href="#load-test-result-body-{{loop.index}}-validation" role="tab" data-toggle="tab">Validation</a></li>
 							  {% endif %}
-							  <li><a href="#load-test-result-body-{{loop.index}}-source" role="tab" data-toggle="tab">HTML Source</a></li>
+							  <li><a href="#load-test-result-body-{{loop.index}}-source" role="tab" data-toggle="tab">Source</a></li>
 							  {% endif %}
 
 							  <li><a href="#load-test-result-body-{{loop.index}}-tools" role="tab" data-toggle="tab">Tools</a></li>
@@ -240,8 +240,18 @@
 							  	
 							  	{% for message in links[link].validation.errors %}
 								<li class="alert alert-warning" role="alert">
+
+									{% if message.lastLine %}
+
 									<p>Error on Line {{message.lastLine}}, Column {{message.lastColumn}}: <strong>{{message.message}}</strong></p>
 									<pre>{{message.src|e}}</pre>
+
+									{% else %}
+									
+									<p>Error:</p>
+									<pre>{{message|e}}</pre>
+									
+									{% endif %}
 								</li>		        				
 								{% endfor %}  
 
