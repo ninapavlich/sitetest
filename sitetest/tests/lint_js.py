@@ -82,11 +82,10 @@ def test_lint_js(links, canonical_domain, domain_aliases, messages, verbose=Fals
                             'message':full_message,
                             'src':source
                         }
-                        print "ERROR"
-                        print error
+                        
                         js_errors.append(error)
 
-                print "JS ERRORS: %s"%(js_errors)
+                
                 total_js_error_count += len(js_errors)
                 link['validation'] = {
                     'errors':js_errors
@@ -95,10 +94,10 @@ def test_lint_js(links, canonical_domain, domain_aliases, messages, verbose=Fals
                     message = "Warning: Found %s lint errors."%(len(js_errors))
                     link['messages']['warning'].append(message)
             
-
+#/*jslint white: true */
 
             #DELETE local file
-            #os.unlink(local_file_path)
+            os.unlink(local_file_path)
 
             
     if total_js_error_count > 0:

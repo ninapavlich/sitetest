@@ -21,7 +21,7 @@ CONTRACTION_LIST = ["aren't", "can't", "couldn't",
     "we've", "weren't", "what'll", "what're", "what's", 
     "what've", "where's", "who's", "who'll", "who're", 
     "who's", "who've", "won't", "wouldn't", "you'd", 
-    "you'll", "you're", "you've"]
+    "you'll", "you're", "you've", "e.g", "i.e"]
 
 
 PREFIX_LIST = ['a', 'anti', 'arch', 'be', 'co', 'counter', 'de', 'dis', 'dis', 
@@ -141,7 +141,7 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                                 (word[0].lower() == '#')
 
                             money_regex = re.compile(r'^\$?(\d*(\d\.?|\.\d{1,2}))$')
-                            is_money = money_regex.match(word) 
+                            is_money = money_regex.match(word.replace(",","")) 
 
 
                             is_contraction = word.lower().replace(u"’",u"'") in CONTRACTION_LIST     
