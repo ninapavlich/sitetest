@@ -88,7 +88,6 @@ def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recu
         if recursive:
             for child_link in page_link['links']:
                 if child_link not in parsed_links:
-                    #print 'parse child page %s'%(child_link)
                     current_links, parsed_links, messages = retrieve_all_urls(child_link, canonical_domain, domain_aliases, messages, recursive, include_media, ignore_query_string_keys, normalized_page_url, current_links, parsed_links, verbose)
     if verbose:           
         print "Parsed %s links"%(len(parsed_links))
@@ -245,7 +244,6 @@ def load_link_object(link, canonical_domain, domain_aliases, messages, expected_
 
         if link_url != link['ending_url']:
             redirect_path = trace_path(link_url, [])
-            print "Redirect from %s to %s following path %s"%(link_url, link['ending_url'], redirect_path)
             link['redirect_path'] = redirect_path
 
 
@@ -389,8 +387,6 @@ def trace_path(url, traced, depth=0):
         response = urllib2.urlopen(request)
         end_time = datetime.datetime.now()
         response_data['response_code'] = response.code
-        print "RESPONSE From %s is %s"%(url, response.code)
-        #link['response'] = response#u"%s"%(response)
         response_data['response_content_type'] = response.info().getheader('Content-Type')
 
         load_time = end_time - start_time
@@ -433,6 +429,6 @@ def trace_path(url, traced, depth=0):
 
     if has_redirect:
         traced = trace_path(ending_url, traced)
-        print "Redirect from %s to %s following path %s"%(url, ending_url, traced)
+        
 
     return traced
