@@ -12,6 +12,7 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
     unique_title_error_count = 0
     unique_description_error_count = 0
     social_tag_error_count = 0
+    analytics_missing_error_count = 0
     
     for link_url in links:
         link = links[link_url]
@@ -32,17 +33,20 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                         page_title = ''
                     link['title'] = page_title.strip()
 
+                    is_redirected_page = link['url'] != link['ending_url']
+                    
                     if page_title == '':
                         message = "Warning: Page title is missing from <a href='#%s' class='alert-link'>%s</a>."%(link['internal_page_url'], link_url)
                         link['messages']['warning'].append(message)
 
                     elif page_title not in unique_titles:
-                        unique_titles[page_title] = 1
+                        unique_titles[page_title] = link['path']
                     else:               
-                        unique_titles[page_title] = int(unique_titles[page_title])+1
-                        message = "Notice: Page title &ldquo;%s&rdquo; in <a href='#%s' class='alert-link'>%s</a> is not unique."%(page_title, link['internal_page_url'], link_url)
-                        link['messages']['info'].append(message)
-                        unique_title_error_count += 1
+                        if link['path'].strip('/') != unique_titles[page_title].strip('/') and not is_redirected_page:
+                            message = "Warning: Page title &ldquo;%s&rdquo; in <a href='#%s' class='alert-link'>%s</a> is not unique."%(page_title, link['internal_page_url'], link_url)
+                            link['messages']['warning'].append(message)
+                            unique_title_error_count += 1
+                        
 
                     #2 - Test Description
                     page_description = None
@@ -57,13 +61,12 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                     if page_description:
 
                         if page_description not in unique_descriptions:
-                            unique_descriptions[page_description] = 1
+                            unique_descriptions[page_description] = link['path']
                         else:               
-                            unique_descriptions[page_description] = int(unique_descriptions[page_description])+1
-
-                            message = "Notice: Page description in <a href='#%s' class='alert-link'>%s</a> is not unique."%(link['internal_page_url'], link_url)
-                            link['messages']['info'].append(message)
-                            unique_description_error_count += 1
+                            if link['path'].strip('/') != unique_descriptions[page_description].strip('/') and not is_redirected_page:
+                                message = "Warning: Page description in <a href='#%s' class='alert-link'>%s</a> is not unique."%(link['internal_page_url'], link_url)
+                                link['messages']['warning'].append(message)
+                                unique_description_error_count += 1
 
                     else:                       
                         message = "Warning: Page description is missing from <a href='#%s' class='alert-link'>%s</a>."%(link['internal_page_url'], link_url)
@@ -110,18 +113,28 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                     
 
                     #3 - Test Analytics
-                    #TODO
+                    universal_analytics_indicator = 'GoogleAnalyticsObject'
+                    asynchronous_analytics_indicator = '_gaq'
+                    has_ua = universal_analytics_indicator in link_html
+                    has_asynca = asynchronous_analytics_indicator in link_html
+                    if not has_ua and not has_asynca:
+                        analytics_missing_error_count += 1
+                        message = "Warning: Page missing google analytics"
+                        link['messages']['warning'].append(message)
 
 
                         
                 except:
                     pass
 
+    if analytics_missing_error_count > 0:
+        messages['warning'].append("Warning: %s pages were found to be missing google analytics"%(analytics_missing_error_count))
+
     if unique_title_error_count > 0:
-        messages['info'].append("Notice: %s pages were found to non-unique page titles"%(unique_title_error_count))
+        messages['warning'].append("Warning: %s pages were found to non-unique page titles"%(unique_title_error_count))
 
     if unique_description_error_count > 0:
-        messages['info'].append("Notice: %s pages were found to non-unique page descriptions"%(unique_description_error_count)) 
+        messages['warning'].append("Warning: %s pages were found to non-unique page descriptions"%(unique_description_error_count)) 
 
     if social_tag_error_count > 0:
         messages['info'].append("Notice: %s social meta tags are missing"%(social_tag_error_count))             

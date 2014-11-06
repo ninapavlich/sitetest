@@ -92,7 +92,7 @@ def test_lint_js(links, canonical_domain, domain_aliases, messages, verbose=Fals
                 }
                 if len(js_errors) > 0:
                     message = "Warning: Found %s lint errors."%(len(js_errors))
-                    link['messages']['warning'].append(message)
+                    link['messages']['info'].append(message)
             
 #/*jslint white: true */
 
@@ -101,7 +101,7 @@ def test_lint_js(links, canonical_domain, domain_aliases, messages, verbose=Fals
 
             
     if total_js_error_count > 0:
-        messages['warning'].append("Warning: %s js lint errors found."%(total_js_error_count))             
+        messages['info'].append("Warning: %s js lint errors found."%(total_js_error_count))             
 
 
     #DELETE TMP FOLDER

@@ -1,4 +1,5 @@
 import datetime
+import httplib
 import urllib2
 import urllib
 import urlparse
@@ -240,6 +241,13 @@ def load_link_object(link, canonical_domain, domain_aliases, messages, expected_
         link['response_code'] = 200
         link['response'] = response#u"%s"%(response)
         link['response_content_type'] = response.info().getheader('Content-Type')
+        link['ending_url'] = response.geturl()
+
+        if link_url != link['ending_url']:
+            redirect_path = trace_path(link_url, [link_url])
+            print "Redirect from %s to %s following path %s"%(link_url, link['ending_url'], redirect_path)
+            link['redirect_path'] = redirect_path
+
 
         load_time = end_time - start_time
         milliseconds = timedelta_milliseconds(load_time)
@@ -319,6 +327,8 @@ def create_link_object(url, canonical_domain, domain_aliases):
         'response_code':None,
         'response':None,
         'response_content_type':None,
+        'ending_url':None,
+        'redirect_path':None,
         'html':None,
         'title':None,
         'content':None,
@@ -352,3 +362,33 @@ def get_link_type(url, canonical_domain, domain_aliases):
 
 def timedelta_milliseconds(td):
     return td.days*86400000 + td.seconds*1000 + td.microseconds/1000
+
+
+# Recursively follow redirects until there isn't a location header
+def trace_path(url, traced, depth=0):
+
+    hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
+       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+       'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+       'Accept-Encoding': 'none',
+       'Accept-Language': 'en-US,en;q=0.8',
+       'Connection': 'keep-alive'}
+
+    if depth > 10:
+        raise Exception("Redirected "+depth+" times, giving up.")
+    
+    o = urlparse.urlparse(url,allow_fragments=True)
+    conn = httplib.HTTPConnection(o.netloc)
+
+    path = o.path
+    if o.query:
+        path +='?'+o.query
+    conn.request("HEAD", path, headers=hdr)
+    response = conn.getresponse()
+    headers = dict(response.getheaders())
+    print "STATUS? %s headers? %s"%(response.status, headers)
+    if headers.has_key('location') and headers['location'] != url:
+        traced.append({'url':headers['location'],'status':response.status})
+        return trace_path(headers['location'], traced, depth+1)
+    else:
+        return traced

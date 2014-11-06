@@ -109,6 +109,9 @@
 					        	<a data-parent="#accordion" data-toggle="collapse" href="#load-test-result-body-{{loop.index}}">
 					        		{% if links[link].title %}{{links[link].title}}<br /><br />{% endif %}
 						        	{{links[link].url}}
+						        	{% if links[link].url != links[link].ending_url %}
+						        	> {{links[link].ending_url}}
+						        	{% endif %}
 						        </a>
 
 						        

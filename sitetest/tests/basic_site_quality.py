@@ -67,7 +67,7 @@ def test_basic_site_quality(current_urls, canonical_domain, domain_aliases, mess
                     page_missing_sitemap += 1
 
         if page_missing_sitemap > 0:
-            messages['info'].append("Notice: %s pages were found to be missing from sitemap"%(page_missing_sitemap))
+            messages['warning'].append("Warning: %s pages were found to be missing from sitemap"%(page_missing_sitemap))
 
         
     return current_urls, messages
