@@ -238,13 +238,13 @@ def load_link_object(link, canonical_domain, domain_aliases, messages, expected_
         start_time = datetime.datetime.now()
         response = urllib2.urlopen(request)
         end_time = datetime.datetime.now()
-        link['response_code'] = 200
+        link['response_code'] = response.code
         link['response'] = response#u"%s"%(response)
         link['response_content_type'] = response.info().getheader('Content-Type')
         link['ending_url'] = response.geturl()
 
         if link_url != link['ending_url']:
-            redirect_path = trace_path(link_url, [link_url])
+            redirect_path = trace_path(link_url, [])
             print "Redirect from %s to %s following path %s"%(link_url, link['ending_url'], redirect_path)
             link['redirect_path'] = redirect_path
 
@@ -367,6 +367,10 @@ def timedelta_milliseconds(td):
 # Recursively follow redirects until there isn't a location header
 def trace_path(url, traced, depth=0):
 
+    if depth > 12:
+
+        return traced
+
     hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
@@ -374,21 +378,61 @@ def trace_path(url, traced, depth=0):
        'Accept-Language': 'en-US,en;q=0.8',
        'Connection': 'keep-alive'}
 
-    if depth > 10:
-        raise Exception("Redirected "+depth+" times, giving up.")
-    
-    o = urlparse.urlparse(url,allow_fragments=True)
-    conn = httplib.HTTPConnection(o.netloc)
+    request = urllib2.Request(url, headers=hdr)
+    response = None
+    response_data = {'url':url,'response_code':None,'response_content_type':None,'redirect':None,'response_load_time':None}
+    has_redirect = False
 
-    path = o.path
-    if o.query:
-        path +='?'+o.query
-    conn.request("HEAD", path, headers=hdr)
-    response = conn.getresponse()
-    headers = dict(response.getheaders())
-    print "STATUS? %s headers? %s"%(response.status, headers)
-    if headers.has_key('location') and headers['location'] != url:
-        traced.append({'url':headers['location'],'status':response.status})
-        return trace_path(headers['location'], traced, depth+1)
-    else:
-        return traced
+    try:
+
+        start_time = datetime.datetime.now()
+        response = urllib2.urlopen(request)
+        end_time = datetime.datetime.now()
+        response_data['response_code'] = response.code
+        print "RESPONSE From %s is %s"%(url, response.code)
+        #link['response'] = response#u"%s"%(response)
+        response_data['response_content_type'] = response.info().getheader('Content-Type')
+
+        load_time = end_time - start_time
+        milliseconds = timedelta_milliseconds(load_time)
+        response_data['response_load_time'] = milliseconds     
+
+        ending_url = response.geturl()
+        has_redirect = url != ending_url
+
+        if has_redirect:
+            response_data['redirect'] = ending_url
+               
+
+    except urllib2.HTTPError, e:
+        #checksLogger.error('HTTPError = ' + str(e.code))
+
+        try:
+            response_data['response_code'] = e.code    
+        except:
+            response_data['response_code'] = "Unknown HTTPError"
+
+    except urllib2.URLError, e:
+        #checksLogger.error('URLError = ' + str(e.reason))
+        response_data['response_code'] = "Unknown URLError: %s"%(e.reason)
+       
+    # except httplib.HTTPException, e:
+    #     #checksLogger.error('HTTPException')
+
+    #     if expect_success:
+    #         message = "Loading error on page <a href='#%s' class='alert-link'>%s</a> ERROR: %s"%(link['internal_page_url'], link_url, e)
+    #         messages['error'].append(message)
+    #         link['messages']['error'].append(message)
+
+    except Exception:
+        import traceback     
+        response_data['response_code'] = "Unknown Exception: %s"%(traceback.format_exc())
+        
+    
+    traced.append(response_data)
+
+    if has_redirect:
+        traced = trace_path(ending_url, traced)
+        print "Redirect from %s to %s following path %s"%(url, ending_url, traced)
+
+    return traced

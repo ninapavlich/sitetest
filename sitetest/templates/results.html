@@ -19,6 +19,9 @@
         ul, li{
         	list-style-type: none;
         }
+        h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+			line-height: 1.5em;
+		}
         </style>
 
         <link rel="icon" type="image/png" href="{{site.url}}/favicon.ico">
@@ -170,6 +173,8 @@
 						            <li>This page took {{links[link].response_load_time}}ms to
 						            load.</li>{% endif %}
 
+
+
 						            {% if links[link].description %}
 						            <li><strong>Page description:</strong> {{links[link].description}}</li>{% endif %}
 
@@ -190,6 +195,15 @@
 									{% endfor %}  
 								</ul>   
 						        
+								{% if links[link].redirect_path %}
+								<h4>Redirect Path</h4>
+								<ul>
+						            {% for item in links[link].redirect_path %}
+						            <li><strong>{{item.response_code}}</strong> {{item.url}} [{{item.response_content_type}}] - <em>{{item.response_load_time}} ms</em></li>
+						            {% endfor %}
+						        </ul>
+						        {% endif %}
+
 							  </div>
 
 							  {% if links[link].referers|length > 0 %}
