@@ -93,7 +93,7 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                     for text in visible_texts:
                     
                         #replace curly quotes and emdashes
-                        text = text.replace(u"’", "'").replace(u"“", "\"").replace(u"”", "\"").replace(u"–","-").replace(u"‘","'").replace(u"’","'").replace(u"—","-").replace(u"…", '.')
+                        text = text.replace(u"’", "'").replace(u"“", "\"").replace(u"”", "\"").replace(u"″","\"").replace(u"–","-").replace(u"‘","'").replace(u"’","'").replace(u"—","-").replace(u"…", '.')
 
                         words = text.replace('-',' ').replace('/',' ').split(" ")
                         
@@ -130,7 +130,10 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
 
                             deordinaled = word.lower().replace("st", "").replace("nd", "").replace("rd", "").replace("th", "")
                             denumbered = translate_non_alphanumerics(deordinaled)                            
-                            is_numeric = denumbered == '' or denumbered == None or denumbered == 's'
+                            is_numeric = denumbered == '' or denumbered == None \
+                                or denumbered == 's' or denumbered == 'tb' or \
+                                denumbered == 'gb' or denumbered == 'gbe' or \
+                                denumbered == 'mb' or denumbered == 'k'
                             is_prefix = word.lower() in PREFIX_LIST
                             
 
