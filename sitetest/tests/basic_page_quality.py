@@ -34,6 +34,8 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                     link['title'] = page_title.strip()
 
                     is_redirected_page = link['url'] != link['ending_url']
+                    is_alias_page = link['alias_to'] != None
+                    
                     
                     if page_title == '':
                         message = "Warning: Page title is missing from <a href='#%s' class='alert-link'>%s</a>."%(link['internal_page_url'], link_url)
@@ -42,7 +44,7 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                     elif page_title not in unique_titles:
                         unique_titles[page_title] = link['path']
                     else:               
-                        if link['path'].strip('/') != unique_titles[page_title].strip('/') and not is_redirected_page:
+                        if link['path'].strip('/') != unique_titles[page_title].strip('/') and not is_redirected_page and not is_alias_page:
                             message = "Warning: Page title &ldquo;%s&rdquo; in <a href='#%s' class='alert-link'>%s</a> is not unique."%(page_title, link['internal_page_url'], link_url)
                             link['messages']['warning'].append(message)
                             unique_title_error_count += 1
@@ -63,7 +65,7 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                         if page_description not in unique_descriptions:
                             unique_descriptions[page_description] = link['path']
                         else:               
-                            if link['path'].strip('/') != unique_descriptions[page_description].strip('/') and not is_redirected_page:
+                            if link['path'].strip('/') != unique_descriptions[page_description].strip('/') and not is_redirected_page and not is_alias_page:
                                 message = "Warning: Page description in <a href='#%s' class='alert-link'>%s</a> is not unique."%(link['internal_page_url'], link_url)
                                 link['messages']['warning'].append(message)
                                 unique_description_error_count += 1

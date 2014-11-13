@@ -170,10 +170,12 @@
 							  <div class="tab-pane active" id="load-test-result-body-{{loop.index}}-stats">
 							  	<ul>
 								  	{% if links[link].response_load_time %}
-						            <li>This page took {{links[link].response_load_time}}ms to
-						            load.</li>{% endif %}
+						            <li>This page took {{links[link].response_load_time}}ms to load.</li>
+						            {% endif %}
 
-
+						            {% if links[link].alias_to %}
+						            <li>This page is an alias to {{links[link].alias_to}}</li>
+						        	{% endif %}
 
 						            {% if links[link].description %}
 						            <li><strong>Page description:</strong> {{links[link].description}}</li>{% endif %}
@@ -195,6 +197,7 @@
 									{% endfor %}  
 								</ul>   
 						        
+
 								{% if links[link].redirect_path %}
 								<h4>Redirect Path</h4>
 								<ul>

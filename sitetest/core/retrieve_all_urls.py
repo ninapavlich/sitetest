@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import datetime
 import httplib
 import urllib2
@@ -21,7 +23,8 @@ MEDIA_SUFFIXES = [
     '.gz','.fla','.html','.ogg','.sql'
 ]
 
-def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recursive, include_media, ignore_query_string_keys=None, referer=None, current_links=None, parsed_links=None, verbose=False):
+def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recursive, include_media, ignore_query_string_keys=None, alias_query_strings=None, referer=None, current_links=None, parsed_links=None, verbose=False):
+    
     if current_links is None:
         current_links = {}
 
@@ -31,9 +34,12 @@ def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recu
     if ignore_query_string_keys is None:
         ignore_query_string_keys = []
 
+    if alias_query_strings is None:
+        alias_query_strings = []
+    
 
     normalized_page_url = get_normalized_href(page_url, canonical_domain, domain_aliases, page_url, ignore_query_string_keys)
-    page_link = get_or_create_link_object(page_url, current_links, canonical_domain, domain_aliases, referer)
+    page_link = get_or_create_link_object(page_url, current_links, canonical_domain, domain_aliases, referer, alias_query_strings)
     page_link_type = get_link_type(normalized_page_url, canonical_domain, domain_aliases)
 
     if page_link['is_media'] and include_media == False:
@@ -79,7 +85,7 @@ def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recu
             for href in page_urls:
 
                 normalized_href = get_normalized_href(href, canonical_domain, domain_aliases, page_url, ignore_query_string_keys)                
-                link = get_or_create_link_object(normalized_href, current_links, canonical_domain, domain_aliases, page_url)
+                link = get_or_create_link_object(normalized_href, current_links, canonical_domain, domain_aliases, page_url, alias_query_strings)
 
                 if not normalized_href in page_link['links'] and normalized_href != normalized_page_url:
                     page_link['links'].append(normalized_href)
@@ -88,7 +94,8 @@ def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recu
         if recursive:
             for child_link in page_link['links']:
                 if child_link not in parsed_links:
-                    current_links, parsed_links, messages = retrieve_all_urls(child_link, canonical_domain, domain_aliases, messages, recursive, include_media, ignore_query_string_keys, normalized_page_url, current_links, parsed_links, verbose)
+                                                            
+                    current_links, parsed_links, messages = retrieve_all_urls(child_link, canonical_domain, domain_aliases, messages, recursive, include_media, ignore_query_string_keys, alias_query_strings, normalized_page_url, current_links, parsed_links, verbose)
     if verbose:           
         print "Parsed %s links"%(len(parsed_links))
 
@@ -145,7 +152,7 @@ def get_normalized_href(url, canonical_domain, domain_aliases, normalized_parent
             url = u"http:%s"%(url)
 
     #Normalize url by converting to lowercase: 
-    normalized = url.lower()
+    normalized = url_fix(url.lower())
 
     dequeried_parent_url = clear_query_string(normalized_parent_url)
 
@@ -274,6 +281,9 @@ def load_link_object(link, canonical_domain, domain_aliases, messages, expected_
     #         messages['error'].append(message)
     #         link['messages']['error'].append(message)
 
+    except httplib.BadStatusLine as e:
+        link['response_code'] = "Bad Status Error. (Presumably, the server closed the connection before sending a valid response)"
+
     except Exception:
         import traceback        
         link['response_code'] = "Unknown Exception: %s"%(traceback.format_exc())
@@ -287,7 +297,7 @@ def load_link_object(link, canonical_domain, domain_aliases, messages, expected_
     return response, messages
 
 
-def get_or_create_link_object(url, current_urls, canonical_domain, domain_aliases, referer_url=None):
+def get_or_create_link_object(url, current_urls, canonical_domain, domain_aliases, referer_url=None, alias_query_strings=None):
     if url in current_urls:
         link = current_urls[url]
         #print '%s exists already'%(link)
@@ -299,6 +309,12 @@ def get_or_create_link_object(url, current_urls, canonical_domain, domain_aliase
 
     if referer_url and referer_url not in link['referers']:
         link['referers'].append(referer_url)
+
+    if alias_query_strings:
+        alias_url = clean_query_string(url, alias_query_strings)
+        if url != alias_url:
+            print "URL %s has alias %s"%(url, alias_url)
+            link['alias_to'] = alias_url
 
     return link
 
@@ -333,7 +349,8 @@ def create_link_object(url, canonical_domain, domain_aliases):
         'response_load_time':None,
         'description':None,
         'is_media':(extension.lower() in MEDIA_SUFFIXES),
-        'sitemap_entry':None
+        'sitemap_entry':None,
+        'alias_to':None
     }
 
 def get_link_type(url, canonical_domain, domain_aliases):
@@ -432,3 +449,27 @@ def trace_path(url, traced, depth=0):
         
 
     return traced
+
+def url_fix(s, charset='utf-8'):
+    """Sometimes you get an URL by a user that just isn't a real
+    URL because it contains unsafe characters like ' ' and so on.  This
+    function can fix some of the problems in a similar way browsers
+    handle data entered by the user:
+
+    >>> url_fix(u'http://de.wikipedia.org/wiki/Elf (Begriffsklärung)')
+    'http://de.wikipedia.org/wiki/Elf%20%28Begriffskl%C3%A4rung%29'
+
+    :param charset: The target charset for the URL if the url was
+                    given as unicode string.
+
+    TODO:
+    https://fonts.googleapis.com/css?family=Alegreya+Sans:400,700,400italic,700italic should become:
+    https://fonts.googleapis.com/css?family=Alegreya+Sans%3A400%2C700%2C400italic%2C700italic
+
+    """
+    if isinstance(s, unicode):
+        s = s.encode(charset, 'ignore')
+    scheme, netloc, path, qs, anchor = urlparse.urlsplit(s)
+    path = urllib.quote(path, '/%')
+    qs = urllib.quote_plus(qs, ':&=')
+    return urlparse.urlunsplit((scheme, netloc, path, qs, anchor))

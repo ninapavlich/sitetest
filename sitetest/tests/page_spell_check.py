@@ -21,7 +21,8 @@ CONTRACTION_LIST = ["aren't", "can't", "couldn't",
     "we've", "weren't", "what'll", "what're", "what's", 
     "what've", "where's", "who's", "who'll", "who're", 
     "who's", "who've", "won't", "wouldn't", "you'd", 
-    "you'll", "you're", "you've", "e.g", "i.e"]
+    "you'll", "you're", "you've", 
+    "e.g", "i.e", 'et', 'al', 'n.d', 'p.m', 'a.m']
 
 
 PREFIX_LIST = ['a', 'anti', 'arch', 'be', 'co', 'counter', 'de', 'dis', 'dis', 
@@ -60,7 +61,7 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
         
         if link_type == TYPE_INTERNAL:
             link_html = link['html']
-            if link_html:
+            if link_html and '.xml' not in link_url:
                 # try:
                 soup = BeautifulSoup(link_html)
 
@@ -93,7 +94,12 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                     for text in visible_texts:
                     
                         #replace curly quotes and emdashes
-                        text = text.replace(u"’", "'").replace(u"“", "\"").replace(u"”", "\"").replace(u"″","\"").replace(u"–","-").replace(u"‘","'").replace(u"’","'").replace(u"—","-").replace(u"…", '.')
+                        text = text.replace(u"’", "'").replace(u"“", "\"").\
+                            replace(u"”", "\"").replace(u"″","\"").\
+                            replace(u"–","-").replace(u"‘","'").\
+                            replace(u"’","'").replace(u"—","-").\
+                            replace(u"…", '.').replace(u"™", "").\
+                            replace(u"®", "")
 
                         words = text.replace('-',' ').replace('/',' ').split(" ")
                         
@@ -133,13 +139,13 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                             is_numeric = denumbered == '' or denumbered == None \
                                 or denumbered == 's' or denumbered == 'tb' or \
                                 denumbered == 'gb' or denumbered == 'gbe' or \
-                                denumbered == 'mb' or denumbered == 'k'
+                                denumbered == 'mb' or denumbered == 'k' or denumbered == 'ks'
                             is_prefix = word.lower() in PREFIX_LIST
                             
 
 
                             is_technological = (re.match(r"^[a-zA-Z0-9._]+\@[a-zA-Z0-9._]+\.[a-zA-Z]{3,}$", word) != None) or \
-                                ('http' in word.lower() or 'www' in word.lower() or '.com' in word.lower()) or \
+                                ('http' in word.lower() or 'www' in word.lower() or '.com' in word.lower() or '.org' in word.lower()) or \
                                 (word[0].lower() == '@') or \
                                 (word[0].lower() == '#')
 

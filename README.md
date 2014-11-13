@@ -81,9 +81,18 @@ special_dictionary is a list of words to ignore in the spelling test
 special_dictionary = ['yolo',]
 
 """
-ignore_query_string_keys is a list of query strings to ignore as unique urls
+ignore_query_string_keys is a list of query strings to ignore in the urls.
 """
 ignore_query_string_keys = ['next',]
+
+"""
+alias_query_strings is a list of query strings to ignore as unique urls. 
+These urls will be loaded and tested, but not subjected to 'unique' tests.
+"""
+alias_query_strings = ['page',]
+
+
+
 
 """
 ignore_validation_errors is a list of validation messages from w3c to ignore
