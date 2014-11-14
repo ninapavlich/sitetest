@@ -38,7 +38,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
             'ignore_query_string_keys':[],
             'alias_query_strings':[],
             'ignore_validation_errors':[],
-            'sitemap_ignore':[]
+            'skip_test_urls':[]
         }
 
 
@@ -63,14 +63,12 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         ignore_validation_errors = options['ignore_validation_errors']
 
 
-    if 'sitemap_ignore' not in options:
-        sitemap_ignore = []
+    if 'skip_test_urls' not in options:
+        skip_test_urls = []
     else:
-        sitemap_ignore = options['sitemap_ignore']
+        skip_test_urls = options['skip_test_urls']
 
 
-    if not sitemap_ignore:
-        sitemap_ignore = []
 
     messages = {
         'success':[],
@@ -80,15 +78,15 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
     }
 
     #Load from homepage
-    current_links, parsed_links, messages = retrieve_all_urls(canonical_domain, canonical_domain, domain_aliases, messages, recursive, full, ignore_query_string_keys, alias_query_strings, None, None, None, verbose)
+    current_links, parsed_links, messages = retrieve_all_urls(canonical_domain, canonical_domain, domain_aliases, messages, recursive, full, ignore_query_string_keys, alias_query_strings, skip_test_urls, None, None, None, verbose)
 
     #Load any additional from sitemap
     sitemap_url = "%ssitemap.xml"%(canonical_domain) if canonical_domain.endswith("/") else "%s/sitemap.xml"%(canonical_domain)
-    current_links, parsed_links, messages = retrieve_all_urls(sitemap_url, canonical_domain, domain_aliases, messages, recursive, full, ignore_query_string_keys, alias_query_strings, None, current_links, parsed_links, verbose)
+    current_links, parsed_links, messages = retrieve_all_urls(sitemap_url, canonical_domain, domain_aliases, messages, recursive, full, ignore_query_string_keys, alias_query_strings, skip_test_urls, None, current_links, parsed_links, verbose)
     
     if recursive:
         #1. Site quality test
-        current_links, messages = test_basic_site_quality(current_links, canonical_domain, domain_aliases, alias_query_strings, messages, verbose)
+        current_links, messages = test_basic_site_quality(current_links, canonical_domain, domain_aliases, messages, verbose)
 
     #2. Page quality test
     current_links, messages = test_basic_page_quality(current_links, canonical_domain, domain_aliases, messages, verbose)
@@ -257,7 +255,7 @@ def notify_results(results, credentials):
 
     message_output += ('%s links were tested.\n\n'%(len(results['sorted_links'])))
 
-    message_output += ('SCORE: %s-%s-%s\n\n'%(len(results['messages']['error']),len(results['messages']['warning']),len(results['messages']['info'])))
+    message_output += ('SCORE: %s-%s-%s (Lower is better, Best is 0-0-2)\n\n'%(len(results['messages']['error']),len(results['messages']['warning']),len(results['messages']['info'])))
 
     # for message in results['messages']['success']:
     #     message_output += (message+'\n\n')

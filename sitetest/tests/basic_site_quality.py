@@ -2,7 +2,7 @@ from ..core.retrieve_all_urls import get_or_create_link_object, load_link_object
 from bs4 import BeautifulSoup
 from ..core.retrieve_all_urls import TYPE_INTERNAL
 
-def test_basic_site_quality(current_urls, canonical_domain, domain_aliases, alias_query_strings, messages, verbose=False):
+def test_basic_site_quality(current_urls, canonical_domain, domain_aliases, messages, verbose=False):
     """
     This tests for robots.txt, sitemap.xml, top-level favicon.ico, test 400 page
     """
@@ -62,7 +62,9 @@ def test_basic_site_quality(current_urls, canonical_domain, domain_aliases, alia
             if link_type == TYPE_INTERNAL and link['response_content_type'] \
                 and 'html' in link['response_content_type'].lower():
 
-                if link['sitemap_entry'] == None and not link['alias_to']:
+                
+
+                if link['sitemap_entry'] == None and not link['alias_to'] and not link['skip_test']:
                     link['messages']['info'].append("Notice: Page is not included in sitemap")
                     page_missing_sitemap += 1
 

@@ -23,7 +23,7 @@ MEDIA_SUFFIXES = [
     '.gz','.fla','.html','.ogg','.sql'
 ]
 
-def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recursive, include_media, ignore_query_string_keys=None, alias_query_strings=None, referer=None, current_links=None, parsed_links=None, verbose=False):
+def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recursive, include_media, ignore_query_string_keys=None, alias_query_strings=None, skip_test_urls=None, referer=None, current_links=None, parsed_links=None, verbose=False):
     
     if current_links is None:
         current_links = {}
@@ -37,9 +37,11 @@ def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recu
     if alias_query_strings is None:
         alias_query_strings = []
     
+    if skip_test_urls is None:
+        skip_test_urls = []
 
     normalized_page_url = get_normalized_href(page_url, canonical_domain, domain_aliases, page_url, ignore_query_string_keys)
-    page_link = get_or_create_link_object(page_url, current_links, canonical_domain, domain_aliases, referer, alias_query_strings)
+    page_link = get_or_create_link_object(page_url, current_links, canonical_domain, domain_aliases, referer, alias_query_strings, skip_test_urls)
     page_link_type = get_link_type(normalized_page_url, canonical_domain, domain_aliases)
 
     if page_link['is_media'] and include_media == False:
@@ -85,7 +87,7 @@ def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recu
             for href in page_urls:
 
                 normalized_href = get_normalized_href(href, canonical_domain, domain_aliases, page_url, ignore_query_string_keys)                
-                link = get_or_create_link_object(normalized_href, current_links, canonical_domain, domain_aliases, page_url, alias_query_strings)
+                link = get_or_create_link_object(normalized_href, current_links, canonical_domain, domain_aliases, page_url, alias_query_strings, skip_test_urls)
 
                 if not normalized_href in page_link['links'] and normalized_href != normalized_page_url:
                     page_link['links'].append(normalized_href)
@@ -95,7 +97,7 @@ def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recu
             for child_link in page_link['links']:
                 if child_link not in parsed_links:
                                                             
-                    current_links, parsed_links, messages = retrieve_all_urls(child_link, canonical_domain, domain_aliases, messages, recursive, include_media, ignore_query_string_keys, alias_query_strings, normalized_page_url, current_links, parsed_links, verbose)
+                    current_links, parsed_links, messages = retrieve_all_urls(child_link, canonical_domain, domain_aliases, messages, recursive, include_media, ignore_query_string_keys, alias_query_strings, skip_test_urls, normalized_page_url, current_links, parsed_links, verbose)
     if verbose:           
         print "Parsed %s links"%(len(parsed_links))
 
@@ -297,7 +299,7 @@ def load_link_object(link, canonical_domain, domain_aliases, messages, expected_
     return response, messages
 
 
-def get_or_create_link_object(url, current_urls, canonical_domain, domain_aliases, referer_url=None, alias_query_strings=None):
+def get_or_create_link_object(url, current_urls, canonical_domain, domain_aliases, referer_url=None, alias_query_strings=None, skip_test_urls=None):
     if url in current_urls:
         link = current_urls[url]
         #print '%s exists already'%(link)
@@ -313,8 +315,13 @@ def get_or_create_link_object(url, current_urls, canonical_domain, domain_aliase
     if alias_query_strings:
         alias_url = clean_query_string(url, alias_query_strings)
         if url != alias_url:
-            print "URL %s has alias %s"%(url, alias_url)
             link['alias_to'] = alias_url
+
+    if skip_test_urls:
+        for skip_url_pattern in skip_test_urls:
+            regexp = re.compile(skip_url_pattern)
+            if regexp.search(url):
+                link['skip_test'] = True
 
     return link
 
@@ -350,7 +357,8 @@ def create_link_object(url, canonical_domain, domain_aliases):
         'description':None,
         'is_media':(extension.lower() in MEDIA_SUFFIXES),
         'sitemap_entry':None,
-        'alias_to':None
+        'alias_to':None,
+        'skip_test':False
     }
 
 def get_link_type(url, canonical_domain, domain_aliases):
