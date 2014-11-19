@@ -13,6 +13,7 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
     unique_description_error_count = 0
     social_tag_error_count = 0
     analytics_missing_error_count = 0
+    ssl_error_count = 0
     
     for link_url in links:
         link = links[link_url]
@@ -36,8 +37,7 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                     is_redirected_page = link['url'] != link['ending_url']
                     is_alias_page = link['alias_to'] != None
                     is_skip_test = link['skip_test'] == True
-                    
-                    
+                    is_https = 'https' in link['url']
 
                     if not is_skip_test:
 
@@ -118,7 +118,8 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
 
                         
 
-                        #3 - Test Analytics
+                        #4 - Test Analytics
+                        #TODO: Sometimes this gives a false positive
                         universal_analytics_indicator = 'GoogleAnalyticsObject'
                         asynchronous_analytics_indicator = '_gaq'
                         has_ua = universal_analytics_indicator in link_html
@@ -127,6 +128,24 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                             analytics_missing_error_count += 1
                             message = "Warning: Page missing google analytics"
                             link['messages']['warning'].append(message)
+
+
+                        if is_https:
+                            #Verity that javascript, css and images are all loaded with https also
+                            for link in link['links']:
+                                print "TODO: test link %s"%(link)
+                                if 'http:' in link:
+                                    ssl_error_count += 1
+                                    message = "Warning: HTTPS page contains HTTP link: %s"%(link)
+                                    link['messages']['warning'].append(message)
+
+                            for link in link['images']:
+                                print "TODO: test images %s"%(link)
+                                if 'http:' in link:
+                                    ssl_error_count += 1
+                                    message = "Warning: HTTPS page contains HTTP image: %s"%(link)
+                                    link['messages']['warning'].append(message)
+                                
 
 
                         
@@ -143,7 +162,10 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
         messages['warning'].append("Warning: %s pages were found to non-unique page descriptions"%(unique_description_error_count)) 
 
     if social_tag_error_count > 0:
-        messages['info'].append("Notice: %s social meta tags are missing"%(social_tag_error_count))             
+        messages['info'].append("Notice: %s social meta tags are missing"%(social_tag_error_count))    
+
+    if ssl_error_count > 0:
+        messages['warning'].append("Warning: %s HTTP links were found on HTTPS pages"%(ssl_error_count))             
 
     return links, messages
 

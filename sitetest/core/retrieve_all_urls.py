@@ -59,7 +59,10 @@ def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recu
     else:
         response = None
 
-
+    #Update the page type based on redirection
+    if page_link['ending_url']:
+        page_link_type = get_link_type(page_link['ending_url'], canonical_domain, domain_aliases)
+        page_link['type'] = page_link_type
 
     #record that we have parsed it
     if normalized_page_url not in parsed_links:
@@ -81,6 +84,7 @@ def retrieve_all_urls(page_url, canonical_domain, domain_aliases, messages, recu
         if soup:
 
             page_link['html'] = soup.prettify()
+            page_link['images'] = get_images_on_page(soup)
 
             page_urls = get_urls_on_page(soup)
 
@@ -142,6 +146,20 @@ def get_urls_on_page(soup):
             href = None 
 
     return output
+
+def get_images_on_page(soup):
+    output = []
+
+    #Traditional hyperlinks
+    for img in soup.findAll('img'):
+
+        try:
+            src = img['src']  
+            output.append(src)      
+        except:
+            src = None
+
+    return output    
 
 def get_normalized_href(url, canonical_domain, domain_aliases, normalized_parent_url=None, ignore_query_string_keys=None):
     if ignore_query_string_keys is None:

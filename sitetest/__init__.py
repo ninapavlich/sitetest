@@ -92,10 +92,10 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
     current_links, messages = test_basic_page_quality(current_links, canonical_domain, domain_aliases, messages, verbose)
 
     #3. Spell Check test
-    #current_links, messages = test_basic_spell_check(current_links, canonical_domain, domain_aliases, messages, special_dictionary, verbose)
+    current_links, messages = test_basic_spell_check(current_links, canonical_domain, domain_aliases, messages, special_dictionary, verbose)
 
     #4. Lint JS
-    #current_links, messages = test_lint_js(current_links, canonical_domain, domain_aliases, messages, verbose)
+    current_links, messages = test_lint_js(current_links, canonical_domain, domain_aliases, messages, verbose)
 
 
     if full:
