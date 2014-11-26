@@ -17,7 +17,7 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
     
     for link_url in links:
         link = links[link_url]
-        link_type = link['type']
+        link_type = link['starting_type']
         content_type = link['response_content_type']
 
         if link_type == TYPE_INTERNAL and content_type and 'html' in content_type.lower():
@@ -133,18 +133,18 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                         if is_https:
                             #Verity that javascript, css and images are all loaded with https also
                             for link in link['links']:
-                                print "TODO: test link %s"%(link)
                                 if 'http:' in link:
                                     ssl_error_count += 1
                                     message = "Warning: HTTPS page contains HTTP link: %s"%(link)
                                     link['messages']['warning'].append(message)
+                                    print message
 
-                            for link in link['images']:
-                                print "TODO: test images %s"%(link)
-                                if 'http:' in link:
+                            for image in link['images']:                                
+                                if 'http:' in image:
                                     ssl_error_count += 1
-                                    message = "Warning: HTTPS page contains HTTP image: %s"%(link)
+                                    message = "Warning: HTTPS page contains HTTP image: %s"%(image)
                                     link['messages']['warning'].append(message)
+                                    print message
                                 
 
 

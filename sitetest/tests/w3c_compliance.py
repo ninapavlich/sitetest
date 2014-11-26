@@ -14,7 +14,7 @@ def test_w3c_compliance(links, canonical_domain, domain_aliases, messages, ignor
     target_count = 0
     for link_url in links:
         link = links[link_url]
-        link_type = link['type']        
+        link_type = link['starting_type']        
         if link_type == TYPE_INTERNAL and not link['is_media']:
             link_html = link['html']
             if link_html:
@@ -27,7 +27,7 @@ def test_w3c_compliance(links, canonical_domain, domain_aliases, messages, ignor
     validated_count = 0
     for link_url in links:
         link = links[link_url]
-        link_type = link['type']
+        link_type = link['starting_type']
         
         if link_type == TYPE_INTERNAL and not link['is_media']:
 
@@ -81,15 +81,7 @@ def test_w3c_compliance(links, canonical_domain, domain_aliases, messages, ignor
                         message = "Notice: Found %s validation warnings on page %s."%(len(actual_warnings), link_url)
                         link['messages']['info'].append(message)
 
-                    enumerated_html_list = link_html.split("\n")
-                    counter = 0
-                    enumerated_html = ''
-                    for line in enumerated_html_list:
-                        new_line = "%s: %s"%(counter, line)
-                        enumerated_html += "%s\n"%(new_line)
-                        counter += 1
-
-                    link['enumerated_html'] = enumerated_html
+                    
                 else:
                     timeout_found_count += 1
                     message = "Warning: Validation was unable to run on this page because it timed out. Please manually check the W3C Validation link in the 'Tools' tab."

@@ -57,7 +57,7 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
 
     for link_url in links:
         link = links[link_url]
-        link_type = link['type']
+        link_type = link['starting_type']
         
         if link_type == TYPE_INTERNAL:
             link_html = link['html']
@@ -93,17 +93,18 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
                 if has_lorem_ipsum == False:
                     for text in visible_texts:
                     
-                        #replace curly quotes and emdashes
+                        #replace curly quotes and emdashes, spaces, etc
                         text = text.replace(u"’", "'").replace(u"“", "\"").\
                             replace(u"”", "\"").replace(u"″","\"").\
                             replace(u"–","-").replace(u"‘","'").\
                             replace(u"’","'").replace(u"—","-").\
                             replace(u"…", '.').replace(u"™", "").\
-                            replace(u"®", "")
+                            replace(u"®", "").replace(u"&nbsp;", " ")
 
                         words = text.replace('-',' ').replace('/',' ').split(" ")
                         
-                        cleaned_words = [word.strip().rstrip(u'?:!.,;()[]"“”’\'').lstrip(u'?:!.,;()[]"“”’\'') for word in words]
+                        char_list = u'*?:!.,;()[]"“”’\''
+                        cleaned_words = [word.strip().rstrip(char_list).lstrip(char_list) for word in words]
                         depossessive_words = [word.replace(u"'s", "") for word in cleaned_words]
                         real_words = [word for word in depossessive_words if (word.strip() != '')]
 

@@ -1,10 +1,11 @@
 import os
 import sys
 import datetime
+import traceback        
 
 from jinja2 import Template, FileSystemLoader, Environment
 
-from .core.retrieve_all_urls import retrieve_all_urls
+from .core.models import LinkSet
 from .tests.basic_site_quality import test_basic_site_quality
 from .tests.basic_page_quality import test_basic_page_quality
 from .tests.page_spell_check import test_basic_spell_check
@@ -70,37 +71,53 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
 
 
 
-    messages = {
-        'success':[],
-        'error':[],
-        'warning':[],
-        'info':[],
-    }
-
-    #Load from homepage
-    current_links, parsed_links, messages = retrieve_all_urls(canonical_domain, canonical_domain, domain_aliases, messages, recursive, full, ignore_query_string_keys, alias_query_strings, skip_test_urls, None, None, None, verbose)
+    
+    #Load pages, starting with homepage    
+    set = LinkSet(full, canonical_domain, domain_aliases, ignore_query_string_keys, alias_query_strings, skip_test_urls)
+    homepage_link = set.get_or_create_link_object(canonical_domain, None)
+    if homepage_link:
+        set.load_link(homepage_link, recursive)
 
     #Load any additional from sitemap
     sitemap_url = "%ssitemap.xml"%(canonical_domain) if canonical_domain.endswith("/") else "%s/sitemap.xml"%(canonical_domain)
-    current_links, parsed_links, messages = retrieve_all_urls(sitemap_url, canonical_domain, domain_aliases, messages, recursive, full, ignore_query_string_keys, alias_query_strings, skip_test_urls, None, current_links, parsed_links, verbose)
-    
+    sitemap_link = set.get_or_create_link_object(sitemap_url, None)
+    if sitemap_link:
+        set.load_link(sitemap_link, recursive)
+
+    """
+
     if recursive:
         #1. Site quality test
-        current_links, messages = test_basic_site_quality(current_links, canonical_domain, domain_aliases, messages, verbose)
+        try:
+            test_basic_site_quality(set)
+        except:
+            print "Error running site quality check: %s"%(traceback.format_exc())
 
     #2. Page quality test
-    current_links, messages = test_basic_page_quality(current_links, canonical_domain, domain_aliases, messages, verbose)
+    try:
+        test_basic_page_quality(set)
+    except Exception:        
+        print "Error running page quality check: %s"%(traceback.format_exc())
 
     #3. Spell Check test
-    current_links, messages = test_basic_spell_check(current_links, canonical_domain, domain_aliases, messages, special_dictionary, verbose)
+    try:
+        test_basic_spell_check(set)
+    except Exception:        
+        print "Error running spellcheck: %s"%(traceback.format_exc())
 
     #4. Lint JS
-    current_links, messages = test_lint_js(current_links, canonical_domain, domain_aliases, messages, verbose)
+    try:
+        test_lint_js(set)
+    except Exception:        
+        print "Error linting JS: %s"%(traceback.format_exc())
 
 
     if full:
         #4. W3C Compliance test
-        current_links, messages = test_w3c_compliance(current_links, canonical_domain, domain_aliases, messages, ignore_validation_errors, verbose)
+        try:
+            test_w3c_compliance(set)
+        except Exception:        
+            print "Error validating with w3c: %s"%(traceback.format_exc())
 
         #5. Browser Screenshots
         #current_links, messages = test_screenshots(current_links, canonical_domain, domain_aliases, messages, verbose)
@@ -108,20 +125,23 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         #6. Lint JS and CSS
         #current_links, messages = test_basic_page_quality(current_links, canonical_domain, domain_aliases, messages, verbose)
 
+    """
 
-    sorted_links = sorted(current_links)
+    sorted_links = sorted(set.current_links)
     end_time = datetime.datetime.now()
 
     results = {
         'full':full,
-        'messages':messages,
-        'links':current_links,
+        'set':set,
+        'links':set.current_links,
         'sorted_links':sorted_links,
-        'site':current_links[canonical_domain],
+        'site':set.current_links[canonical_domain],
         'start_time':start_time,
         'end_time':end_time,
         'duration':end_time-start_time
     }
+
+    print 'results? %s'%(results)
 
 
     html = render_results(results)

@@ -13,15 +13,41 @@
         <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
         <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
         <style>
-        .nav-tabs{
-        	margin-bottom:15px;
-        }
-        ul, li{
-        	list-style-type: none;
-        }
-        h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
-			line-height: 1.5em;
-		}
+	        .nav-tabs{
+	        	margin-bottom:15px;
+	        }
+	        ul, li{
+	        	list-style-type: none;
+	        }
+	        h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+				line-height: 1.5em;
+			}
+			.fa:hover{
+				text-decoration: none;
+			}
+			.image-row{
+				width:100%;
+				overflow:hidden;
+				border-top:1px solid #ccc;
+				padding-top:10px;
+			}
+			.image-cell{
+				float:left;
+				width:25%;
+			}
+			.image-cell img{
+				width:90%;
+				max-width:100%;
+				margin:auto;
+			}
+			.image-cell p{
+				-ms-word-break: break-all;
+				word-break: break-all;
+				word-break: break-word;
+				-webkit-hyphens: auto;
+				-moz-hyphens: auto;
+				hyphens: auto;
+			}
         </style>
 
         <link rel="icon" type="image/png" href="{{site.url}}/favicon.ico">
@@ -37,44 +63,44 @@
 	        <p>Test took {{duration}}, starting on {{start_time}} and ended on {{end_time}}</p>
 	        <p>{{sorted_links|length}} links were tested.</p>
 
-	        {% if messages.success|length > 0 %}
+	        {% if set.messages.success|length > 0 %}
 	        <section>
 	        	<h2 style="display:none">Success</h2>
 	        	<ul >
-	        		{% for message in messages.success %}
+	        		{% for message in set.messages.success %}
 					<li class="alert alert-success" role="alert">{{message}}</li>		        				
 					{% endfor %}        		
 	        	</ul>
 	        </section>
 	        {% endif %}
 
-	        {% if messages.error|length > 0 %}
+	        {% if set.messages.error|length > 0 %}
 	        <section>
 	        	<h2 style="display:none">Errors</h2>
 	        	<ul >
-	        		{% for message in messages.error %}
+	        		{% for message in set.messages.error %}
 					<li class="alert alert-danger" role="alert">{{message}}</li>		        				
 					{% endfor %}        		
 	        	</ul>
 	        </section>
 	        {% endif %}
 
-	        {% if messages.warning|length > 0 %}
+	        {% if set.messages.warning|length > 0 %}
 	        <section>
 	        	<h2 style="display:none">Warning</h2>
 	        	<ul >
-	        		{% for message in messages.warning %}
+	        		{% for message in set.messages.warning %}
 					<li class="alert alert-warning" role="alert">{{message}}</li>		        				
 					{% endfor %}        		
 	        	</ul>
 	        </section>
 	        {% endif %}
 
-	        {% if messages.info|length > 0 %}
+	        {% if set.messages.info|length > 0 %}
 	        <section>
 	        	<h2 style="display:none">Info</h2>
 	        	<ul >
-	        		{% for message in messages.info %}
+	        		{% for message in set.messages.info %}
 					<li class="alert alert-info" role="alert">{{message}}</li>		        				
 					{% endfor %}        		
 	        	</ul>
@@ -140,24 +166,39 @@
 				        <div class="panel-body">
 				            
 
+
+
 				            <!-- Nav tabs -->
 							<ul class="nav nav-tabs" role="tablist">
 							  <li class="active"><a href="#load-test-result-body-{{loop.index}}-stats" role="tab" data-toggle="tab">Stats</a></li>
 
 							  {% if links[link].referers|length > 0 %}
-							  <li><a href="#load-test-result-body-{{loop.index}}-referers" role="tab" data-toggle="tab">Referers</a></li>
+							  <li><a href="#load-test-result-body-{{loop.index}}-referers" role="tab" data-toggle="tab">Referer Links</a></li>
 							  {% endif %}
 
-							  {% if links[link].links|length > 0 %}
-							  <li><a href="#load-test-result-body-{{loop.index}}-links" role="tab" data-toggle="tab">Child Links</a></li>
+							  {% if links[link].hyper_links|length > 0 %}
+							  <li><a href="#load-test-result-body-{{loop.index}}-hyper_links" role="tab" data-toggle="tab">Child LInks</a></li>
+							  {% endif %}
+
+							  {% if links[link].image_links|length > 0 %}
+							  <li><a href="#load-test-result-body-{{loop.index}}-image_links" role="tab" data-toggle="tab">Images</a></li>
+							  {% endif %}
+
+							  {% if links[link].css_links|length > 0 %}
+							  <li><a href="#load-test-result-body-{{loop.index}}-css_links" role="tab" data-toggle="tab">CSS Links</a></li>
+							  {% endif %}
+
+							  {% if links[link].script_links|length > 0 %}
+							  <li><a href="#load-test-result-body-{{loop.index}}-script_links" role="tab" data-toggle="tab">Script Links</a></li>
 							  {% endif %}
 
 							  {% if links[link].validation %}
 							  {% if links[link].validation.warnings|length > 0 or links[link].validation.errors|length > 0 %}
 							  <li><a href="#load-test-result-body-{{loop.index}}-validation" role="tab" data-toggle="tab">Validation</a></li>
 							  {% endif %}
-							  <li><a href="#load-test-result-body-{{loop.index}}-source" role="tab" data-toggle="tab">Source</a></li>
 							  {% endif %}
+
+							  <li><a href="#load-test-result-body-{{loop.index}}-source" role="tab" data-toggle="tab">Source</a></li>
 
 							  <li><a href="#load-test-result-body-{{loop.index}}-tools" role="tab" data-toggle="tab">Tools</a></li>
 							  
@@ -211,46 +252,89 @@
 
 							  {% if links[link].referers|length > 0 %}
 							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-referers">
-
-
 							  	<h5>There are {{links[link].referers|length}} links that refer
 				                to this page</h5>
 
 				                <ul>
-				                    <li style="list-style: none">{% for referer in
-				                    links[link].referers %}</li>
-
+				                    {% for link_item_url in links[link].referers %}
+				                    {% set link_item=links[link].referers[link_item_url] %}
 				                    <li>
-				                        <a href="#load-test-result-{{referer}}">{{referer}}</a>
+				                        <a href="{{link_item.internal_page_url|safe}}">{{link_item.url}}</a> - <a class="fa fa-external-link" href="{{link_item.url}}" target="_blank">&nbsp;</a>
 				                    </li>
-
-				                    <li style="list-style: none">{% endfor %}</li>
+				                    {% endfor %}
 				                </ul>
-
-
 							  </div>
 							  {% endif %}
 
-							  {% if links[link].links|length > 0 %}
-							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-links">
+							  {% if links[link].hyper_links|length > 0 %}
+							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-hyper_links">
+							  	<h5>There are {{links[link].hyper_links|length}} links within this page</h5>
 
+				                <ul>
+				                    {% for link_item_url in links[link].hyper_links %}
+				                    {% set link_item=links[link].hyper_links[link_item_url] %}
+				                    <li>
+				                        <a href="{{link_item.internal_page_url|safe}}">{{link_item.url}}</a> - <a class="fa fa-external-link" href="{{link_item.url}}" target="_blank">&nbsp;</a>
+				                    </li>
+				                    {% endfor %}
+				                </ul>
+							  </div>
+							  {% endif %}
 
+							  {% if links[link].image_links|length > 0 %}
+							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-image_links">
 					            <section class="link-children">
-					                <h5>There are {{links[link].links|length}} links within this
-					                page</h5>
+					                <h5>There are {{links[link].image_links|length}} images within this page</h5>
 
-					                <ul>
-					                    <li style="list-style: none">{% for child in
-					                    links[link].links %}</li>
+				                	<div class='image-row' >
+				                    {% for link_item_url in links[link].image_links %}
+			                    	{% set link_item=links[link].image_links[link_item_url] %}
+					                    <div class='image-cell'>
+					                        <a href="{{link_item.url}}" target="_blank">
+					                        	<p>{{link_item.url}}</p>
+					                        	<img src="{{link_item.url}}" alt="preview image" />
 
-					                    <li>
-					                        <a href="#load-test-result-{{child}}">{{child}}</a>
-					                    </li>
+					                        </a>
+					                    </div>
 
-					                    <li style="list-style: none">{% endfor %}</li>
-					                </ul>
+				                    {% if loop.index is divisibleby 4 %}
+				                	</div>
+				                	<div class='image-row' >
+				                	{% endif %}
+
+					                {% endfor %}
+					            	</div>
+					                
 					            </section>
+							  </div>
+							  {% endif %}
 
+
+							  {% if links[link].css_links|length > 0 %}
+							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-css_links">
+							  	<h5>There are {{links[link].css_links|length}} css files linked in this page</h5>
+				                <ul>
+				                    {% for link_item_url in links[link].css_links %}
+				                    {% set link_item=links[link].css_links[link_item_url] %}
+				                    <li>
+				                        <a href="{{link_item.internal_page_url|safe}}">{{link_item.url}}</a> - <a class="fa fa-external-link" href="{{link_item.url}}" target="_blank">&nbsp;</a>
+				                    </li>
+				                    {% endfor %}
+				                </ul>
+							  </div>
+							  {% endif %}
+
+							  {% if links[link].script_links|length > 0 %}
+							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-script_links">
+							  	<h5>There are {{links[link].script_links|length}} javascript files linked in this page</h5>
+				                <ul>
+				                    {% for link_item_url in links[link].script_links %}
+				                    {% set link_item=links[link].script_links[link_item_url] %}
+				                    <li>
+				                        <a href="{{link_item.internal_page_url|safe}}">{{link_item.url}}</a> - <a class="fa fa-external-link" href="{{link_item.url}}" target="_blank">&nbsp;</a>
+				                    </li>
+				                    {% endfor %}
+				                </ul>
 							  </div>
 							  {% endif %}
 
@@ -285,10 +369,11 @@
 							  </div>
 
 							  {% endif %}
+							  {% endif %}
+
 							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-source">
 							  	<pre>{{links[link].enumerated_html|e}}</pre>
 							  </div>
-							  {% endif %}
 
 
 							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-tools">

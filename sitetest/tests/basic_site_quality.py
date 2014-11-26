@@ -56,7 +56,7 @@ def test_basic_site_quality(current_urls, canonical_domain, domain_aliases, mess
         page_missing_sitemap = 0
         for link_url in current_urls:
             link = current_urls[link_url]
-            link_type = link['type']
+            link_type = link['starting_type']
             content_type = link['response_content_type']
 
             if link_type == TYPE_INTERNAL and link['response_content_type'] \
