@@ -24,14 +24,19 @@ MEDIA_SUFFIXES = [
     '.gz','.fla','.html','.ogg','.sql'
 ]
 
-class MessageSet():
-    success = []
-    error = []
-    warning = []
-    info = []
+class MessageSet(object):
+    success = None
+    error = None
+    warning = None
+    info = None
 
+    def __init__(self):
+        self.success = []
+        self.error = []
+        self.warning = []
+        self.info = []
 
-class Message():
+class Message(object):
     message = None
 
     def __init__(self, message):
