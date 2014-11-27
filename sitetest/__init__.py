@@ -71,8 +71,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
 
 
 
-    recursive = False
-
+    
     #Load pages, starting with homepage    
     set = LinkSet(full, canonical_domain, domain_aliases, ignore_query_string_keys, alias_query_strings, skip_test_urls)
     homepage_link = set.get_or_create_link_object(canonical_domain, None)
@@ -279,6 +278,8 @@ def notify_results(results, credentials):
 
     message_output = "TEST RESULTS for \"%s\"\n\n"%(results['site'].title)
 
+    message_output += ("Full Report: %s"%(results['report_url']))
+
     message_output += ('SCORE: %s-%s-%s (Lower is better, Best is 0-0-2)\n\n'%(len(results['site'].messages.error),len(results['site'].messages.warning),len(results['site'].messages.info)))
 
     # for message in results['messages']['success']:
@@ -290,7 +291,6 @@ def notify_results(results, credentials):
     # for message in results['messages']['info']:
     #     message_output += (message+'\n\n')
 
-    message_output += ("Full Report: %s"%(results['report_url']))
     
     stripped = stripHtmlTags(message_output)
     client.chat_post_message(SLACK_CHANNEL, stripped, username=SLACK_USERNAME)  
