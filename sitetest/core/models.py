@@ -72,8 +72,9 @@ class LinkSet(BaseMessageable):
     alias_query_strings = []
 
     current_links = {}
+    loaded_links = {}
     parsed_links = {}
-
+    parsable_links = {}
 
     def __init__(self, include_media, canonical_domain, domain_aliases, ignore_query_string_keys=None, alias_query_strings=None, skip_test_urls=None):
 
@@ -96,9 +97,9 @@ class LinkSet(BaseMessageable):
         
     def load_link(self, page_link, recursive):
 
-        if page_link.is_loadable_type(self.include_media):
+        if page_link.is_loadable_type(self.include_media) and page_link.url not in self.loaded_links:
 
-            print ">>> Load Link %s (%s/%s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.current_links))
+            print ">>> Load Link %s (%s/%s, %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.current_links))
 
             load_successful = page_link.load()
             
@@ -108,14 +109,18 @@ class LinkSet(BaseMessageable):
             
 
             #record that we have parsed it
-            if page_link.url not in self.parsed_links:
-                self.parsed_links[page_link.url] = page_link
-
+            if page_link.url not in self.loaded_links:
+                self.loaded_links[page_link.url] = page_link
+            
 
             #parse child links of internal pages only
             if page_link.response and page_link.is_internal():
 
                 page_link.parse_response()
+
+                #record that we have parsed it
+                if page_link.url not in self.parsed_links:
+                    self.parsed_links[page_link.url] = page_link
                 
                 #Let's do it again!
                 if recursive:
@@ -126,27 +131,28 @@ class LinkSet(BaseMessageable):
 
 
 
-    def get_or_create_link_object(self, url, referer_url=None):
+    def get_or_create_link_object(self, url, referer=None):
+        incoming_url = url
 
         url = self.get_normalized_href(url)
 
+        
         if not url or url == '':
             return None
 
         if url in self.current_links:
             link = self.current_links[url]
-            #print '%s exists already'%(link)
         else:
             link = LinkItem(url, self)
-            self.current_links[link.url] = link
-            #print '%s is new'%(link)
+            self.current_links[url] = link
+            
+            if link.is_internal():
+                self.parsable_links[link.url] = link
 
-            print ">>> Create Link %s (<<< %s)"%(link.__unicode__(), referer_url)
+            #print ">>> Create Link %s (<<< %s)"%(link.__unicode__(), referer_url)
 
-        if referer_url and referer_url != url:
-            referer_link_item = self.get_or_create_link_object(referer_url)
-            if referer_link_item:
-                link.add_referer(referer_link_item)
+        if referer and referer.url != url:
+            link.add_referer(referer)
 
         if self.alias_query_strings:
             alias_url = clean_query_string(url, self.alias_query_strings)
@@ -204,39 +210,36 @@ class LinkSet(BaseMessageable):
 
         dequeried_parent_url = clear_query_string(normalized_parent_url)
 
-        #Remove double slashes: 
-        #normalized = url.lower()
+        #remove anything after the hashtag:
+        normalized = normalized.split('#')[0]
 
         #for internal urls, make main domain present
         link_type = self.get_link_type(url)
-        if link_type == TYPE_INTERNAL:
+        if link_type == TYPE_INTERNAL:            
 
-            #remove anything after the hashtag:
-            url = url.split('#')[0]
-
-            if self.canonical_domain not in url:
+            if self.canonical_domain not in normalized:
                 #First see if it has an alias domain
                 for alias in self.domain_aliases:
-                    if alias.lower() in url.lower():
-                        normalized = url.lower().replace(alias.lower(), self.canonical_domain)
+                    if alias.lower() in normalized.lower():
+                        normalized = normalized.lower().replace(alias.lower(), self.canonical_domain)
                         #print "Replace alias domain in %s with canonical: %s"%(url, normalized)
                         
 
                 #Next, does it use an absolute path?
-                if url.startswith('/'):
+                if normalized.startswith('/'):
                     if self.canonical_domain.endswith('/'):
-                        normalized = "%s%s"%(self.canonical_domain, url[1:])
+                        normalized = "%s%s"%(self.canonical_domain, normalized[1:])
                     else:
-                        normalized = "%s%s"%(self.canonical_domain, url)
+                        normalized = "%s%s"%(self.canonical_domain, normalized)
                     #print "relative from root, replacd %s with %s"%(url, normalized)
                     
 
                 #if not, it must be relative to the parent
                 elif normalized_parent_url:
                     if dequeried_parent_url.endswith('/'):
-                        normalized = "%s%s"%(dequeried_parent_url, url)
+                        normalized = "%s%s"%(dequeried_parent_url, normalized)
                     else:
-                        normalized = "%s/%s"%(dequeried_parent_url, url)
+                        normalized = "%s/%s"%(dequeried_parent_url, normalized)
 
                     #print "relative from parent, replacd %s with %s"%(url, normalized)
                     
@@ -261,11 +264,11 @@ class LinkItem(BaseMessageable):
 
     _set = None
 
-    referers = {}
-    image_links = {}
-    hyper_links = {}
-    css_links = {}
-    script_links = {}
+    referers = None
+    image_links = None
+    hyper_links = None
+    css_links = None
+    script_links = None
 
 
 
@@ -289,6 +292,12 @@ class LinkItem(BaseMessageable):
 
 
     def __init__(self, url, set):
+
+        self.referers = {}
+        self.image_links = {}
+        self.hyper_links = {}
+        self.css_links = {}
+        self.script_links = {}
         self._set = set
         self.url = self.ending_url = url
         parsed = urlparse.urlparse(url)
@@ -307,7 +316,7 @@ class LinkItem(BaseMessageable):
 
     @property
     def internal_page_url(self):
-        return "#load-test-result-%s"%(self.url)
+        return "load-test-result-%s"%(self.url)
 
     @property
     def encoded_url(self):
@@ -395,7 +404,7 @@ class LinkItem(BaseMessageable):
             soup = BeautifulSoup(self.response)
         except:
             soup = None
-            self.add_error_message("Error parsing HTML on page %s"%(page_url))
+            self.add_error_message("Error parsing HTML on page %s"%(self.url))
 
     
         if soup:
@@ -416,19 +425,25 @@ class LinkItem(BaseMessageable):
             self.add_links(get_css_on_page(soup), self.css_links)
             self.add_links(get_scripts_on_page(soup), self.script_links)
             self.add_links(get_hyperlinks_on_page(soup)+get_sitemap_links_on_page(soup), self.hyper_links)
+            
         
 
     def add_links(self, input_links, list):
         for input_link in input_links:
-            link_item = self._set.get_or_create_link_object(input_link, self.url)
+            link_item = self._set.get_or_create_link_object(input_link, self)
             if link_item:
                 self.add_link(link_item, list)
 
     def add_link(self, link_item, list):
-        if link_item.url not in list:
+        is_same_url = self.url == link_item.url
+        list_has_link = (link_item.url in list)
+
+        if is_same_url==False and list_has_link==False:
             list[link_item.url] = link_item
+        
 
     def add_referer(self, link_item):
+        #print 'add referer to %s from %s'%(self.url, link_item.url)
         self.add_link(link_item, self.referers)
    
 

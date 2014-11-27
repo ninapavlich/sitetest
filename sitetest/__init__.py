@@ -71,18 +71,21 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
 
 
 
-    
+    recursive = False
+
     #Load pages, starting with homepage    
     set = LinkSet(full, canonical_domain, domain_aliases, ignore_query_string_keys, alias_query_strings, skip_test_urls)
     homepage_link = set.get_or_create_link_object(canonical_domain, None)
     if homepage_link:
         set.load_link(homepage_link, recursive)
 
+
     #Load any additional from sitemap
     sitemap_url = "%ssitemap.xml"%(canonical_domain) if canonical_domain.endswith("/") else "%s/sitemap.xml"%(canonical_domain)
     sitemap_link = set.get_or_create_link_object(sitemap_url, None)
     if sitemap_link:
         set.load_link(sitemap_link, recursive)
+   
 
     """
 
@@ -127,21 +130,16 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
 
     """
 
-    sorted_links = sorted(set.current_links)
     end_time = datetime.datetime.now()
 
     results = {
         'full':full,
         'set':set,
-        'links':set.current_links,
-        'sorted_links':sorted_links,
         'site':set.current_links[canonical_domain],
         'start_time':start_time,
         'end_time':end_time,
         'duration':end_time-start_time
     }
-
-    print 'results? %s'%(results)
 
 
     html = render_results(results)
