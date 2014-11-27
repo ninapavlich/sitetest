@@ -48,6 +48,12 @@
 				-moz-hyphens: auto;
 				hyphens: auto;
 			}
+			.toplink{
+				position: fixed;
+				right:20px;
+				bottom:20px;
+			}
+			
         </style>
 
         <link rel="icon" type="image/png" href="{{site.url}}/favicon.ico">
@@ -56,10 +62,16 @@
         <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
 		<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 
+		<script>
+		
+		</script>
     </head>
     <body>
+
+
+
     	<div class="container">
-	        <h1>{% if full %}Full{% else %}Basic{% endif %} Site Test Results for &ldquo;{{site.title}}&rdquo;</h1>
+	        <h1 id="top">{% if full %}Full{% else %}Basic{% endif %} Site Test Results for &ldquo;{{site.title}}&rdquo;</h1>
 	        <p>Test took {{duration}}, starting on {{start_time}} and ended on {{end_time}}</p>
 	        <p>{{set.parsed_links|length}} links were parsed, {{set.loaded_links|length}} loaded, {{set.current_links|length}} total.</p>
 
@@ -68,7 +80,7 @@
 	        	<h2 style="display:none">Success</h2>
 	        	<ul >
 	        		{% for message in set.messages.success %}
-					<li class="alert alert-success" role="alert">{{message}}</li>		        				
+					<li class="alert alert-success" role="alert">{{message.message}}</li>		        				
 					{% endfor %}        		
 	        	</ul>
 	        </section>
@@ -79,7 +91,7 @@
 	        	<h2 style="display:none">Errors</h2>
 	        	<ul >
 	        		{% for message in set.messages.error %}
-					<li class="alert alert-danger" role="alert">{{message}}</li>		        				
+					<li class="alert alert-danger" role="alert">{{message.message}}</li>		        				
 					{% endfor %}        		
 	        	</ul>
 	        </section>
@@ -90,7 +102,7 @@
 	        	<h2 style="display:none">Warning</h2>
 	        	<ul >
 	        		{% for message in set.messages.warning %}
-					<li class="alert alert-warning" role="alert">{{message}}</li>		        				
+					<li class="alert alert-warning" role="alert">{{message.message}}</li>		        				
 					{% endfor %}        		
 	        	</ul>
 	        </section>
@@ -101,7 +113,7 @@
 	        	<h2 style="display:none">Info</h2>
 	        	<ul >
 	        		{% for message in set.messages.info %}
-					<li class="alert alert-info" role="alert">{{message}}</li>		        				
+					<li class="alert alert-info" role="alert">{{message.message}}</li>		        				
 					{% endfor %}        		
 	        	</ul>
 	        </section>
@@ -116,7 +128,7 @@
 		        		<button type="button" class="btn btn-default collapse-all">Collapse All <span class="glyphicon glyphicon-arrow-up"></span></button>
 		        	</p>
 
-	        		{% for link_url, link in set.parsed_links|dictsort %}
+	        		{% for link_url, link in set.loaded_links|dictsort %}
 	        			        		
 	        		<div class="panel panel-default">
 				    <div class="panel-heading">
@@ -220,19 +232,19 @@
 						            <li><strong>Page description:</strong> {{link.description}}</li>{% endif %}
 
 						            {% for message in link.messages.success %}
-									<li class="alert alert-success" role="alert">{{message}}</li>		        				
+									<li class="alert alert-success" role="alert">{{message.message}}</li>		        				
 									{% endfor %}   
 
 									{% for message in link.messages.error %}
-									<li class="alert alert-danger" role="alert">{{message}}</li>		        				
+									<li class="alert alert-danger" role="alert">{{message.message}}</li>		        				
 									{% endfor %}  
 
 									{% for message in link.messages.warning %}
-									<li class="alert alert-warning" role="alert">{{message}}</li>		        				
+									<li class="alert alert-warning" role="alert">{{message.message}}</li>		        				
 									{% endfor %}  
 
 									{% for message in link.messages.info %}
-									<li class="alert alert-info" role="alert">{{message}}</li>		        				
+									<li class="alert alert-info" role="alert">{{message.message}}</li>		        				
 									{% endfor %}  
 								</ul>   
 						        
@@ -452,4 +464,10 @@
         </script>
 
     </body>
+    <!-- child of the body tag -->
+	<span class="toplink">
+	    <a href="#top">
+	        <i class="fa fa-angle-double-up"></i> Back to Top
+	    </a>
+	</span><!-- /top-link-block -->
 </html>

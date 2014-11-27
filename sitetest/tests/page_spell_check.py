@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup, SoupStrainer, Comment
 import enchant
 from enchant.tokenize import get_tokenizer
 import string
-
+import traceback        
 
 
 from ..core.retrieve_all_urls import TYPE_INTERNAL
@@ -41,7 +41,7 @@ PREFIX_LIST = ['a', 'anti', 'arch', 'be', 'co', 'counter', 'de', 'dis', 'dis',
 'ultra', 'uni', 'vice']
 
 
-def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, special_dictionary, verbose=False):
+def test_basic_spell_check(set, special_dictionary, verbose=False):
     """
     For each page, make sure that visible text is spelled correctly
     """
@@ -55,12 +55,11 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
     d = enchant.Dict("en_US")
     tknzr = get_tokenizer("en_US")
 
-    for link_url in links:
-        link = links[link_url]
-        link_type = link['starting_type']
+    for link_url in set.parsed_links:
+        link = set.parsed_links[link_url]
         
-        if link_type == TYPE_INTERNAL:
-            link_html = link['html']
+        if link.is_internal():
+            link_html = link.html
             if link_html and '.xml' not in link_url:
                 # try:
                 soup = BeautifulSoup(link_html)
@@ -85,9 +84,8 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
 
                 if has_lorem_ipsum:
                     lorem_ipsum_count += 1
-                    message = "Warning: Lorem Ipsum found in <a href='#%s' class='alert-link'>%s</a>."%(link['internal_page_url'], link_url)
-                    link['messages']['warning'].append(message)
-                    #messages['warning'].append(message)
+                    message = "Lorem Ipsum found in <a href='#%s' class='alert-link'>%s</a>."%(link.internal_page_url, link_url)
+                    link.add_warning_message(message)
 
                 #2. Check for Spelling
                 if has_lorem_ipsum == False:
@@ -129,9 +127,9 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
 
                             try:
                                 word_exists = d.check(word) or check_special_dictionary(word, special_dictionary)
-                            except:
+                            except Exception:        
+                                print "Error checking word on %s: %s"%(link.url, traceback.format_exc())
                                 word_exists = True
-                                print "Error checking word on "%(link['url'])
 
                             word_is_proper_noun = word[0].isupper()
 
@@ -158,26 +156,25 @@ def test_basic_spell_check(links, canonical_domain, domain_aliases, messages, sp
 
                             if not word_exists and not word_is_proper_noun and not is_numeric and not is_technological and not is_contraction and not is_prefix and not is_money:
                                 if word not in misspelled_words:
-                                    message = "Notice: Word &ldquo;%s&rdquo; misspelled in <a href='#%s' class='alert-link'>%s</a>."%(word, link['internal_page_url'], link_url)
-                                    link['messages']['info'].append(message)
+                                    message = "Word &ldquo;%s&rdquo; misspelled in <a href='#%s' class='alert-link'>%s</a>."%(word, link.internal_page_url, link_url)
+                                    link.add_info_message(message)
                                     misspelled_words.append(word)
 
                                     spelling_issue_count += 1    
                 else:
-                    message = "Notice: Spell check skipped on this page because Lorem Ipsum was found"
-                    link['messages']['info'].append(message)
+                    message = "Spell check skipped on this page because Lorem Ipsum was found"
+                    link.add_info_message(message)
                                                 
                         
                 # except:
                 #   pass
 
     if lorem_ipsum_count > 0:
-        messages['warning'].append("Warning: %s pages were found to have Lorem Ipsum"%(lorem_ipsum_count))
+        site.add_warning_message("%s pages were found to have Lorem Ipsum"%(lorem_ipsum_count))
 
     if spelling_issue_count > 0:
-        messages['info'].append("Notice: %s spelling issues found"%(spelling_issue_count))
+        site.add_info_message("%s spelling issues found"%(spelling_issue_count))
 
-    return links, messages
 
 def check_special_dictionary(word, special_dictionary):
     for special_word in special_dictionary:

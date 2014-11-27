@@ -5,7 +5,7 @@ import pyjslint
 import urllib2
 from itertools import izip
 
-def test_lint_js(links, canonical_domain, domain_aliases, messages, verbose=False):
+def test_lint_js(set, verbose=False):
     """
     For each page, make sure there is a unique title and description
     """
@@ -13,12 +13,10 @@ def test_lint_js(links, canonical_domain, domain_aliases, messages, verbose=Fals
 
     total_js_error_count = 0
     
-    for link_url in links:
-        link = links[link_url]
-        link_type = link['type']
-        content_type = link['response_content_type']
+    for link_url in set.parsed_links:
+        link = set.parsed_links[link_url]
 
-        if content_type and 'javascript' in content_type.lower():
+        if link.is_javascript():
             
             local_file_path = store_file_locally(link_url)
             #local_file_path = 'test.js'
@@ -37,12 +35,12 @@ def test_lint_js(links, canonical_domain, domain_aliases, messages, verbose=Fals
                     link_source = f.read()
                     f.close()
 
-                    link['messages']['warning'].append("Warning: javascript file is not gzipped")
+                    link.add_warning_message("Javascript file is not gzipped")
 
                 except:
                     link_source = None
 
-                    link['messages']['error'].append("Unable to read file")
+                    link.add_error_message("Unable to read file")
 
 
 
@@ -50,19 +48,6 @@ def test_lint_js(links, canonical_domain, domain_aliases, messages, verbose=Fals
             if link_source:
 
                 beautified_link_source = jsbeautifier.beautify(link_source)
-
-                #pyjslint.check_JSLint(file.read())                        
-                enumerated_html_list = beautified_link_source.split("\n")
-                counter = 0
-                enumerated_html = u""
-                for line in enumerated_html_list:
-                    counter_line = str(counter)
-                    encoded_line = line.decode("utf8")
-                    new_line = u"%s: %s"%(counter_line, encoded_line)
-                    enumerated_html += u"%s\n"%(new_line)
-                    counter += 1
-
-                link['enumerated_html'] = enumerated_html
 
                 raw_js_errors = pyjslint.check_JSLint(beautified_link_source)
                 #js_errors = [str(error) for error in raw_js_errors]
@@ -87,12 +72,12 @@ def test_lint_js(links, canonical_domain, domain_aliases, messages, verbose=Fals
 
                 
                 total_js_error_count += len(js_errors)
-                link['validation'] = {
+                link.validation = {
                     'errors':js_errors
                 }
                 if len(js_errors) > 0:
-                    message = "Warning: Found %s lint errors."%(len(js_errors))
-                    link['messages']['info'].append(message)
+                    message = "Found %s lint errors."%(len(js_errors))
+                    link.add_info_message(message)
             
 #/*jslint white: true */
 
@@ -101,7 +86,7 @@ def test_lint_js(links, canonical_domain, domain_aliases, messages, verbose=Fals
 
             
     if total_js_error_count > 0:
-        messages['info'].append("Warning: %s js lint errors found."%(total_js_error_count))             
+        site.add_info_message("%s js lint errors found."%(total_js_error_count))             
 
 
     #DELETE TMP FOLDER
@@ -110,11 +95,6 @@ def test_lint_js(links, canonical_domain, domain_aliases, messages, verbose=Fals
     except:
         pass
         
-
-    return links, messages
-
-
-
 
 
 def store_file_locally(url):

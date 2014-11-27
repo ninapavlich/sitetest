@@ -49,8 +49,12 @@ class WarningMessage(Message):
 class InfoMessage(Message):
     pass
 
-class BaseMessageable():
-    messages = MessageSet()
+class BaseMessageable(object):
+    messages = None
+
+    def __init__(self):
+        pass
+    
 
     def add_error_message(self, message):
         self.messages.error.append(ErrorMessage(message))
@@ -78,6 +82,8 @@ class LinkSet(BaseMessageable):
 
     def __init__(self, include_media, canonical_domain, domain_aliases, ignore_query_string_keys=None, alias_query_strings=None, skip_test_urls=None):
 
+        self.messages = MessageSet()
+
         if ignore_query_string_keys is None:
             ignore_query_string_keys = []
 
@@ -94,14 +100,16 @@ class LinkSet(BaseMessageable):
         self.alias_query_strings = alias_query_strings
         self.skip_test_urls = skip_test_urls
 
+        super(LinkSet, self).__init__()
+
         
-    def load_link(self, page_link, recursive):
+    def load_link(self, page_link, recursive, expected_code=200):
 
         if page_link.is_loadable_type(self.include_media) and page_link.url not in self.loaded_links:
 
             print ">>> Load Link %s (%s/%s, %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.current_links))
 
-            load_successful = page_link.load()
+            load_successful = page_link.load(expected_code)
             
             if not load_successful:
                 message = "Loading error on page <a href='#%s' class='alert-link'>%s</a> Expected %s Received %s"%(page_link.internal_page_url, page_link.url, 200, page_link.response_code)
@@ -286,12 +294,14 @@ class LinkItem(BaseMessageable):
     response_load_time = None
     description = None
     is_media = None
-    sitemap_entry = None
     alias_to = None
     skip_test = False
+    has_sitemap_entry = False
 
 
     def __init__(self, url, set):
+
+        self.messages = MessageSet()
 
         self.referers = {}
         self.image_links = {}
@@ -305,6 +315,9 @@ class LinkItem(BaseMessageable):
         self.starting_type = self.ending_type = self._set.get_link_type(url)
         self.path = parsed.path
         self.is_media = (extension.lower() in MEDIA_SUFFIXES)
+
+        super(LinkItem, self).__init__()
+
 
     def __unicode__(self):
         url = (u"%s-%s")%(self.url, self.ending_url) if self.url != self.ending_url else self.url
@@ -335,6 +348,14 @@ class LinkItem(BaseMessageable):
     def is_internal(self):
         return self.ending_type == TYPE_INTERNAL and self.starting_type == TYPE_INTERNAL
 
+    def is_internal_html(self):
+        content_type = self.response_content_type
+        return self.is_internal() and content_type and 'html' in content_type.lower()
+
+
+    def is_javascript(self):
+        content_type = self.response_content_type
+        return content_type and 'javascript' in content_type.lower()
 
     def load(self, expected_code=200):
 
@@ -373,6 +394,7 @@ class LinkItem(BaseMessageable):
 
             try:
                 self.response_code = e.code
+
             except:
                 self.response_code = "Unknown HTTPError"
 

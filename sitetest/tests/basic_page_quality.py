@@ -1,7 +1,7 @@
 from ..core.retrieve_all_urls import TYPE_INTERNAL
 from bs4 import BeautifulSoup, SoupStrainer
 
-def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, verbose=False):
+def test_basic_page_quality(set, verbose=False):
     """
     For each page, make sure there is a unique title and description
     """
@@ -15,14 +15,13 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
     analytics_missing_error_count = 0
     ssl_error_count = 0
     
-    for link_url in links:
-        link = links[link_url]
-        link_type = link['starting_type']
-        content_type = link['response_content_type']
+    for link_url in set.parsed_links:
+        link = set.parsed_links[link_url]
+        
 
-        if link_type == TYPE_INTERNAL and content_type and 'html' in content_type.lower():
+        if link.is_internal_html():
 
-            link_html = link['html']
+            link_html = link.html
             if link_html:
                 try:
                     soup = BeautifulSoup(link_html)
@@ -32,25 +31,25 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                         page_title = soup.title.string
                     except:
                         page_title = ''
-                    link['title'] = page_title.strip()
+                    link.title = page_title.strip()
 
-                    is_redirected_page = link['url'] != link['ending_url']
-                    is_alias_page = link['alias_to'] != None
-                    is_skip_test = link['skip_test'] == True
-                    is_https = 'https' in link['url']
+                    is_redirected_page = link.url != link.ending_url
+                    is_alias_page = link.alias_to != None
+                    is_skip_test = link.skip_test == True
+                    is_https = 'https' in link.url
 
                     if not is_skip_test:
 
                         if page_title == '':
-                            message = "Warning: Page title is missing from <a href='#%s' class='alert-link'>%s</a>."%(link['internal_page_url'], link_url)
-                            link['messages']['warning'].append(message)
+                            message = "Page title is missing from <a href='#%s' class='alert-link'>%s</a>."%(link.internal_page_url, link_url)
+                            link.add_warning_message(message)
 
                         elif page_title not in unique_titles:
-                            unique_titles[page_title] = link['path']
-                        else:               
-                            if link['path'].strip('/') != unique_titles[page_title].strip('/') and not is_redirected_page and not is_alias_page:
-                                message = "Warning: Page title &ldquo;%s&rdquo; in <a href='#%s' class='alert-link'>%s</a> is not unique."%(page_title, link['internal_page_url'], link_url)
-                                link['messages']['warning'].append(message)
+                            unique_titles[page_title] = link.path
+                        else:
+                            if link.path.strip('/') != unique_titles[page_title].strip('/') and not is_redirected_page and not is_alias_page:
+                                message = "Page title &ldquo;%s&rdquo; in <a href='#%s' class='alert-link'>%s</a> is not unique."%(page_title, link.internal_page_url, link_url)
+                                link.add_warning_message(message)
                                 unique_title_error_count += 1
                             
 
@@ -60,23 +59,23 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                         for description in descriptions:
                             try:
                                 page_description = description['content'].strip()
-                                link['description'] = page_description
+                                link.description = page_description
                             except:
                                 pass                        
 
                         if page_description:
 
                             if page_description not in unique_descriptions:
-                                unique_descriptions[page_description] = link['path']
+                                unique_descriptions[page_description] = link.path
                             else:               
-                                if link['path'].strip('/') != unique_descriptions[page_description].strip('/') and not is_redirected_page and not is_alias_page:
-                                    message = "Warning: Page description in <a href='#%s' class='alert-link'>%s</a> is not unique."%(link['internal_page_url'], link_url)
-                                    link['messages']['warning'].append(message)
+                                if link.path.strip('/') != unique_descriptions[page_description].strip('/') and not is_redirected_page and not is_alias_page:
+                                    message = "Page description in <a href='#%s' class='alert-link'>%s</a> is not unique."%(link.internal_page_url, link_url)
+                                    link.add_warning_message(message)
                                     unique_description_error_count += 1
 
                         else:                       
-                            message = "Warning: Page description is missing from <a href='#%s' class='alert-link'>%s</a>."%(link['internal_page_url'], link_url)
-                            link['messages']['warning'].append(message)
+                            message = "Page description is missing from <a href='#%s' class='alert-link'>%s</a>."%(link.internal_page_url, link_url)
+                            link.add_warning_message(message)
 
                         meta_tags = [
                             ['property','og:site_name'],
@@ -114,7 +113,7 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                             if not value:
                                 social_tag_error_count += 1
                                 message = "Warning: Meta tag %s:%s is missing from page"%(prop_type, property_name)
-                                link['messages']['warning'].append(message)
+                                link.add_warning_message(message)
 
                         
 
@@ -127,25 +126,18 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                         if not has_ua and not has_asynca:
                             analytics_missing_error_count += 1
                             message = "Warning: Page missing google analytics"
-                            link['messages']['warning'].append(message)
+                            link.add_warning_message(message)
 
 
                         if is_https:
                             #Verity that javascript, css and images are all loaded with https also
-                            for link in link['links']:
-                                if 'http:' in link:
+                            for link_url in link.links:
+                                if 'http:' in link_url:
                                     ssl_error_count += 1
-                                    message = "Warning: HTTPS page contains HTTP link: %s"%(link)
-                                    link['messages']['warning'].append(message)
-                                    print message
+                                    message = "Warning: HTTPS page contains HTTP link: %s"%(link_url)
+                                    link.add_warning_message(message)
 
-                            for image in link['images']:                                
-                                if 'http:' in image:
-                                    ssl_error_count += 1
-                                    message = "Warning: HTTPS page contains HTTP image: %s"%(image)
-                                    link['messages']['warning'].append(message)
-                                    print message
-                                
+        
 
 
                         
@@ -153,19 +145,17 @@ def test_basic_page_quality(links, canonical_domain, domain_aliases, messages, v
                     pass
 
     if analytics_missing_error_count > 0:
-        messages['warning'].append("Warning: %s pages were found to be missing google analytics"%(analytics_missing_error_count))
+        site.add_warning_message("%s pages were found to be missing google analytics"%(analytics_missing_error_count))
 
     if unique_title_error_count > 0:
-        messages['warning'].append("Warning: %s pages were found to non-unique page titles"%(unique_title_error_count))
+        site.add_warning_message("%s pages were found to non-unique page titles"%(unique_title_error_count))
 
     if unique_description_error_count > 0:
-        messages['warning'].append("Warning: %s pages were found to non-unique page descriptions"%(unique_description_error_count)) 
+        site.add_warning_message("%s pages were found to non-unique page descriptions"%(unique_description_error_count)) 
 
     if social_tag_error_count > 0:
-        messages['info'].append("Notice: %s social meta tags are missing"%(social_tag_error_count))    
+        site.add_info_message("%s social meta tags are missing"%(social_tag_error_count))    
 
     if ssl_error_count > 0:
-        messages['warning'].append("Warning: %s HTTP links were found on HTTPS pages"%(ssl_error_count))             
-
-    return links, messages
+        site.add_warning_message("%s HTTP links were found on HTTPS pages"%(ssl_error_count))             
 

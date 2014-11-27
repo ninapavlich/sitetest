@@ -87,14 +87,13 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         set.load_link(sitemap_link, recursive)
    
 
-    """
 
-    if recursive:
-        #1. Site quality test
-        try:
-            test_basic_site_quality(set)
-        except:
-            print "Error running site quality check: %s"%(traceback.format_exc())
+    #if recursive:
+    #1. Site quality test
+    try:
+        test_basic_site_quality(set)
+    except:
+        print "Error running site quality check: %s"%(traceback.format_exc())
 
     #2. Page quality test
     try:
@@ -102,9 +101,12 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
     except Exception:        
         print "Error running page quality check: %s"%(traceback.format_exc())
 
+
+
+
     #3. Spell Check test
     try:
-        test_basic_spell_check(set)
+        test_basic_spell_check(set, special_dictionary)
     except Exception:        
         print "Error running spellcheck: %s"%(traceback.format_exc())
 
@@ -114,11 +116,17 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
     except Exception:        
         print "Error linting JS: %s"%(traceback.format_exc())
 
+    
+
+    
+
+    
+
 
     if full:
         #4. W3C Compliance test
         try:
-            test_w3c_compliance(set)
+            test_w3c_compliance(set, ignore_validation_errors)
         except Exception:        
             print "Error validating with w3c: %s"%(traceback.format_exc())
 
@@ -128,7 +136,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         #6. Lint JS and CSS
         #current_links, messages = test_basic_page_quality(current_links, canonical_domain, domain_aliases, messages, verbose)
 
-    """
+    
 
     end_time = datetime.datetime.now()
 
@@ -269,11 +277,9 @@ def notify_results(results, credentials):
 
     client = SlackClient(SLACK_TOKEN)
 
-    message_output = "TEST RESULTS for \"%s\"\n\n"%(results['site']['title'])
+    message_output = "TEST RESULTS for \"%s\"\n\n"%(results['site'].title)
 
-    message_output += ('%s links were tested.\n\n'%(len(results['sorted_links'])))
-
-    message_output += ('SCORE: %s-%s-%s (Lower is better, Best is 0-0-2)\n\n'%(len(results['messages']['error']),len(results['messages']['warning']),len(results['messages']['info'])))
+    message_output += ('SCORE: %s-%s-%s (Lower is better, Best is 0-0-2)\n\n'%(len(results['site'].messages.error),len(results['site'].messages.warning),len(results['site'].messages.info)))
 
     # for message in results['messages']['success']:
     #     message_output += (message+'\n\n')
