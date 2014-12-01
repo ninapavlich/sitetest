@@ -3,7 +3,13 @@ import sys
 import datetime
 import traceback        
 
+from boto.s3.key import Key
+import boto.s3
+from bs4 import BeautifulSoup
+import codecs    
 from jinja2 import Template, FileSystemLoader, Environment
+from pyslack import SlackClient
+import webbrowser
 
 from .core.models import LinkSet
 from .tests.basic_site_quality import test_basic_site_quality
@@ -209,7 +215,7 @@ def delete_results_local(output_path, verbose):
     os.remove(output_path)
 
 def save_results_local(html, output_path, test_id, verbose):
-    import codecs
+    
     
 
     # process Unicode text
@@ -222,7 +228,7 @@ def save_results_local(html, output_path, test_id, verbose):
     file.close()
 
 def save_results_aws(file_name, test_id, credentials, verbose):
-    import boto.s3
+    
 
     AWS_ACCESS_KEY_ID = credentials['aws']['AWS_ACCESS_KEY_ID']
     AWS_SECRET_ACCESS_KEY = credentials['aws']['AWS_SECRET_ACCESS_KEY']
@@ -240,12 +246,11 @@ def save_results_aws(file_name, test_id, credentials, verbose):
     if verbose:
         print 'Uploading %s to Amazon S3 from %s' % (base_name, file_name)
 
-        import sys
         def percent_cb(complete, total):
             sys.stdout.write('.')
             sys.stdout.flush()
 
-    from boto.s3.key import Key
+    
     k = Key(bucket)
     k.key = u"%s/%s/%s"%(AWS_RESULTS_PATH, test_id, base_name)
     k.set_contents_from_filename(file_name, cb=percent_cb, num_cb=10)
@@ -256,7 +261,7 @@ def save_results_aws(file_name, test_id, credentials, verbose):
 
 def open_results(path):
 
-    import webbrowser
+    
     new = 2 # open in a new tab, if possible
 
     # open an HTML file on my own (Windows) computer
@@ -268,7 +273,7 @@ def open_results(path):
     webbrowser.open(url,new=new)
 
 def notify_results(results, credentials):
-    from pyslack import SlackClient
+
     SLACK_TOKEN = credentials['slack']['SLACK_TOKEN']
     SLACK_CHANNEL = credentials['slack']['SLACK_CHANNEL']
     SLACK_USERNAME = credentials['slack']['SLACK_USERNAME']
@@ -295,7 +300,6 @@ def notify_results(results, credentials):
     client.chat_post_message(SLACK_CHANNEL, stripped, username=SLACK_USERNAME)  
 
 def stripHtmlTags(htmlTxt):
-    from bs4 import BeautifulSoup
     if htmlTxt is None:
         return None
     else:

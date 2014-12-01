@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import traceback     
 import datetime
 import httplib
 import urllib2
@@ -110,7 +111,7 @@ class LinkSet(BaseMessageable):
         
     def load_link(self, page_link, recursive, expected_code=200):
 
-        # max_count = 150
+        # max_count = 170
         # if len(self.parsed_links) > max_count:
         #     print "PARSED %s PAGES, turn recursive off"%(max_count)
         #     return
@@ -416,7 +417,7 @@ class LinkItem(BaseMessageable):
             self.response_code = "Bad Status Error. (Presumably, the server closed the connection before sending a valid response)"
 
         except Exception:
-            import traceback        
+                
             self.response_code = "Unknown Exception: %s"%(traceback.format_exc())
 
 
@@ -643,7 +644,6 @@ def trace_path(url, traced, depth=0):
     #         link['messages']['error'].append(message)
 
     except Exception:
-        import traceback     
         response_data['response_code'] = "Unknown Exception: %s"%(traceback.format_exc())
         
     
