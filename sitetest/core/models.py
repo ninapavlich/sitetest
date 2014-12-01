@@ -27,6 +27,8 @@ MEDIA_SUFFIXES = [
 ]
 
 class MessageSet(object):
+    # __slots__ = ['success', 'error', 'warning', 'info',]
+
     success = None
     error = None
     warning = None
@@ -39,6 +41,8 @@ class MessageSet(object):
         self.info = []
 
 class Message(object):
+    # __slots__ = ['message',]
+
     message = None
 
     def __init__(self, message):
@@ -119,7 +123,7 @@ class LinkSet(BaseMessageable):
 
         if page_link.is_loadable_type(self.include_media) and page_link.url not in self.loaded_links:
 
-            #trace_memory_usage()
+            trace_memory_usage()
             print ">>> Load Link %s (%s/%s, %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.current_links))
 
             load_successful, response = page_link.load(expected_code)
@@ -279,6 +283,12 @@ class LinkSet(BaseMessageable):
 class LinkItem(BaseMessageable):
     
 
+    # __slots__ = ['_set', 'referers', 'image_links', 'hyper_links', 'css_links',
+    # 'script_links', 'url', 'ending_url', 'starting_type', 'ending_type', 'path',
+    # 'response_code', 'has_response','response_content_type','redirect_path',
+    # 'html','content','response_load_time','description','is_media','alias_to','skip_test','has_sitemap_entry']
+
+
     _set = None
 
     referers = None
@@ -286,8 +296,6 @@ class LinkItem(BaseMessageable):
     hyper_links = None
     css_links = None
     script_links = None
-
-
 
     url = None
     ending_url = None
@@ -686,10 +694,10 @@ def url_fix(s, charset='utf-8'):
 
 def trace_memory_usage():
     print 'Memory usage: %s' % memory_usage_resource()
-    import gc
-    import objgraph
-    gc.collect()  # don't care about stuff that would be garbage collected properly
-    objgraph.show_most_common_types()
+    # import gc
+    # import objgraph
+    # gc.collect()  # don't care about stuff that would be garbage collected properly
+    # objgraph.show_most_common_types()
 
 def memory_usage_resource():
     import resource
