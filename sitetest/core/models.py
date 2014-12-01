@@ -260,7 +260,7 @@ class LinkSet(BaseMessageable):
                     else:
                         normalized = "%s/%s"%(dequeried_parent_url, normalized)
 
-                    print "relative from parent, replaced %s with %s"%(url, normalized)
+                    #print "relative from parent, replaced %s with %s"%(url, normalized)
                     
             #Next remove unwanted query strings:
             normalized = clean_query_string(normalized, self.ignore_query_string_keys)
