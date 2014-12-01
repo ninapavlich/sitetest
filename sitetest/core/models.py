@@ -119,7 +119,7 @@ class LinkSet(BaseMessageable):
 
         if page_link.is_loadable_type(self.include_media) and page_link.url not in self.loaded_links:
 
-            trace_memory_usage()
+            #trace_memory_usage()
             print ">>> Load Link %s (%s/%s, %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.current_links))
 
             load_successful, response = page_link.load(expected_code)
