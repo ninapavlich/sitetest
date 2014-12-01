@@ -9,6 +9,7 @@ import urlparse
 import cgi
 import re
 import os
+import sys
 from bs4 import BeautifulSoup
 
 
@@ -118,9 +119,10 @@ class LinkSet(BaseMessageable):
 
         if page_link.is_loadable_type(self.include_media) and page_link.url not in self.loaded_links:
 
+            trace_memory_usage()
             print ">>> Load Link %s (%s/%s, %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.current_links))
 
-            load_successful = page_link.load(expected_code)
+            load_successful, response = page_link.load(expected_code)
             
             if not load_successful:
                 message = "Loading error on page <a href='#%s' class='alert-link'>%s</a> Expected %s Received %s"%(page_link.internal_page_url, page_link.url, 200, page_link.response_code)
@@ -133,9 +135,9 @@ class LinkSet(BaseMessageable):
             
 
             #parse child links of internal pages only
-            if page_link.response and page_link.is_internal():
+            if page_link.has_response and page_link.is_internal():
 
-                page_link.parse_response()
+                page_link.parse_response(response)
 
                 #record that we have parsed it
                 if page_link.url not in self.parsed_links:
@@ -293,7 +295,9 @@ class LinkItem(BaseMessageable):
     ending_type = None
     path = None
     response_code = None
-    response = None
+    #response = None
+
+    has_response = False
     response_content_type = None    
     redirect_path = None
     html = None
@@ -382,7 +386,8 @@ class LinkItem(BaseMessageable):
             response = urllib2.urlopen(request)
             end_time = datetime.datetime.now()
             self.response_code = response.code
-            self.response = response#u"%s"%(response)
+            #self.response = response#u"%s"%(response)
+            self.has_response = True
             self.response_content_type = response.info().getheader('Content-Type')
             self.ending_url = response.geturl()
             self.ending_type = self._set.get_link_type(self.ending_url)
@@ -424,13 +429,13 @@ class LinkItem(BaseMessageable):
         if expected_code != self.response_code:
             message = "Loading error on page <a href='#%s' class='alert-link'>%s</a> Expected %s Received %s"%(self.internal_page_url, self.url, expected_code, self.response_code)
             self.add_error_message(message)
-            return False
+            return (False, response)
         else:
-            return True
+            return (True, response)
 
-    def parse_response(self):
+    def parse_response(self, response):
         try:
-            soup = BeautifulSoup(self.response)
+            soup = BeautifulSoup(response)
         except:
             soup = None
             self.add_error_message("Error parsing HTML on page %s"%(self.url))
@@ -678,3 +683,20 @@ def url_fix(s, charset='utf-8'):
     path = urllib.quote(path, '/%')
     qs = urllib.quote_plus(qs, ':&=')
     return urlparse.urlunsplit((scheme, netloc, path, qs, anchor))    
+
+def trace_memory_usage():
+    print 'Memory usage: %s' % memory_usage_resource()
+    import gc
+    import objgraph
+    gc.collect()  # don't care about stuff that would be garbage collected properly
+    objgraph.show_most_common_types()
+
+def memory_usage_resource():
+    import resource
+
+    rusage_denom = 1024.
+    if sys.platform == 'darwin':
+        # ... it seems that in OSX the output is different units ...
+        rusage_denom = rusage_denom * rusage_denom
+    mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / rusage_denom
+    return mem    
