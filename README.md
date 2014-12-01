@@ -154,7 +154,7 @@ options = {
     'special_dictionary':['yolo',],
     'ignore_query_string_keys':['next'],
     'alias_query_strings':['page'],
-    'ignore_validation_errors':['Bad value X-UA-Compatible for attribute http-equiv on element meta.' ],
+    'ignore_validation_errors':[],
     'skip_test_urls':['comments/reply','comments/flag' ]
 }
 
