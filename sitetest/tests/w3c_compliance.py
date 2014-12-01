@@ -1,4 +1,3 @@
-from ..core.retrieve_all_urls import TYPE_INTERNAL
 from w3c_validator.validator import Validator
 
 def test_w3c_compliance(set, ignore_validation_errors, verbose=False):

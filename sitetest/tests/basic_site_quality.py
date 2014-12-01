@@ -1,6 +1,4 @@
-from ..core.retrieve_all_urls import get_or_create_link_object, load_link_object, get_urls_on_page
 from bs4 import BeautifulSoup
-from ..core.retrieve_all_urls import TYPE_INTERNAL
 
 def test_basic_site_quality(site, verbose=False):
     """

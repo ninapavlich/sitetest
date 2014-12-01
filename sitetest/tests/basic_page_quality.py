@@ -1,4 +1,3 @@
-from ..core.retrieve_all_urls import TYPE_INTERNAL
 from bs4 import BeautifulSoup, SoupStrainer
 
 def test_basic_page_quality(set, verbose=False):

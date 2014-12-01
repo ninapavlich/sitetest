@@ -8,9 +8,6 @@ import string
 import traceback        
 
 
-from ..core.retrieve_all_urls import TYPE_INTERNAL
-
-
 CONTRACTION_LIST = ["aren't", "can't", "couldn't", 
     "didn't", "doesn't", "don't", "hadn't", "hasn't", 
     "haven't", "he'd", "he'll", "he's", "i'd", "i'll", 
