@@ -110,6 +110,11 @@ class LinkSet(BaseMessageable):
         
     def load_link(self, page_link, recursive, expected_code=200):
 
+        # max_count = 150
+        # if len(self.parsed_links) > max_count:
+        #     print "PARSED %s PAGES, turn recursive off"%(max_count)
+        #     return
+
         if page_link.is_loadable_type(self.include_media) and page_link.url not in self.loaded_links:
 
             print ">>> Load Link %s (%s/%s, %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.current_links))
@@ -146,8 +151,9 @@ class LinkSet(BaseMessageable):
 
     def get_or_create_link_object(self, url, referer=None):
         incoming_url = url
+        referer_url = None if not referer else referer.url
 
-        url = self.get_normalized_href(url)
+        url = self.get_normalized_href(url, referer_url)
 
         
         if not url or url == '':
@@ -211,15 +217,15 @@ class LinkSet(BaseMessageable):
 
     def get_normalized_href(self, url, normalized_parent_url=None):
         
-
-        if url.startswith('//'):
+        normalized = url
+        if normalized.startswith('//'):
             if self.canonical_domain.startswith('https'):
-                url = u"https:%s"%(url)
+                normalized = u"https:%s"%(normalized)
             else:
-                url = u"http:%s"%(url)
+                normalized = u"http:%s"%(normalized)
 
         #Normalize url by converting to lowercase: 
-        normalized = url_fix(url.lower())
+        normalized = url_fix(normalized.lower())
 
         dequeried_parent_url = clear_query_string(normalized_parent_url)
 
@@ -254,15 +260,10 @@ class LinkSet(BaseMessageable):
                     else:
                         normalized = "%s/%s"%(dequeried_parent_url, normalized)
 
-                    #print "relative from parent, replacd %s with %s"%(url, normalized)
+                    print "relative from parent, replaced %s with %s"%(url, normalized)
                     
             #Next remove unwanted query strings:
             normalized = clean_query_string(normalized, self.ignore_query_string_keys)
-
-
-        else:
-            normalized = url
-
 
         return normalized
 

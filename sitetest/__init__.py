@@ -21,8 +21,6 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         else:
             print "BASIC SITE TEST :: %s"%(canonical_domain)
 
-    # recursive = False
-
     
     #TODO: Add screenshots from browserstack http://www.browserstack.com/screenshots/api
     #TODO: Add linting for css and js files and make sure they are being served as GZIP
@@ -105,6 +103,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
 
     #3. Spell Check test
     try:
+        print 'running spellcheck...'
         test_basic_spell_check(set, special_dictionary)
     except Exception:        
         print "Error running spellcheck: %s"%(traceback.format_exc())

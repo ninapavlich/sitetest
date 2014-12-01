@@ -12,11 +12,13 @@ def test_basic_site_quality(site, verbose=False):
         sitemap_url = "%ssitemap.xml"%(canonical_domain)
         favicon_url = "%sfavicon.ico"%(canonical_domain)
         error_url = "%sthisShouldNotExist"%(canonical_domain)
+        image_error_url = "%sthisShouldNotExist.jpg"%(canonical_domain)
     else:
         robots_url = "%s/robots.txt"%(canonical_domain)
         sitemap_url = "%s/sitemap.xml"%(canonical_domain)
         favicon_url = "%s/favicon.ico"%(canonical_domain)
         error_url = "%s/thisShouldNotExist"%(canonical_domain)
+        image_error_url = "%s/sthisShouldNotExist.jpg"%(canonical_domain)
         
     #1 - Test robots.txt
     robots_link = site.get_or_create_link_object(robots_url)
@@ -34,6 +36,9 @@ def test_basic_site_quality(site, verbose=False):
     #4 - Test thisShouldNotExist
     error_link = site.get_or_create_link_object(error_url)
     site.load_link(error_link, False, 404)
+
+    image_error_link = site.get_or_create_link_object(image_error_url)
+    site.load_link(image_error_link, False, 404)
     
 
     #5 - Verify that sitemap matches up with the actual pages
