@@ -121,12 +121,41 @@ verbose = True
 
 EXAMPLE USAGE:
 ```python
+
+
+canonical_domain = 'https://www.example.com'
+test_id = "example-site-test-full"
+full = False
+recursive = True
+verbose = True
+
+
+credentials = {
+    "slack":{
+        "SLACK_TOKEN" : "XXXX-XXXXXXXXX-XXXXXXXXX-XXXXXXXXX-XXXXXX",
+        "SLACK_CHANNEL" : "#channel",
+        "SLACK_USERNAME" : "slackbot"
+    },
+    "aws":{
+        "AWS_ACCESS_KEY_ID" : "XXXXXXXXX",
+        "AWS_SECRET_ACCESS_KEY" : "XXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "AWS_STORAGE_BUCKET_NAME" : "bucket-name",
+        "AWS_RESULTS_PATH" : "test_results"
+    }
+}
+
+domain_aliases = [
+    'http://www.example.com',
+    'https://example.com',
+    'http://example.com'
+]
+
 options = {
-    'special_dictionary':special_dictionary,
-    'ignore_query_string_keys':ignore_query_string_keys,
-    'alias_query_strings':alias_query_strings,
-    'ignore_validation_errors':ignore_validation_errors,
-    'skip_test_urls':
+    'special_dictionary':['yolo',],
+    'ignore_query_string_keys':['next'],
+    'alias_query_strings':['page'],
+    'ignore_validation_errors':['Bad value X-UA-Compatible for attribute http-equiv on element meta.' ],
+    'skip_test_urls':['comments/reply','comments/flag' ]
 }
 
 testSite(credentials, canonical_domain, domain_aliases, test_id, full, 
