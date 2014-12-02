@@ -28,7 +28,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         else:
             print "BASIC SITE TEST :: %s"%(canonical_domain)
 
-    #recursive = False
+    # recursive = False
     
     #TODO: Add screenshots from browserstack http://www.browserstack.com/screenshots/api
     #TODO: Add linting for css and js files and make sure they are being served as GZIP
@@ -199,14 +199,14 @@ def render_and_save_results(results, template_name, output_path):
     pass
 
 
-def render_results(results, template_file = 'templates/results.html'):
+def render_results(results, template_file = 'results.html'):
     
-    templateLoader = FileSystemLoader( searchpath="/" )
+    templateLoader = FileSystemLoader( [os.path.join(os.path.dirname(__file__), 'templates/')] )
     templateEnv = Environment( loader=templateLoader )
 
-    TEMPLATE_FILE = os.path.join(os.path.dirname(__file__), template_file)
-    template = templateEnv.get_template( TEMPLATE_FILE )
-
+    
+    print 'TEMPLATE_FILE? %s'%(template_file)
+    template = templateEnv.get_template( template_file )
     rendered = template.render( results )
     return rendered
 

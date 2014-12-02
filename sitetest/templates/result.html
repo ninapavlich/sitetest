@@ -15,7 +15,7 @@
 		        <span class="label label-default">N/A</span> 
 		        {% endif %}
 
-	        	<a data-parent="#accordion" data-toggle="collapse" href="#load-test-result-body-{{loop.index}}">
+	        	<a data-parent="#accordion" data-toggle="collapse" href="#load-test-result-body-{{loop_index}}">
 	        		{% if link.title %}{{link.title}}<br /><br />{% endif %}
 		        	{{link.url}}
 		        	{% if link.url != link.ending_url %} > {{link.ending_url}} {% endif %}
@@ -44,49 +44,49 @@
     </div>
 
     <div class="panel-collapse collapse" id=
-    "load-test-result-body-{{loop.index}}">
+    "load-test-result-body-{{loop_index}}">
         <div class="panel-body">
 
 
             <!-- Nav tabs -->
 			<ul class="nav nav-tabs" role="tablist">
-			  	<li class="active"><a href="#load-test-result-body-{{loop.index}}-stats" role="tab" data-toggle="tab">Stats</a></li>
+			  	<li class="active"><a href="#load-test-result-body-{{loop_index}}-stats" role="tab" data-toggle="tab">Stats</a></li>
 
 				{% if link.referers|length > 0 %}
-				<li><a href="#load-test-result-body-{{loop.index}}-referers" role="tab" data-toggle="tab">Referer Links</a></li>
+				<li><a href="#load-test-result-body-{{loop_index}}-referers" role="tab" data-toggle="tab">Referer Links</a></li>
 				{% endif %}
 
 				{% if link.hyper_links|length > 0 %}
-				<li><a href="#load-test-result-body-{{loop.index}}-hyper_links" role="tab" data-toggle="tab">Child Links</a></li>
+				<li><a href="#load-test-result-body-{{loop_index}}-hyper_links" role="tab" data-toggle="tab">Child Links</a></li>
 				{% endif %}
 
 				{% if link.image_links|length > 0 %}
-				<li><a href="#load-test-result-body-{{loop.index}}-image_links" role="tab" data-toggle="tab">Images</a></li>
+				<li><a href="#load-test-result-body-{{loop_index}}-image_links" role="tab" data-toggle="tab">Images</a></li>
 				{% endif %}
 
 				{% if link.css_links|length > 0 %}
-				<li><a href="#load-test-result-body-{{loop.index}}-css_links" role="tab" data-toggle="tab">CSS</a></li>
+				<li><a href="#load-test-result-body-{{loop_index}}-css_links" role="tab" data-toggle="tab">CSS</a></li>
 				{% endif %}
 
 				{% if link.script_links|length > 0 %}
-				<li><a href="#load-test-result-body-{{loop.index}}-script_links" role="tab" data-toggle="tab">Scripts</a></li>
+				<li><a href="#load-test-result-body-{{loop_index}}-script_links" role="tab" data-toggle="tab">Scripts</a></li>
 				{% endif %}
 
 				{% if link.validation %}
 				{% if link.validation.warnings|length > 0 or link.validation.errors|length > 0 %}
-				<li><a href="#load-test-result-body-{{loop.index}}-validation" role="tab" data-toggle="tab">Validation</a></li>
+				<li><a href="#load-test-result-body-{{loop_index}}-validation" role="tab" data-toggle="tab">Validation</a></li>
 				{% endif %}
 				{% endif %}
 
 				{% if link.loading_score %}
-				<li><a href="#load-test-result-body-{{loop.index}}-loading-score" role="tab" data-toggle="tab">Page Speed</a></li>
+				<li><a href="#load-test-result-body-{{loop_index}}-loading-score" role="tab" data-toggle="tab">Page Speed</a></li>
 				{% endif %}
 
 				{% if link.enumerated_html %}
-				<li><a href="#load-test-result-body-{{loop.index}}-source" role="tab" data-toggle="tab">Source</a></li>
+				<li><a href="#load-test-result-body-{{loop_index}}-source" role="tab" data-toggle="tab">Source</a></li>
 				{% endif %}
 
-				<li><a href="#load-test-result-body-{{loop.index}}-tools" role="tab" data-toggle="tab">Tools</a></li>
+				<li><a href="#load-test-result-body-{{loop_index}}-tools" role="tab" data-toggle="tab">Tools</a></li>
 			  
 			</ul>
 
@@ -94,7 +94,7 @@
 
 			<!-- Tab panes -->
 			<div class="tab-content">
-			  	<div class="tab-pane active" id="load-test-result-body-{{loop.index}}-stats">
+			  	<div class="tab-pane active" id="load-test-result-body-{{loop_index}}-stats">
 				  	<ul>
 					  	{% if link.response_load_time %}
 			            <li>This page took <strong>{{link.response_load_time}}ms</strong> to load.</li>
@@ -141,7 +141,7 @@
 				</div>
 
 				  {% if link.referers|length > 0 %}
-				<div class="tab-pane" id="load-test-result-body-{{loop.index}}-referers">
+				<div class="tab-pane" id="load-test-result-body-{{loop_index}}-referers">
 				  	<h5>There are {{link.referers|length}} links that refer
 	                to this page</h5>
 
@@ -156,7 +156,7 @@
 				{% endif %}
 
 				{% if link.hyper_links|length > 0 %}
-				<div class="tab-pane" id="load-test-result-body-{{loop.index}}-hyper_links">
+				<div class="tab-pane" id="load-test-result-body-{{loop_index}}-hyper_links">
 					<h5>There are {{link.hyper_links|length}} links within this page</h5>
 
 					<ul>
@@ -170,7 +170,7 @@
 				{% endif %}
 
 				{% if link.image_links|length > 0 %}
-				<div class="tab-pane" id="load-test-result-body-{{loop.index}}-image_links">
+				<div class="tab-pane" id="load-test-result-body-{{loop_index}}-image_links">
 		            <section class="link-children">
 		                <h5>There are {{link.image_links|length}} images within this page</h5>
 
@@ -183,7 +183,7 @@
 
 		                        </a>
 		                    </div>
-	                    {% if loop.index is divisibleby 4 %}
+	                    {% if loop_index is divisibleby 4 %}
 	                	</div>
 	                	<div class='image-row' >
 	                	{% endif %}
@@ -197,7 +197,7 @@
 
 
 				{% if link.css_links|length > 0 %}
-				<div class="tab-pane" id="load-test-result-body-{{loop.index}}-css_links">
+				<div class="tab-pane" id="load-test-result-body-{{loop_index}}-css_links">
 				  	<h5>There are {{link.css_links|length}} css files linked in this page</h5>
 	                <ul>
 	                    {% for link_item_url,link_item in link.css_links|dictsort %}
@@ -210,7 +210,7 @@
 				{% endif %}
 
 				{% if link.script_links|length > 0 %}
-				<div class="tab-pane" id="load-test-result-body-{{loop.index}}-script_links">
+				<div class="tab-pane" id="load-test-result-body-{{loop_index}}-script_links">
 					<h5>There are {{link.script_links|length}} javascript files linked in this page</h5>
 					<ul>
 					    {% for link_item_url,link_item in link.script_links|dictsort %}
@@ -224,7 +224,7 @@
 
 				{% if link.validation %}
 				{% if link.validation.warnings|length > 0 or link.validation.errors|length > 0 %}
-				<div class="tab-pane" id="load-test-result-body-{{loop.index}}-validation">
+				<div class="tab-pane" id="load-test-result-body-{{loop_index}}-validation">
 					
 					{% for message in link.validation.errors %}
 					<li class="alert alert-warning" role="alert">
@@ -256,7 +256,7 @@
 				{% endif %}
 
 				{% if link.loading_score %}
-				<div class="tab-pane" id="load-test-result-body-{{loop.index}}-loading-score">
+				<div class="tab-pane" id="load-test-result-body-{{loop_index}}-loading-score">
 					<h5>This page scored <strong class="score-{{link.loading_score_group}}">{{link.loading_score.score}}</strong> on google page speed tests.</h5>
 					<ul>
 						{% for rule_id, rule in link.loading_score.formattedResults.ruleResults|dictsort %}
@@ -277,12 +277,12 @@
 				{% endif %}
 
 				{% if link.enumerated_html %}
-				<div class="tab-pane" id="load-test-result-body-{{loop.index}}-source">
+				<div class="tab-pane" id="load-test-result-body-{{loop_index}}-source">
 					<pre>{{link.enumerated_html|e}}</pre>
 				</div>
 				{% endif %}
 
-				<div class="tab-pane" id="load-test-result-body-{{loop.index}}-tools">
+				<div class="tab-pane" id="load-test-result-body-{{loop_index}}-tools">
 					<ul>
 					    <li>
 					        <a class='fa fa-external-link' href=
