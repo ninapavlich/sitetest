@@ -147,18 +147,18 @@
 					</p>
 
 					{% for link_url, link in set.parsed_links|dictsort %}
-					{% include 'result.html' %}
+					{% include 'templates/result.html' %}
 					{% endfor %}
 
 					{% for link_url, link in set.loaded_links|dictsort %}
 					{% if link_url not in set.parsed_links %}
-					{% include 'result.html' %}
+					{% include 'templates/result.html' %}
 					{% endif %}
 					{% endfor %}
 
 					{% for link_url, link in set.current_links|dictsort %}
 					{% if link_url not in set.parsed_links and link_url not in set.loaded_links %}
-					{% include 'result.html' %}
+					{% include 'templates/result.html' %}
 					{% endif %}
 					{% endfor %}
 				

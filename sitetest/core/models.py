@@ -19,7 +19,7 @@ TYPE_INTERNAL = 'internal'
 TYPE_EXTERNAL = 'external'
 
 MEDIA_SUFFIXES = [
-    '.png', '.jpg', '.jpeg', '.gif',
+    '.png', '.jpg', '.jpeg', '.gif','.ico',
     '.doc', '.pdf', '.ppt', '.zip', '.gzip', '.mp3', '.rar', '.exe', 
     '.avi', '.mpg', '.tif', '.wav', '.mov', '.psd', '.ai', '.wma',
     '.eps','.mp4','.bmp','.indd','.swf','.jar','.dmg','.iso','.flv',

@@ -82,7 +82,9 @@
 				<li><a href="#load-test-result-body-{{loop.index}}-loading-score" role="tab" data-toggle="tab">Page Speed</a></li>
 				{% endif %}
 
+				{% if link.enumerated_html %}
 				<li><a href="#load-test-result-body-{{loop.index}}-source" role="tab" data-toggle="tab">Source</a></li>
+				{% endif %}
 
 				<li><a href="#load-test-result-body-{{loop.index}}-tools" role="tab" data-toggle="tab">Tools</a></li>
 			  
@@ -274,10 +276,11 @@
 				</div>
 				{% endif %}
 
+				{% if link.enumerated_html %}
 				<div class="tab-pane" id="load-test-result-body-{{loop.index}}-source">
 					<pre>{{link.enumerated_html|e}}</pre>
 				</div>
-
+				{% endif %}
 
 				<div class="tab-pane" id="load-test-result-body-{{loop.index}}-tools">
 					<ul>
