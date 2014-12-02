@@ -81,6 +81,11 @@ class BaseMessageable(object):
 
     def __init__(self):
         pass
+
+    def get_score(self):
+        if self.messages:
+            return self.messages.get_score()
+        return None
     
 
     def add_error_message(self, message, count=1):

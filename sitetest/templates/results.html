@@ -3,23 +3,23 @@
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>{% if full %}Full{% else %}Basic{% endif %} Site Test Results for {{site.title}}</title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<title>{% if full %}Full{% else %}Basic{% endif %} Site Test Results for {{site.title}}</title>
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
-        <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
-        <style>
-	        .nav-tabs{
-	        	margin-bottom:15px;
-	        }
-	        ul, li{
-	        	list-style-type: none;
-	        }
-	        h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+		<link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+		<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+		<style>
+			.nav-tabs{
+				margin-bottom:15px;
+			}
+			ul, li{
+				list-style-type: none;
+			}
+			h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
 				line-height: 1.5em;
 			}
 			.fa:hover{
@@ -72,459 +72,119 @@
 				color: #5cb85c;
 			}
 			
-        </style>
+		</style>
 
-        <link rel="icon" type="image/png" href="{{site.url}}/favicon.ico">
+		<link rel="icon" type="image/png" href="{{site.url}}/favicon.ico">
 
-        <script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
-        <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+		<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
 		<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 
 		<script>
 		
 		</script>
-    </head>
-    <body>
+	</head>
+	<body>
 
 
 
-    	<div class="container">
-	        <h1 id="top">{% if full %}Full{% else %}Basic{% endif %} Site Test Results for &ldquo;{{site.title}}&rdquo;</h1>
-	        <p>Test took {{duration.seconds}} seconds, starting on {{start_time.strftime('%b %d, %Y at %I:%M %p')}} and ended at {{end_time.strftime('%I:%M %p')}}</p>
-	        <p>{{set.parsed_links|length}} links were parsed, {{set.loaded_links|length}} loaded, {{set.current_links|length}} total.</p>
+		<div class="container">
+			<h1 id="top">{% if full %}Full{% else %}Basic{% endif %} Site Test Results for &ldquo;{{site.title}}&rdquo;</h1>
+			<p>Test took {{duration.seconds}} seconds, starting on {{start_time.strftime('%b %d, %Y at %I:%M %p')}} and ended at {{end_time.strftime('%I:%M %p')}}</p>
+			<p>{{set.parsed_links|length}} links were parsed, {{set.loaded_links|length}} loaded, {{set.current_links|length}} total.</p>
 
-	        {% if set.messages.success|length > 0 %}
-	        <section>
-	        	<h2 style="display:none">Success</h2>
-	        	<ul >
-	        		{% for message in set.messages.success %}
+			{% if set.messages.success|length > 0 %}
+			<section>
+				<h2 style="display:none">Success</h2>
+				<ul >
+					{% for message in set.messages.success %}
 					<li class="alert alert-success" role="alert">{{message.message}}</li>		        				
 					{% endfor %}        		
-	        	</ul>
-	        </section>
-	        {% endif %}
+				</ul>
+			</section>
+			{% endif %}
 
-	        {% if set.messages.error|length > 0 %}
-	        <section>
-	        	<h2 style="display:none">Errors</h2>
-	        	<ul >
-	        		{% for message in set.messages.error %}
+			{% if set.messages.error|length > 0 %}
+			<section>
+				<h2 style="display:none">Errors</h2>
+				<ul >
+					{% for message in set.messages.error %}
 					<li class="alert alert-danger" role="alert">{{message.message}}</li>		        				
 					{% endfor %}        		
-	        	</ul>
-	        </section>
-	        {% endif %}
+				</ul>
+			</section>
+			{% endif %}
 
-	        {% if set.messages.warning|length > 0 %}
-	        <section>
-	        	<h2 style="display:none">Warning</h2>
-	        	<ul >
-	        		{% for message in set.messages.warning %}
+			{% if set.messages.warning|length > 0 %}
+			<section>
+				<h2 style="display:none">Warning</h2>
+				<ul >
+					{% for message in set.messages.warning %}
 					<li class="alert alert-warning" role="alert">{{message.message}}</li>		        				
 					{% endfor %}        		
-	        	</ul>
-	        </section>
-	        {% endif %}
+				</ul>
+			</section>
+			{% endif %}
 
-	        {% if set.messages.info|length > 0 %}
-	        <section>
-	        	<h2 style="display:none">Info</h2>
-	        	<ul >
-	        		{% for message in set.messages.info %}
+			{% if set.messages.info|length > 0 %}
+			<section>
+				<h2 style="display:none">Info</h2>
+				<ul >
+					{% for message in set.messages.info %}
 					<li class="alert alert-info" role="alert">{{message.message}}</li>		        				
 					{% endfor %}        		
-	        	</ul>
-	        </section>
-	        {% endif %}
-
-	        <section>
-	        	<h2>Results</h2>
-
-	        		
-	        		<p>
-		        		<button type="button" class="btn btn-default expand-all">Expand All <span class="glyphicon glyphicon-arrow-down"></span></button>
-		        		<button type="button" class="btn btn-default collapse-all">Collapse All <span class="glyphicon glyphicon-arrow-up"></span></button>
-		        	</p>
-
-	        		{% for link_url, link in set.loaded_links|dictsort %}
-	        			        		
-	        		<div class="panel panel-default">
-				    <div class="panel-heading">
-				        <h4 class="panel-title clearfix" id="{{link.internal_page_url}}">
-				        	<span class="pull-left">
-
-				        		{% if link.response_code %} 
-						        {% if link.response_code == 200 %}
-						        <span class="label label-success">{{link.response_code}}</span> 
-						        {% elif link.response_code == "Unknown" %} 
-						        <span class="label label-warning">Response Code {{link.response_code}}</span> 
-						        {% else %} 
-						        <span class= "label label-danger">{{link.response_code}}</span>
-						        {% endif %} 
-						        {% else %}
-						        <span class="label label-default">N/A</span> 
-						        {% endif %}
-
-					        	<a data-parent="#accordion" data-toggle="collapse" href="#load-test-result-body-{{loop.index}}">
-					        		{% if link.title %}{{link.title}}<br /><br />{% endif %}
-						        	{{link.url}}
-						        	{% if link.url != link.ending_url %} > {{link.ending_url}} {% endif %}
-						        </a>
-
-						        
-						    </span>
-					    	
-					    	<span class="pull-right">
-								
-					    		{% if link.messages.error|length > 0 %}
-					    		<span class="label label-danger">Error <span class="glyphicon glyphicon-fire"></span></span>
-					    		{% endif %}
-					    		{% if link.messages.warning|length > 0 %}
-					    		<span class="label label-warning">Warning <span class="glyphicon glyphicon-warning-sign"></span></span>
-					    		{% endif %}
-					    		{% if link.messages.info|length > 0 %}
-					    		<span class="label label-info">Notice <span class="glyphicon glyphicon-hand-left"></span></span>
-					    		{% endif %}
-					    		{% if link.loading_score %}
-					    		<span class="score-{{link.loading_score_group}}" style="margin-right:10px;"><i class="fa fa-dashboard"></i> {{link.loading_score.score}}</span>
-					    		{% endif %}
-					    		<a class='fa fa-external-link' href="{{link.url}}" target="_blank"> Visit</a> 
-					    	</span>
-					    </h4>
-				    </div>
-
-				    <div class="panel-collapse collapse" id=
-				    "load-test-result-body-{{loop.index}}">
-				        <div class="panel-body">
-				            
-
-
-
-				            <!-- Nav tabs -->
-							<ul class="nav nav-tabs" role="tablist">
-							  <li class="active"><a href="#load-test-result-body-{{loop.index}}-stats" role="tab" data-toggle="tab">Stats</a></li>
-
-							  {% if link.referers|length > 0 %}
-							  <li><a href="#load-test-result-body-{{loop.index}}-referers" role="tab" data-toggle="tab">Referer Links</a></li>
-							  {% endif %}
-
-							  {% if link.hyper_links|length > 0 %}
-							  <li><a href="#load-test-result-body-{{loop.index}}-hyper_links" role="tab" data-toggle="tab">Child Links</a></li>
-							  {% endif %}
-
-							  {% if link.image_links|length > 0 %}
-							  <li><a href="#load-test-result-body-{{loop.index}}-image_links" role="tab" data-toggle="tab">Images</a></li>
-							  {% endif %}
-
-							  {% if link.css_links|length > 0 %}
-							  <li><a href="#load-test-result-body-{{loop.index}}-css_links" role="tab" data-toggle="tab">CSS</a></li>
-							  {% endif %}
-
-							  {% if link.script_links|length > 0 %}
-							  <li><a href="#load-test-result-body-{{loop.index}}-script_links" role="tab" data-toggle="tab">Scripts</a></li>
-							  {% endif %}
-
-							  {% if link.validation %}
-							  {% if link.validation.warnings|length > 0 or link.validation.errors|length > 0 %}
-							  <li><a href="#load-test-result-body-{{loop.index}}-validation" role="tab" data-toggle="tab">Validation</a></li>
-							  {% endif %}
-							  {% endif %}
-
-
-							  {% if link.loading_score %}
-							  <li><a href="#load-test-result-body-{{loop.index}}-loading-score" role="tab" data-toggle="tab">Page Speed</a></li>
-							  {% endif %}
-
-							  
-
-							  <li><a href="#load-test-result-body-{{loop.index}}-source" role="tab" data-toggle="tab">Source</a></li>
-
-							  <li><a href="#load-test-result-body-{{loop.index}}-tools" role="tab" data-toggle="tab">Tools</a></li>
-							  
-							</ul>
-
-
-
-							<!-- Tab panes -->
-							<div class="tab-content">
-							  <div class="tab-pane active" id="load-test-result-body-{{loop.index}}-stats">
-							  	<ul>
-								  	{% if link.response_load_time %}
-						            <li>This page took <strong>{{link.response_load_time}}ms</strong> to load.</li>
-						            {% endif %}
-
-						            {% if link.loading_score %}
-						            <li>This page scored <strong class="score-{{link.loading_score_group}}">{{link.loading_score.score}}</strong> on google page speed tests.</li>
-						            {% endif %}
-
-						            {% if link.alias_to %}
-						            <li>This page is an alias to <strong>{{link.alias_to}}</strong></li>
-						        	{% endif %}
-
-						            {% if link.description %}
-						            <li><strong>Page description:</strong> {{link.description}}</li>{% endif %}
-
-						            {% for message in link.messages.success %}
-									<li class="alert alert-success" role="alert">{{message.message}}</li>		        				
-									{% endfor %}   
-
-									{% for message in link.messages.error %}
-									<li class="alert alert-danger" role="alert">{{message.message}}</li>		        				
-									{% endfor %}  
-
-									{% for message in link.messages.warning %}
-									<li class="alert alert-warning" role="alert">{{message.message}}</li>		        				
-									{% endfor %}  
-
-									{% for message in link.messages.info %}
-									<li class="alert alert-info" role="alert">{{message.message}}</li>		        				
-									{% endfor %}  
-								</ul>   
-						        
-
-								{% if link.redirect_path %}
-								<h4>Redirect Path</h4>
-								<ul>
-						            {% for item in link.redirect_path %}
-						            <li><strong>{{item.response_code}}</strong> {{item.url}} [{{item.response_content_type}}] - <em>{{item.response_load_time}} ms</em></li>
-						            {% endfor %}
-						        </ul>
-						        {% endif %}
-
-							  </div>
-
-							  {% if link.referers|length > 0 %}
-							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-referers">
-							  	<h5>There are {{link.referers|length}} links that refer
-				                to this page</h5>
-
-				                <ul>
-				                    {% for link_item_url,link_item in link.referers|dictsort %}
-				                    <li>
-				                        <a href="#{{link_item.internal_page_url|safe}}">{{link_item.url}}</a> - <a class="fa fa-external-link" href="{{link_item.url}}" target="_blank">&nbsp;</a>
-				                    </li>
-				                    {% endfor %}
-				                </ul>
-							  </div>
-							  {% endif %}
-
-							  {% if link.hyper_links|length > 0 %}
-							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-hyper_links">
-							  	<h5>There are {{link.hyper_links|length}} links within this page</h5>
-
-				                <ul>
-				                    {% for link_item_url,link_item in link.hyper_links|dictsort %}
-				                    <li>
-				                        <a href="#{{link_item.internal_page_url|safe}}">{{link_item.url}}</a> - <a class="fa fa-external-link" href="{{link_item.url}}" target="_blank">&nbsp;</a>
-				                    </li>
-				                    {% endfor %}
-				                </ul>
-							  </div>
-							  {% endif %}
-
-							  {% if link.image_links|length > 0 %}
-							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-image_links">
-					            <section class="link-children">
-					                <h5>There are {{link.image_links|length}} images within this page</h5>
-
-				                	<div class='image-row' >
-				                    {% for link_item_url,link_item in link.image_links|dictsort %}
-			                    	    <div class='image-cell'>
-					                        <a href="{{link_item.url}}" target="_blank">
-					                        	<p>{{link_item.url}}</p>
-					                        	<img src="{{link_item.url}}" alt="preview image" />
-
-					                        </a>
-					                    </div>
-				                    {% if loop.index is divisibleby 4 %}
-				                	</div>
-				                	<div class='image-row' >
-				                	{% endif %}
-
-					                {% endfor %}
-					            	</div>
-					                
-					            </section>
-							  </div>
-							  {% endif %}
-
-
-							  {% if link.css_links|length > 0 %}
-							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-css_links">
-							  	<h5>There are {{link.css_links|length}} css files linked in this page</h5>
-				                <ul>
-				                    {% for link_item_url,link_item in link.css_links|dictsort %}
-				                    <li>
-				                        <a href="#{{link_item.internal_page_url|safe}}">{{link_item.url}}</a> - <a class="fa fa-external-link" href="{{link_item.url}}" target="_blank">&nbsp;</a>
-				                    </li>
-				                    {% endfor %}
-				                </ul>
-							  </div>
-							  {% endif %}
-
-							  {% if link.script_links|length > 0 %}
-							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-script_links">
-							  	<h5>There are {{link.script_links|length}} javascript files linked in this page</h5>
-				                <ul>
-				                    {% for link_item_url,link_item in link.script_links|dictsort %}
-				                    <li>
-				                        <a href="#{{link_item.internal_page_url|safe}}">{{link_item.url}}</a> - <a class="fa fa-external-link" href="{{link_item.url}}" target="_blank">&nbsp;</a>
-				                    </li>
-				                    {% endfor %}
-				                </ul>
-							  </div>
-							  {% endif %}
-
-							  {% if link.validation %}
-							  {% if link.validation.warnings|length > 0 or link.validation.errors|length > 0 %}
-							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-validation">
-							  	
-							  	{% for message in link.validation.errors %}
-								<li class="alert alert-warning" role="alert">
-
-									{% if message.lastLine %}
-
-									<p>Error on Line {{message.lastLine}}, Column {{message.lastColumn}}: <strong>{{message.message}}</strong></p>
-									<pre>{{message.src|e}}</pre>
-
-									{% else %}
-									
-									<p>Error:</p>
-									<pre>{{message|e}}</pre>
-									
-									{% endif %}
-								</li>		        				
-								{% endfor %}  
-
-							  	{% for message in link.validation.warnings %}
-								<li class="alert alert-info" role="alert">
-									<p>Warning Line {{message.lastLine}}, Column {{message.lastColumn}}: <strong>{{message.message}}</strong></p>
-									<pre>{{message.src|e}}</pre>
-								</li>		        				
-								{% endfor %}  
-
-							  </div>
-
-							  {% endif %}
-							  {% endif %}
-
-							  {% if link.loading_score %}
-							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-loading-score">
-							  	<h5>This page scored <strong class="score-{{link.loading_score_group}}">{{link.loading_score.score}}</strong> on google page speed tests.</h5>
-				                <ul>
-				                	{% for rule_id, rule in link.loading_score.formattedResults.ruleResults|dictsort %}
-
-				                	{% if rule.ruleImpact>0 %}
-				                    <li>
-				                        <p>{{rule.localizedRuleName}}</p>
-				                    </li>
-				                    {% endif %}
-				                    {% endfor %}
-				                    <li>
-				                        <a class='fa fa-external-link' href=
-				                        "http://developers.google.com/speed/pagespeed/insights/?url={{link.url}}"
-				                        target="_blank"> View on Google Page Speed</a>
-				                    </li>
-				                </ul>
-							  </div>
-							  {% endif %}
-
-
-
-
-							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-source">
-							  	<pre>{{link.enumerated_html|e}}</pre>
-							  </div>
-
-
-							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-tools">
-
-
-
-				                <ul>
-				                    <li>
-				                        <a class='fa fa-external-link' href=
-				                        "http://www.browserstack.com/start#url={{link.encoded_url}}&resolution=1280x1024"
-				                        target="_blank"> View in Browserstack</a>
-				                    </li>
-
-				                    <li>
-				                        <a class='fa fa-external-link' href=
-				                        "http://validator.w3.org/check?uri={{link.encoded_url}}&charset=%28detect+automatically%29&doctype=Inline&group=0"
-				                        target="_blank"> Validate HTML on W3C</a>
-				                    </li>
-
-				                    <li>
-				                        <a class='fa fa-external-link' href=
-				                        "http://nibbler.silktide.com/" target="_blank"> Test on
-				                        Nibblr</a>
-				                    </li>
-
-				                    <li>
-				                        <a class='fa fa-external-link' href=
-				                        "http://developers.google.com/speed/pagespeed/insights/?url={{link.url}}"
-				                        target="_blank">Google Page Speed</a>
-				                    </li>
-
-				                    <li>
-				                        <a class='fa fa-external-link' href=
-				                        "http://tools.pingdom.com/fpt/" target="_blank"> Pingdom
-				                        Page Speed</a>
-				                    </li>
-
-				                    <li>
-				                        <a class='fa fa-external-link' href=
-				                        "https://cards-dev.twitter.com/validator" target=
-				                        "_blank"> Twitter Card Validator</a>
-				                    </li>
-
-				                    <li>
-				                        <a class='fa fa-external-link' href=
-				                        "https://developers.facebook.com/tools/debug/og/object"
-				                        target="_blank"> Facebook OG Validator</a>
-				                    </li>
-
-				                    <li>
-				                        <a class='fa fa-external-link' href=
-				                        "http://www.google.com/webmasters/tools/richsnippets?q={{link.url}}"
-				                        target="_blank"> Google Structured Data Validator</a>
-				                    </li>
-				                </ul>
-
-							  </div>
-							</div>
-
-
-				            
-				        </div>
-				    </div>
-				</div>
-
-	        		{% endfor %}
-	        	</ul>
-	        </section>
-	    </div>
-
-        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.2.min.js"><\/script>')</script>
-        <script>
-        	//console.log("scripts go here")
-
-	        $(".collapse-all").bind("click", function(event){
-	        	$('.panel-collapse').removeClass('in');
-	        })
-
-	        $(".expand-all").bind("click", function(event){
-	        	$('.panel-collapse').addClass('in');
-	        	
-	        })
-        </script>
-
-    </body>
-    <!-- child of the body tag -->
+				</ul>
+			</section>
+			{% endif %}
+
+			<section>
+				<h2>Results</h2>
+
+					
+					<p>
+						<button type="button" class="btn btn-default expand-all">Expand All <span class="glyphicon glyphicon-arrow-down"></span></button>
+						<button type="button" class="btn btn-default collapse-all">Collapse All <span class="glyphicon glyphicon-arrow-up"></span></button>
+					</p>
+
+					{% for link_url, link in set.parsed_links|dictsort %}
+					{% include 'result.html' %}
+					{% endfor %}
+
+					{% for link_url, link in set.loaded_links|dictsort %}
+					{% if link_url not in set.parsed_links %}
+					{% include 'result.html' %}
+					{% endif %}
+					{% endfor %}
+
+					{% for link_url, link in set.current_links|dictsort %}
+					{% if link_url not in set.parsed_links and link_url not in set.loaded_links %}
+					{% include 'result.html' %}
+					{% endif %}
+					{% endfor %}
+				
+			</section>
+		</div>
+
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.2.min.js"><\/script>')</script>
+		<script>
+			//console.log("scripts go here")
+
+			$(".collapse-all").bind("click", function(event){
+				$('.panel-collapse').removeClass('in');
+			})
+
+			$(".expand-all").bind("click", function(event){
+				$('.panel-collapse').addClass('in');
+				
+			})
+		</script>
+
+	</body>
+	<!-- child of the body tag -->
 	<span class="toplink">
-	    <a href="#top">
-	        <i class="fa fa-angle-double-up"></i> Back to Top
-	    </a>
+		<a href="#top">
+			<i class="fa fa-angle-double-up"></i> Back to Top
+		</a>
 	</span><!-- /top-link-block -->
 </html>
