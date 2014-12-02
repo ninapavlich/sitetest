@@ -29,7 +29,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         else:
             print "BASIC SITE TEST :: %s"%(canonical_domain)
 
-    # recursive = False
+    recursive = False
     
     #TODO: Add to python index and readthedocs
 

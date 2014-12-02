@@ -142,53 +142,49 @@
 			{% endif %}
 
 
-			<div class="panel-collapse collapse" id="pages">
-        		<div class="panel-body">
-        			PANEL BODY
-        		</div>
-        	</div>
 
-					<!-- Nav tabs -->
-					<ul class="nav nav-tabs" role="tablist">
-					  	<li class="active"><a href="#pages-parsed" role="tab" data-toggle="tab">Parsed Pages</a></li>
-					  	<li><a href="#pages-loaded" role="tab" data-toggle="tab">Loaded Pages</a></li>
-					  	<li><a href="#pages-other" role="tab" data-toggle="tab">All Other Pages</a></li>
-					</ul>
 
-					<div class="tab-content">
-					  	<div class="tab-pane active" id="pages-parsed">				  	
-						  	<h2>Parsed Pages</h2>					
-							<p>
-								<button type="button" class="btn btn-default expand-all">Expand All <span class="glyphicon glyphicon-arrow-down"></span></button>
-								<button type="button" class="btn btn-default collapse-all">Collapse All <span class="glyphicon glyphicon-arrow-up"></span></button>
-							</p>
+			<!-- Nav tabs -->
+			<ul class="nav nav-tabs" role="tablist">
+			  	<li class="active"><a href="#pages-parsed" role="tab" data-toggle="tab">Parsed Pages</a></li>
+			  	<li><a href="#pages-loaded" role="tab" data-toggle="tab">Loaded Pages</a></li>
+			  	<li><a href="#pages-other" role="tab" data-toggle="tab">All Other Pages</a></li>
+			</ul>
 
-							{% for link_url, link in set.parsed_links|dictsort %}
-							{% set loop_index = loop.index %}
-							{% include 'result_full.html' with context %}
-							{% endfor %}
-						</div>
-						<div class="tab-pane" id="pages-loaded">
-							<h2>Loaded Pages</h2>	
+			<div class="tab-content">
+			  	<div class="tab-pane active" id="pages-parsed">				  	
+				  	<h2>Parsed Pages</h2>					
+					<p>
+						<button type="button" class="btn btn-default expand-all" style="margin-right:10px;">Expand All <span class="glyphicon glyphicon-arrow-down"></span></button>
+						<button type="button" class="btn btn-default collapse-all">Collapse All <span class="glyphicon glyphicon-arrow-up"></span></button>
+					</p>
 
-							{% for link_url, link in set.loaded_links|dictsort %}
-							{% if link_url not in set.parsed_links %}
-							{% set loop_index = loop.index %}
-							{% include 'result_loaded.html' with context %}
-							{% endif %}
-							{% endfor %}
-						</div>
-						<div class="tab-pane" id="pages-other">
-							<h2>All Other Pages</h2>	
+					{% for link_url, link in set.parsed_links|dictsort %}
+					{% set loop_index = loop.index %}
+					{% include 'result_full.html' with context %}
+					{% endfor %}
+				</div>
+				<div class="tab-pane" id="pages-loaded">
+					<h2>Loaded Pages</h2>	
 
-							{% for link_url, link in set.current_links|dictsort %}
-							{% if link_url not in set.parsed_links and link_url not in set.loaded_links %}
-							{% set loop_index = loop.index %}
-							{% include 'result_not_loaded.html' with context %}
-							{% endif %}
-							{% endfor %}	
-						</div>		
-					</div>
+					{% for link_url, link in set.loaded_links|dictsort %}
+					{% if link_url not in set.parsed_links %}
+					{% set loop_index = loop.index %}
+					{% include 'result_loaded.html' with context %}
+					{% endif %}
+					{% endfor %}
+				</div>
+				<div class="tab-pane" id="pages-other">
+					<h2>All Other Pages</h2>	
+
+					{% for link_url, link in set.current_links|dictsort %}
+					{% if link_url not in set.parsed_links and link_url not in set.loaded_links %}
+					{% set loop_index = loop.index %}
+					{% include 'result_not_loaded.html' with context %}
+					{% endif %}
+					{% endfor %}	
+				</div>		
+			</div>
 
 		</div>
 
@@ -201,8 +197,7 @@
 			})
 
 			$(".expand-all").bind("click", function(event){
-				$('.panel-collapse').addClass('in');
-				
+				$('.panel-collapse').addClass('in');				
 			})
 
 			$(".pagelink").bind("click", function(event){
@@ -219,7 +214,9 @@
 
 				var target_tag = is_in_parsed? parsed_id : is_in_loaded? loaded_id : other_id
 				$('[href='+target_tag+']').tab('show');			
-			
+
+				var selector = "#"+link_target+" .pull-left a"
+				$(selector).trigger("click")
 			});
 		</script>
 
