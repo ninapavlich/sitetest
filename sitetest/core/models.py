@@ -140,7 +140,7 @@ class LinkSet(BaseMessageable):
         super(LinkSet, self).__init__()    
 
         
-    def load_link(self, page_link, recursive, expected_code=200):
+    def load_link(self, page_link, recursive, expected_code=200, verbose=False):
 
         # max_count = 170
         # if len(self.parsed_links) > max_count:
@@ -149,8 +149,9 @@ class LinkSet(BaseMessageable):
 
         if page_link.is_loadable_type(self.include_media) and page_link.url not in self.loaded_links:
 
-            trace_memory_usage()
-            print ">>> Load Link %s (%s/%s, %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.current_links))
+            if verbose:
+                trace_memory_usage()
+                print ">>> Load Link %s (%s/%s, %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.current_links))
 
             load_successful, response = page_link.load(expected_code)
             
@@ -177,7 +178,7 @@ class LinkSet(BaseMessageable):
                 if recursive:
                     for child_link_url in page_link.links:
                         if child_link_url not in self.parsed_links:                                                              
-                            self.load_link(page_link.links[child_link_url], recursive)
+                            self.load_link(page_link.links[child_link_url], recursive, 200, verbose)
        
 
 

@@ -29,7 +29,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         else:
             print "BASIC SITE TEST :: %s"%(canonical_domain)
 
-    recursive = False
+    # recursive = False
     
     #TODO: Add to python index and readthedocs
 
@@ -85,14 +85,14 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
     set = LinkSet(full, canonical_domain, domain_aliases, ignore_query_string_keys, alias_query_strings, skip_test_urls, skip_urls)
     homepage_link = set.get_or_create_link_object(canonical_domain, None)
     if homepage_link:
-        set.load_link(homepage_link, recursive)
+        set.load_link(homepage_link, recursive, 200, verbose)
 
 
     #Load any additional from sitemap
     sitemap_url = "%ssitemap.xml"%(canonical_domain) if canonical_domain.endswith("/") else "%s/sitemap.xml"%(canonical_domain)
     sitemap_link = set.get_or_create_link_object(sitemap_url, None)
     if sitemap_link:
-        set.load_link(sitemap_link, recursive)
+        set.load_link(sitemap_link, recursive, 200, verbose)
    
 
 
