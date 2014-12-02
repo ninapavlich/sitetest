@@ -47,15 +47,22 @@ class MessageSet(object):
         self.warning = []
         self.info = []
 
+    def get_score(self):
+        error_score = sum([message.count for message in self.error])
+        warning_score = sum([message.count for message in self.warning])
+        info_score = sum([message.count for message in self.info])
+
+        return "%s-%s-%s"%(error_score, warning_score, info_score)
+
 class Message(object):
-    __slots__ = ['message','error_count']
+    __slots__ = ['message','count']
 
     message = None
-    error_count = 1
+    count = 1
 
-    def __init__(self, message, error_count=1 ):
+    def __init__(self, message, count=1 ):
         self.message = message
-        self.error_count = error_count
+        self.count = count
 
 class SuccessMessage(Message):
     pass
@@ -124,11 +131,7 @@ class LinkSet(BaseMessageable):
         self.skip_test_urls = skip_test_urls
         self.skip_urls = skip_urls
 
-        super(LinkSet, self).__init__()
-
-    def get_score(self):
-        return "%s-%s-%s"%(len(self.messages.error),len(self.messages.warning),len(self.messages.info))
-        
+        super(LinkSet, self).__init__()    
 
         
     def load_link(self, page_link, recursive, expected_code=200):

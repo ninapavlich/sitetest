@@ -314,7 +314,7 @@ def notify_results(results, credentials):
 
         message_output += ("Full Report: %s\n\n"%(results['report_url']))
 
-        message_output += ('SCORE: %s (Lower is better, Best is 0-0-2)\n\n'%(results['site'].get_score()))
+        message_output += ('SCORE: %s (Lower is better, Best is 0-0-X)\n\n'%(results['set'].get_score()))
 
         # for message in results['messages']['success']:
         #     message_output += (message+'\n\n')

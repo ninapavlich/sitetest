@@ -152,13 +152,13 @@ def test_basic_page_quality(set, verbose=False):
         set.add_warning_message("%s pages were found to be missing google analytics"%(analytics_missing_error_count), analytics_missing_error_count)
 
     if unique_title_error_count > 0:
-        set.add_warning_message("%s pages were found to non-unique page titles"%(unique_title_error_count), unique_title_error_count)
+        set.add_warning_message("%s pages were found to have non-unique page titles"%(unique_title_error_count), unique_title_error_count)
 
     if unique_description_error_count > 0:
-        set.add_warning_message("%s pages were found to non-unique page descriptions"%(unique_description_error_count), unique_description_error_count) 
+        set.add_warning_message("%s pages were found to have non-unique page descriptions"%(unique_description_error_count), unique_description_error_count) 
 
     if social_tag_error_count > 0:
-        set.add_info_message("%s social meta tags are missing"%(social_tag_error_count), social_tag_error_count)    
+        set.add_warning_message("%s social meta tags are missing"%(social_tag_error_count), social_tag_error_count)    
 
     if ssl_error_count > 0:
         set.add_warning_message("%s HTTP links were found on HTTPS pages"%(ssl_error_count), ssl_error_count)             
