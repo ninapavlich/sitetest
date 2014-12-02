@@ -28,7 +28,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         else:
             print "BASIC SITE TEST :: %s"%(canonical_domain)
 
-    # recursive = False
+    recursive = False
     
     #TODO: Add screenshots from browserstack http://www.browserstack.com/screenshots/api
     #TODO: Add linting for css and js files and make sure they are being served as GZIP
@@ -149,11 +149,8 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         except Exception:        
             print "Error validating with w3c: %s"%(traceback.format_exc())
 
-        #5. Browser Screenshots
-        #current_links, messages = test_screenshots(current_links, canonical_domain, domain_aliases, messages, verbose)
-
-        #6. Lint JS and CSS
-        #current_links, messages = test_basic_page_quality(current_links, canonical_domain, domain_aliases, messages, verbose)
+    #7. Browser Screenshots
+    test_screenshots(set, credentials, verbose)
 
     
 
