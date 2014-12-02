@@ -24,7 +24,7 @@ MEDIA_SUFFIXES = [
     '.doc', '.pdf', '.ppt', '.zip', '.gzip', '.mp3', '.rar', '.exe', 
     '.avi', '.mpg', '.tif', '.wav', '.mov', '.psd', '.ai', '.wma',
     '.eps','.mp4','.bmp','.indd','.swf','.jar','.dmg','.iso','.flv',
-    '.gz','.fla','.html','.ogg','.sql'
+    '.gz','.fla','.ogg','.sql'
 ]
 
 HEADERS = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
