@@ -41,12 +41,14 @@ class MessageSet(object):
         self.info = []
 
 class Message(object):
-    # __slots__ = ['message',]
+    __slots__ = ['message','error_count']
 
     message = None
+    error_count = 1
 
-    def __init__(self, message):
+    def __init__(self, message, error_count=1 ):
         self.message = message
+        self.error_count = error_count
 
 class SuccessMessage(Message):
     pass
@@ -67,17 +69,17 @@ class BaseMessageable(object):
         pass
     
 
-    def add_error_message(self, message):
-        self.messages.error.append(ErrorMessage(message))
+    def add_error_message(self, message, count=1):
+        self.messages.error.append(ErrorMessage(message, count))
 
-    def add_warning_message(self, message):
-        self.messages.warning.append(WarningMessage(message))
+    def add_warning_message(self, message, count=1):
+        self.messages.warning.append(WarningMessage(message, count))
 
-    def add_info_message(self, message):
-        self.messages.info.append(InfoMessage(message))
+    def add_info_message(self, message, count=1):
+        self.messages.info.append(InfoMessage(message, count))
 
-    def add_success_message(self, message):
-        self.messages.success.append(SuccessMessage(message))
+    def add_success_message(self, message, count=1):
+        self.messages.success.append(SuccessMessage(message, count))
 
 class LinkSet(BaseMessageable):
     include_media = False
@@ -91,7 +93,7 @@ class LinkSet(BaseMessageable):
     parsed_links = {}
     parsable_links = {}
 
-    def __init__(self, include_media, canonical_domain, domain_aliases, ignore_query_string_keys=None, alias_query_strings=None, skip_test_urls=None):
+    def __init__(self, include_media, canonical_domain, domain_aliases, ignore_query_string_keys=None, alias_query_strings=None, skip_test_urls=None, skip_urls=None):
 
         self.messages = MessageSet()
 
@@ -104,12 +106,16 @@ class LinkSet(BaseMessageable):
         if skip_test_urls is None:
             skip_test_urls = []
 
+        if skip_test_urls is None:
+            skip_test_urls = []
+
         self.include_media = include_media
         self.canonical_domain = canonical_domain
         self.domain_aliases = domain_aliases
         self.ignore_query_string_keys = ignore_query_string_keys
         self.alias_query_strings = alias_query_strings
         self.skip_test_urls = skip_test_urls
+        self.skip_urls = skip_urls
 
         super(LinkSet, self).__init__()
 
@@ -196,6 +202,12 @@ class LinkSet(BaseMessageable):
                 regexp = re.compile(skip_url_pattern)
                 if regexp.search(url):
                     link.skip_test = True
+
+        if self.skip_urls:
+            for skip_url_pattern in self.skip_urls:
+                regexp = re.compile(skip_url_pattern)
+                if regexp.search(url):
+                    link.skip = True
 
 
 
@@ -304,6 +316,7 @@ class LinkItem(BaseMessageable):
     
     alias_to = None
     skip_test = False
+    skip = False
     has_sitemap_entry = False
 
 
@@ -351,7 +364,8 @@ class LinkItem(BaseMessageable):
     def is_loadable_type(self, include_media):
         is_internal_or_external = self.starting_type == TYPE_INTERNAL or self.starting_type == TYPE_EXTERNAL
         allow_media = (self.is_media and include_media) or (self.is_media==False)
-        return is_internal_or_external and allow_media
+        not_skip = self.skip == False
+        return is_internal_or_external and allow_media and not_skip
 
     def is_internal(self):
         return self.ending_type == TYPE_INTERNAL and self.starting_type == TYPE_INTERNAL

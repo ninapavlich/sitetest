@@ -1,7 +1,7 @@
 import urllib2
 import json
 
-def test_site_loading_optimized(set, credentials, verbose=False):
+def test_pagespeed(set, credentials, verbose=False):
     
     if 'google' in credentials and 'API_KEY' in credentials['google']:
 

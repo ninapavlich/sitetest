@@ -85,13 +85,13 @@ def test_w3c_compliance(set, ignore_validation_errors, verbose=False):
 
 
     if warnings_found_count > 0:
-        set.add_info_message("%s validation warnings found"%(warnings_found_count))
+        set.add_info_message("%s validation warnings found"%(warnings_found_count), warnings_found_count)
 
     if errors_found_count > 0:
-        set.add_warning_message("%s validation errors found"%(errors_found_count))  
+        set.add_warning_message("%s validation errors found"%(errors_found_count), errors_found_count)  
 
     if timeout_found_count > 0:
-        set.add_warning_message("%s pages were unable to validate because they timed out. Please manually check those pages using the W3C Validation link in the 'Tools' tab."%(timeout_found_count))             
+        set.add_warning_message("%s pages were unable to validate because they timed out. Please manually check those pages using the W3C Validation link in the 'Tools' tab."%(timeout_found_count), timeout_found_count)             
 
 
 def get_test(link_html, attempt=0):

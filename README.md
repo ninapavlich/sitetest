@@ -13,7 +13,6 @@ brew install enchant
 ##Usage:
 
 ```python
-from sitetest import testSite
 
 credentials = {
     "slack":{
@@ -26,6 +25,13 @@ credentials = {
         "AWS_SECRET_ACCESS_KEY" : "XXXXXXXXXXXXXXXXXXXXXXXXXXX",
         "AWS_STORAGE_BUCKET_NAME" : "bucket-name",
         "AWS_RESULTS_PATH" : "test_results"
+    },
+    "google":{
+        "PRIVATE_KEY_PASSWORD": "XXXXXXXXX",
+        "CLIENT_ID": "XXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "EMAIL_ADDRESS": "XXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "PUBLIC_KEY_FINGERPRINTS":"XXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "API_KEY":"XXXXXXXXXXXXXXXXXXXXXXXXXXX"
     }
 }
 ```
@@ -106,7 +112,13 @@ ignore_validation_errors = ['Bad value X-UA-Compatible for attribute http-equiv 
 ```
 
 
-skip_test_urls is a list of url fragments that, if matched using regex, will be ignored in site tests.
+skip_urls is a list of url fragments that, if matched using regex, will not be loaded or tested.
+```python
+skip_urls = ['blog' ]
+
+```
+
+skip_test_urls is a list of url fragments that, if matched using regex, it will be loaded but not undergo any further testing.
 ```python
 skip_test_urls = ['comments/reply','comments/flag' ]
 
@@ -122,6 +134,7 @@ verbose = True
 EXAMPLE USAGE:
 ```python
 
+from sitetest import testSite
 
 canonical_domain = 'https://www.example.com'
 test_id = "example-site-test-full"
@@ -161,6 +174,7 @@ options = {
     'ignore_query_string_keys':['next'],
     'alias_query_strings':['page'],
     'ignore_validation_errors':[],
+    'skip_urls':['blog'],
     'skip_test_urls':['comments/reply','comments/flag' ]
 }
 

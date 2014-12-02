@@ -18,7 +18,7 @@ from .tests.page_spell_check import test_basic_spell_check
 from .tests.w3c_compliance import test_w3c_compliance
 from .tests.screenshots import test_screenshots
 from .tests.lint_js import test_lint_js
-from .tests.site_loading_optimized import test_site_loading_optimized
+from .tests.pagespeed import test_pagespeed
 
             
 def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False, recursive=True, options=None, verbose=False):
@@ -45,7 +45,8 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
             'ignore_query_string_keys':[],
             'alias_query_strings':[],
             'ignore_validation_errors':[],
-            'skip_test_urls':[]
+            'skip_test_urls':[],
+            'skip_urls':[]
         }
 
 
@@ -75,11 +76,17 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
     else:
         skip_test_urls = options['skip_test_urls']
 
+    if 'skip_urls' not in options:
+        skip_urls = []
+    else:
+        skip_urls = options['skip_urls']
+
+
 
 
     
     #Load pages, starting with homepage    
-    set = LinkSet(full, canonical_domain, domain_aliases, ignore_query_string_keys, alias_query_strings, skip_test_urls)
+    set = LinkSet(full, canonical_domain, domain_aliases, ignore_query_string_keys, alias_query_strings, skip_test_urls, skip_urls)
     homepage_link = set.get_or_create_link_object(canonical_domain, None)
     if homepage_link:
         set.load_link(homepage_link, recursive)
@@ -248,34 +255,39 @@ def save_results_local(html, output_path, test_id, verbose):
 def save_results_aws(file_name, test_id, credentials, verbose):
     
 
-    AWS_ACCESS_KEY_ID = credentials['aws']['AWS_ACCESS_KEY_ID']
-    AWS_SECRET_ACCESS_KEY = credentials['aws']['AWS_SECRET_ACCESS_KEY']
-    AWS_STORAGE_BUCKET_NAME = credentials['aws']['AWS_STORAGE_BUCKET_NAME']
-    AWS_RESULTS_PATH = credentials['aws']['AWS_RESULTS_PATH']
+    if 'aws' in credentials and 'AWS_ACCESS_KEY_ID' in credentials['aws']:
+        AWS_ACCESS_KEY_ID = credentials['aws']['AWS_ACCESS_KEY_ID']
+        AWS_SECRET_ACCESS_KEY = credentials['aws']['AWS_SECRET_ACCESS_KEY']
+        AWS_STORAGE_BUCKET_NAME = credentials['aws']['AWS_STORAGE_BUCKET_NAME']
+        AWS_RESULTS_PATH = credentials['aws']['AWS_RESULTS_PATH']
 
-    base_name = os.path.basename(file_name)
-    bucket_name = AWS_STORAGE_BUCKET_NAME    
+        base_name = os.path.basename(file_name)
+        bucket_name = AWS_STORAGE_BUCKET_NAME    
 
-    conn = boto.connect_s3(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
-    bucket = conn.get_bucket(bucket_name)
+        conn = boto.connect_s3(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+        bucket = conn.get_bucket(bucket_name)
 
-    current_dir = os.path.dirname(__file__)
+        current_dir = os.path.dirname(__file__)
 
-    if verbose:
-        print 'Uploading %s to Amazon S3 from %s' % (base_name, file_name)
+        if verbose:
+            print 'Uploading %s to Amazon S3 from %s' % (base_name, file_name)
 
-        def percent_cb(complete, total):
-            sys.stdout.write('.')
-            sys.stdout.flush()
+            def percent_cb(complete, total):
+                sys.stdout.write('.')
+                sys.stdout.flush()
 
-    
-    k = Key(bucket)
-    k.key = u"%s/%s/%s"%(AWS_RESULTS_PATH, test_id, base_name)
-    k.set_contents_from_filename(file_name, cb=percent_cb, num_cb=10)
-    k.set_acl('public-read')
+        
+        k = Key(bucket)
+        k.key = u"%s/%s/%s"%(AWS_RESULTS_PATH, test_id, base_name)
+        k.set_contents_from_filename(file_name, cb=percent_cb, num_cb=10)
+        k.set_acl('public-read')
 
-    url = "http://s3.amazonaws.com/%s/%s/%s/%s" % (AWS_STORAGE_BUCKET_NAME, AWS_RESULTS_PATH, test_id, base_name)
-    return url
+        url = "http://s3.amazonaws.com/%s/%s/%s/%s" % (AWS_STORAGE_BUCKET_NAME, AWS_RESULTS_PATH, test_id, base_name)
+        return url
+
+    else:
+        print "Warning: AWS API credentials not supplied." 
+        return None
 
 def open_results(path):
 
@@ -292,30 +304,33 @@ def open_results(path):
 
 def notify_results(results, credentials):
 
-    SLACK_TOKEN = credentials['slack']['SLACK_TOKEN']
-    SLACK_CHANNEL = credentials['slack']['SLACK_CHANNEL']
-    SLACK_USERNAME = credentials['slack']['SLACK_USERNAME']
+    if 'slack' in credentials and 'SLACK_TOKEN' in credentials['slack']:
+        SLACK_TOKEN = credentials['slack']['SLACK_TOKEN']
+        SLACK_CHANNEL = credentials['slack']['SLACK_CHANNEL']
+        SLACK_USERNAME = credentials['slack']['SLACK_USERNAME']
 
-    client = SlackClient(SLACK_TOKEN)
+        client = SlackClient(SLACK_TOKEN)
 
-    message_output = "TEST RESULTS for \"%s\"\n\n"%(results['site'].title)
+        message_output = "TEST RESULTS for \"%s\"\n\n"%(results['site'].title)
 
-    message_output += ("Full Report: %s\n\n"%(results['report_url']))
+        message_output += ("Full Report: %s\n\n"%(results['report_url']))
 
-    message_output += ('SCORE: %s (Lower is better, Best is 0-0-2)\n\n'%(results['site'].get_score()))
+        message_output += ('SCORE: %s (Lower is better, Best is 0-0-2)\n\n'%(results['site'].get_score()))
 
-    # for message in results['messages']['success']:
-    #     message_output += (message+'\n\n')
-    # for message in results['messages']['error']:
-    #     message_output += (message+'\n\n')
-    # for message in results['messages']['warning']:
-    #     message_output += (message+'\n\n')
-    # for message in results['messages']['info']:
-    #     message_output += (message+'\n\n')
+        # for message in results['messages']['success']:
+        #     message_output += (message+'\n\n')
+        # for message in results['messages']['error']:
+        #     message_output += (message+'\n\n')
+        # for message in results['messages']['warning']:
+        #     message_output += (message+'\n\n')
+        # for message in results['messages']['info']:
+        #     message_output += (message+'\n\n')
 
-    
-    stripped = stripHtmlTags(message_output)
-    client.chat_post_message(SLACK_CHANNEL, stripped, username=SLACK_USERNAME)  
+        
+        stripped = stripHtmlTags(message_output)
+        client.chat_post_message(SLACK_CHANNEL, stripped, username=SLACK_USERNAME) 
+    else:
+        print "Warning: Slack API credentials not supplied." 
 
 def stripHtmlTags(htmlTxt):
     if htmlTxt is None:

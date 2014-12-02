@@ -167,10 +167,10 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
                 #   pass
 
     if lorem_ipsum_count > 0:
-        set.add_warning_message("%s pages were found to have Lorem Ipsum"%(lorem_ipsum_count))
+        set.add_warning_message("%s pages were found to have Lorem Ipsum"%(lorem_ipsum_count), lorem_ipsum_count)
 
     if spelling_issue_count > 0:
-        set.add_info_message("%s spelling issues found"%(spelling_issue_count))
+        set.add_info_message("%s spelling issues found"%(spelling_issue_count), spelling_issue_count)
 
 
 def check_special_dictionary(word, special_dictionary):
