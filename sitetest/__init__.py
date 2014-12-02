@@ -175,22 +175,6 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
     return results
 
 
-# def test(module, links):
-
-#   test_results = {
-#       'title':'Test Title',
-#       'html':'Example html',
-#       'error_messages':[
-#           'Error Message 1',
-#           'Error Message 2',
-#       ],
-#       'success_messages':[
-#           'Success Message 1',
-#           'Success Message 2',
-#       ]
-#   }
-#   return test_results
-
 def render_and_save_results(results, template_name, output_path):
     #TODO
     pass
@@ -297,7 +281,7 @@ def open_results(path):
     webbrowser.open(url,new=new)
 
 def notify_results(results, credentials):
-    return
+    
     if 'slack' in credentials and 'SLACK_TOKEN' in credentials['slack']:
         SLACK_TOKEN = credentials['slack']['SLACK_TOKEN']
         SLACK_CHANNEL = credentials['slack']['SLACK_CHANNEL']
@@ -305,7 +289,8 @@ def notify_results(results, credentials):
 
         client = SlackClient(SLACK_TOKEN)
 
-        message_output = "SCORE: %s for TEST: \"%s\"\n\n"%(results['set'].get_score(), results['site'].title)
+        type = 'Basic' if not results['full'] else 'Full'
+        message_output = "Score %s for %s Test of \"%s\"\n\n"%(results['set'].get_score(), type, results['site'].title)
 
         message_output += "Full Report: %s\n\n"%(results['report_url'])        
 
