@@ -28,7 +28,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         else:
             print "BASIC SITE TEST :: %s"%(canonical_domain)
 
-    recursive = False
+    # recursive = False
     
     #TODO: Add screenshots from browserstack http://www.browserstack.com/screenshots/api
     #TODO: Add linting for css and js files and make sure they are being served as GZIP
@@ -123,16 +123,19 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         print "Error linting JS: %s"%(traceback.format_exc())
 
 
-    #5. Page Speed
-    #try:
-    test_site_loading_optimized(set, credentials)
-    #except Exception:        
-    #    print "Error testing site loading optimization: %s"%(traceback.format_exc())
+    
 
 
 
 
     if full:
+
+        #5. Page Speed
+        try:
+            test_site_loading_optimized(set, credentials)
+        except Exception:        
+           print "Error testing site loading optimization: %s"%(traceback.format_exc())
+           
         #6. W3C Compliance test
         try:
             test_w3c_compliance(set, ignore_validation_errors)

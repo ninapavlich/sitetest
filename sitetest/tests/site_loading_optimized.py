@@ -9,10 +9,15 @@ def test_site_loading_optimized(set, credentials):
         
         API_KEY = credentials['google']['API_KEY']
 
+        total = len(set.parsed_links)
+        count = 0
         for link_url in set.parsed_links:
+            print "%s/%s"%(count, total)
+            count += 1
+
             link = set.parsed_links[link_url]
             
-            if link.is_internal():
+            if link.is_internal() and not link.skip_test == True:
                 
 
                 testing_url = 'https://www.googleapis.com/pagespeedonline/v1/runPagespeed?url=%s&key=%s'%(link.url, API_KEY)

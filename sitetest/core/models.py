@@ -233,8 +233,8 @@ class LinkSet(BaseMessageable):
             else:
                 normalized = u"http:%s"%(normalized)
 
-        #Normalize url by converting to lowercase: 
-        normalized = url_fix(normalized.lower())
+        #Remove invalid bits
+        normalized = url_fix(normalized)
 
         #If this is the homepage
         if normalized.strip('/') == self.canonical_domain.strip('/'):
@@ -295,31 +295,10 @@ class LinkItem(BaseMessageable):
     # 'html','content','response_load_time','description','is_media','alias_to','skip_test','has_sitemap_entry']
 
 
-    # _set = None
-
-    # referers = None
-    # image_links = None
-    # hyper_links = None
-    # css_links = None
-    # script_links = None
-
-    # url = None
-    # ending_url = None
-    # starting_type = None
-    # ending_type = None
-    # path = None
-    # response_code = None
-    #response = None
-
     has_response = False
     response_content_type = None    
-    # redirect_path = None
-    # html = None
-    # content = None
-    # response_load_time = None
-    # description = None
-    # is_media = None
-    # alias_to = None
+    
+    alias_to = None
     skip_test = False
     has_sitemap_entry = False
 

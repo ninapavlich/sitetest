@@ -90,7 +90,7 @@
 
     	<div class="container">
 	        <h1 id="top">{% if full %}Full{% else %}Basic{% endif %} Site Test Results for &ldquo;{{site.title}}&rdquo;</h1>
-	        <p>Test took {{duration}}, starting on {{start_time}} and ended on {{end_time}}</p>
+	        <p>Test took {{duration.seconds}} seconds, starting on {{start_time.strftime('%b %d, %Y at %I:%M %p')}} and ended at {{end_time.strftime('%I:%M %p')}}</p>
 	        <p>{{set.parsed_links|length}} links were parsed, {{set.loaded_links|length}} loaded, {{set.current_links|length}} total.</p>
 
 	        {% if set.messages.success|length > 0 %}

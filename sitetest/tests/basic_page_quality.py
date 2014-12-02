@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup, SoupStrainer
+import traceback  
 
 def test_basic_page_quality(set, verbose=False):
     """
@@ -13,6 +14,7 @@ def test_basic_page_quality(set, verbose=False):
     social_tag_error_count = 0
     analytics_missing_error_count = 0
     ssl_error_count = 0
+    h1_error_count = 0
     
     for link_url in set.parsed_links:
         link = set.parsed_links[link_url]
@@ -111,7 +113,7 @@ def test_basic_page_quality(set, verbose=False):
                             
                             if not value:
                                 social_tag_error_count += 1
-                                message = "Warning: Meta tag %s:%s is missing from page"%(prop_type, property_name)
+                                message = "Meta tag %s:%s is missing from page"%(prop_type, property_name)
                                 link.add_warning_message(message)
 
                         
@@ -124,24 +126,27 @@ def test_basic_page_quality(set, verbose=False):
                         has_asynca = asynchronous_analytics_indicator in link_html
                         if not has_ua and not has_asynca:
                             analytics_missing_error_count += 1
-                            message = "Warning: Page missing google analytics"
+                            message = "Page missing google analytics"
                             link.add_warning_message(message)
 
 
                         if is_https:
-                            #Verity that javascript, css and images are all loaded with https also
+                            #5 - Verity that javascript, css and images are all loaded with https also
                             for link_url in link.links:
                                 if 'http:' in link_url:
                                     ssl_error_count += 1
-                                    message = "Warning: HTTPS page contains HTTP link: %s"%(link_url)
+                                    message = "HTTPS page contains HTTP link: %s"%(link_url)
                                     link.add_warning_message(message)
 
+                        #6 - Verify that page has exactly one h1
+                        h1_count = len(soup.findAll('h1'))
+                        if h1_count != 1:
+                            h1_error_count += 1
+                            message = "Page doesn't have exactly one H1, it has %s"%(h1_count)
+                            link.add_warning_message(message)
         
-
-
-                        
-                except:
-                    pass
+                except Exception:        
+                    print "Parsing page quality: %s"%(traceback.format_exc())
 
     if analytics_missing_error_count > 0:
         set.add_warning_message("%s pages were found to be missing google analytics"%(analytics_missing_error_count))
@@ -157,4 +162,7 @@ def test_basic_page_quality(set, verbose=False):
 
     if ssl_error_count > 0:
         set.add_warning_message("%s HTTP links were found on HTTPS pages"%(ssl_error_count))             
+
+    if h1_error_count > 0:
+        set.add_warning_message("%s pages didn't have exactly one H1 tag"%(h1_error_count))             
 
