@@ -122,8 +122,8 @@ def test_basic_page_quality(set, verbose=False):
                         #TODO: Sometimes this gives a false positive
                         universal_analytics_indicator = 'GoogleAnalyticsObject'
                         asynchronous_analytics_indicator = '_gaq'
-                        has_ua = universal_analytics_indicator in link_html
-                        has_asynca = asynchronous_analytics_indicator in link_html
+                        has_ua = universal_analytics_indicator.lower() in link_html.lower()
+                        has_asynca = asynchronous_analytics_indicator.lower() in link_html.lower()
                         if not has_ua and not has_asynca:
                             analytics_missing_error_count += 1
                             message = "Page missing google analytics"

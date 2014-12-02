@@ -113,6 +113,10 @@ class LinkSet(BaseMessageable):
 
         super(LinkSet, self).__init__()
 
+    def get_score(self):
+        return "%s-%s-%s"%(len(self.messages.error),len(self.messages.warning),len(self.messages.info))
+        
+
         
     def load_link(self, page_link, recursive, expected_code=200):
 

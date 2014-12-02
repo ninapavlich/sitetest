@@ -300,9 +300,9 @@ def notify_results(results, credentials):
 
     message_output = "TEST RESULTS for \"%s\"\n\n"%(results['site'].title)
 
-    message_output += ("Full Report: %s"%(results['report_url']))
+    message_output += ("Full Report: %s\n\n"%(results['report_url']))
 
-    message_output += ('SCORE: %s-%s-%s (Lower is better, Best is 0-0-2)\n\n'%(len(results['site'].messages.error),len(results['site'].messages.warning),len(results['site'].messages.info)))
+    message_output += ('SCORE: %s (Lower is better, Best is 0-0-2)\n\n'%(results['site'].get_score()))
 
     # for message in results['messages']['success']:
     #     message_output += (message+'\n\n')

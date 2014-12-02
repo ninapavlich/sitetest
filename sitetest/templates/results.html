@@ -175,9 +175,7 @@
 						    </span>
 					    	
 					    	<span class="pull-right">
-								{% if link.loading_score %}
-					    		<span class="score-{{link.loading_score_group}}" style="margin-right:10px;"><i class="fa fa-dashboard"></i> {{link.loading_score.score}}</span>
-					    		{% endif %}
+								
 					    		{% if link.messages.error|length > 0 %}
 					    		<span class="label label-danger">Error <span class="glyphicon glyphicon-fire"></span></span>
 					    		{% endif %}
@@ -186,6 +184,9 @@
 					    		{% endif %}
 					    		{% if link.messages.info|length > 0 %}
 					    		<span class="label label-info">Notice <span class="glyphicon glyphicon-hand-left"></span></span>
+					    		{% endif %}
+					    		{% if link.loading_score %}
+					    		<span class="score-{{link.loading_score_group}}" style="margin-right:10px;"><i class="fa fa-dashboard"></i> {{link.loading_score.score}}</span>
 					    		{% endif %}
 					    		<a class='fa fa-external-link' href="{{link.url}}" target="_blank"> Visit</a> 
 					    	</span>
