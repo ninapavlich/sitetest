@@ -25,6 +25,9 @@
 			.fa:hover{
 				text-decoration: none;
 			}
+			.tab-pane > ul{
+				padding-left:0px;
+			}
 			.image-row{
 				width:100%;
 				overflow:hidden;
@@ -52,6 +55,21 @@
 				position: fixed;
 				right:20px;
 				bottom:20px;
+			}
+			.score-low{
+				color:#d9534f;
+			}
+			.score-medium-low{
+				color: #eea236;
+			}
+			.score-medium{
+				color: #5bc0de;
+			}
+			.score-medium-high{
+				color: #337ab7;
+			}
+			.score-high{
+				color: #5cb85c;
 			}
 			
         </style>
@@ -157,6 +175,9 @@
 						    </span>
 					    	
 					    	<span class="pull-right">
+								{% if link.loading_score %}
+					    		<span class="score-{{link.loading_score_group}}" style="margin-right:10px;"><i class="fa fa-dashboard"></i> {{link.loading_score.score}}</span>
+					    		{% endif %}
 					    		{% if link.messages.error|length > 0 %}
 					    		<span class="label label-danger">Error <span class="glyphicon glyphicon-fire"></span></span>
 					    		{% endif %}
@@ -208,6 +229,13 @@
 							  {% endif %}
 							  {% endif %}
 
+
+							  {% if link.loading_score %}
+							  <li><a href="#load-test-result-body-{{loop.index}}-loading-score" role="tab" data-toggle="tab">Page Speed</a></li>
+							  {% endif %}
+
+							  
+
 							  <li><a href="#load-test-result-body-{{loop.index}}-source" role="tab" data-toggle="tab">Source</a></li>
 
 							  <li><a href="#load-test-result-body-{{loop.index}}-tools" role="tab" data-toggle="tab">Tools</a></li>
@@ -221,7 +249,11 @@
 							  <div class="tab-pane active" id="load-test-result-body-{{loop.index}}-stats">
 							  	<ul>
 								  	{% if link.response_load_time %}
-						            <li>This page took {{link.response_load_time}}ms to load.</li>
+						            <li>This page took <strong>{{link.response_load_time}}ms</strong> to load.</li>
+						            {% endif %}
+
+						            {% if link.loading_score %}
+						            <li>This page scored <strong class="score-{{link.loading_score_group}}">{{link.loading_score.score}}</strong> on google page speed tests.</li>
 						            {% endif %}
 
 						            {% if link.alias_to %}
@@ -375,6 +407,30 @@
 							  {% endif %}
 							  {% endif %}
 
+							  {% if link.loading_score %}
+							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-loading-score">
+							  	<h5>This page scored <strong class="score-{{link.loading_score_group}}">{{link.loading_score.score}}</strong> on google page speed tests.</h5>
+				                <ul>
+				                	{% for rule_id, rule in link.loading_score.formattedResults.ruleResults|dictsort %}
+
+				                	{% if rule.ruleImpact>0 %}
+				                    <li>
+				                        <p>{{rule.localizedRuleName}}</p>
+				                    </li>
+				                    {% endif %}
+				                    {% endfor %}
+				                    <li>
+				                        <a class='fa fa-external-link' href=
+				                        "http://developers.google.com/speed/pagespeed/insights/?url={{link.url}}"
+				                        target="_blank"> View on Google Page Speed</a>
+				                    </li>
+				                </ul>
+							  </div>
+							  {% endif %}
+
+
+
+
 							  <div class="tab-pane" id="load-test-result-body-{{loop.index}}-source">
 							  	<pre>{{link.enumerated_html|e}}</pre>
 							  </div>
@@ -406,7 +462,7 @@
 				                    <li>
 				                        <a class='fa fa-external-link' href=
 				                        "http://developers.google.com/speed/pagespeed/insights/?url={{link.url}}"
-				                        target="_blank"> Google Page Speed</a>
+				                        target="_blank">Google Page Speed</a>
 				                    </li>
 
 				                    <li>

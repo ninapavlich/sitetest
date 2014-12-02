@@ -59,7 +59,7 @@ def test_basic_site_quality(site, verbose=False):
             if link.is_internal_html():
                 
                 if link.has_sitemap_entry == False and not link.alias_to and not link.skip_test:
-                    link.add_notice_message("Page is not included in sitemap")
+                    link.add_info_message("Page is not included in sitemap")
                     page_missing_sitemap += 1
 
         orphan_page = 0
@@ -67,13 +67,13 @@ def test_basic_site_quality(site, verbose=False):
             link = site.parsed_links[link_url]
             
             if len(link.referers) == 0 and link.has_sitemap_entry:
-                link.add_notice_message("Page is in the sitemap, but not accessible from elsewhere in the site.")
+                link.add_info_message("Page is in the sitemap, but not accessible from elsewhere in the site.")
                 orphan_page += 1
 
         if page_missing_sitemap > 0:
             site.add_warning_message("%s pages were found to be missing from sitemap"%(page_missing_sitemap))
 
         if orphan_page > 0:
-            site.add_notice_message("%s pages were found in the sitemap but not elsewhere in the site."%(page_missing_sitemap))
+            site.add_info_message("%s pages were found in the sitemap but not elsewhere in the site."%(page_missing_sitemap))
 
         

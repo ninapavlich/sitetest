@@ -18,6 +18,7 @@ from .tests.page_spell_check import test_basic_spell_check
 from .tests.w3c_compliance import test_w3c_compliance
 from .tests.screenshots import test_screenshots
 from .tests.lint_js import test_lint_js
+from .tests.site_loading_optimized import test_site_loading_optimized
 
             
 def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False, recursive=True, options=None, verbose=False):
@@ -27,6 +28,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
         else:
             print "BASIC SITE TEST :: %s"%(canonical_domain)
 
+    recursive = False
     
     #TODO: Add screenshots from browserstack http://www.browserstack.com/screenshots/api
     #TODO: Add linting for css and js files and make sure they are being served as GZIP
@@ -120,15 +122,18 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
     except Exception:        
         print "Error linting JS: %s"%(traceback.format_exc())
 
-    
 
-    
+    #5. Page Speed
+    #try:
+    test_site_loading_optimized(set, credentials)
+    #except Exception:        
+    #    print "Error testing site loading optimization: %s"%(traceback.format_exc())
 
-    
+
 
 
     if full:
-        #4. W3C Compliance test
+        #6. W3C Compliance test
         try:
             test_w3c_compliance(set, ignore_validation_errors)
         except Exception:        
@@ -196,6 +201,7 @@ def render_results(results, template_file = 'templates/results.html'):
     rendered = template.render( results )
     return rendered
 
+
 def save_results(html, test_id, credentials, verbose):
 
     results_dir = os.path.join(os.path.dirname(__file__), 'test_results')
@@ -206,8 +212,17 @@ def save_results(html, test_id, credentials, verbose):
     results_file = os.path.join(results_dir, filename)
 
     save_results_local(html, results_file, test_id, verbose)
-    report_url = save_results_aws(results_file, test_id, credentials, verbose)
-    delete_results_local(results_file, verbose)
+    try:
+        report_url = save_results_aws(results_file, test_id, credentials, verbose)
+    except Exception:        
+        print "Error posting results to AWS: %s"%(traceback.format_exc())
+        report_url = None
+
+    if report_url:
+        delete_results_local(results_file, verbose)
+    else:
+        report_url = "file://%s"%results_file       
+        
 
     return report_url
 

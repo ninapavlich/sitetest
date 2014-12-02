@@ -161,10 +161,12 @@ class LinkSet(BaseMessageable):
         referer_url = None if not referer else referer.url
 
         url = self.get_normalized_href(url, referer_url)
+    
 
-        
         if not url or url == '':
             return None
+
+
 
         if url in self.current_links:
             link = self.current_links[url]
@@ -234,6 +236,10 @@ class LinkSet(BaseMessageable):
         #Normalize url by converting to lowercase: 
         normalized = url_fix(normalized.lower())
 
+        #If this is the homepage
+        if normalized.strip('/') == self.canonical_domain.strip('/'):
+            normalized = self.canonical_domain
+
         dequeried_parent_url = clear_query_string(normalized_parent_url)
 
         #remove anything after the hashtag:
@@ -289,31 +295,31 @@ class LinkItem(BaseMessageable):
     # 'html','content','response_load_time','description','is_media','alias_to','skip_test','has_sitemap_entry']
 
 
-    _set = None
+    # _set = None
 
-    referers = None
-    image_links = None
-    hyper_links = None
-    css_links = None
-    script_links = None
+    # referers = None
+    # image_links = None
+    # hyper_links = None
+    # css_links = None
+    # script_links = None
 
-    url = None
-    ending_url = None
-    starting_type = None
-    ending_type = None
-    path = None
-    response_code = None
+    # url = None
+    # ending_url = None
+    # starting_type = None
+    # ending_type = None
+    # path = None
+    # response_code = None
     #response = None
 
     has_response = False
     response_content_type = None    
-    redirect_path = None
-    html = None
-    content = None
-    response_load_time = None
-    description = None
-    is_media = None
-    alias_to = None
+    # redirect_path = None
+    # html = None
+    # content = None
+    # response_load_time = None
+    # description = None
+    # is_media = None
+    # alias_to = None
     skip_test = False
     has_sitemap_entry = False
 
