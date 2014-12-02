@@ -1,0 +1,42 @@
+<ul>
+  	{% if link.response_load_time %}
+    <li>This page took <strong>{{link.response_load_time}}ms</strong> to load.</li>
+    {% endif %}
+
+    {% if link.loading_score %}
+    <li>This page scored <strong class="score-{{link.loading_score_group}}">{{link.loading_score.score}}</strong> on google page speed tests.</li>
+    {% endif %}
+
+    {% if link.alias_to %}
+    <li>This page is an alias to <strong>{{link.alias_to}}</strong></li>
+	{% endif %}
+
+    {% if link.description %}
+    <li><strong>Page description:</strong> {{link.description}}</li>{% endif %}
+
+    {% for message in link.messages.success %}
+	<li class="alert alert-success" role="alert">{{message.message}}</li>		        				
+	{% endfor %}   
+
+	{% for message in link.messages.error %}
+	<li class="alert alert-danger" role="alert">{{message.message}}</li>		        				
+	{% endfor %}  
+
+	{% for message in link.messages.warning %}
+	<li class="alert alert-warning" role="alert">{{message.message}}</li>		        				
+	{% endfor %}  
+
+	{% for message in link.messages.info %}
+	<li class="alert alert-info" role="alert">{{message.message}}</li>		        				
+	{% endfor %}  
+</ul>   
+
+
+{% if link.redirect_path %}
+<h4>Redirect Path</h4>
+<ul>
+    {% for item in link.redirect_path %}
+    <li><strong>{{item.response_code}}</strong> {{item.url}} [{{item.response_content_type}}] - <em>{{item.response_load_time}} ms</em></li>
+    {% endfor %}
+</ul>
+{% endif %}

@@ -25,7 +25,7 @@
 			.fa:hover{
 				text-decoration: none;
 			}
-			.tab-pane > ul{
+			ul{
 				padding-left:0px;
 			}
 			.image-row{
@@ -56,6 +56,9 @@
 				right:20px;
 				bottom:20px;
 			}
+			.panel-title .pull-right > span{
+				margin-right:10px;
+			}
 			.score-low{
 				color:#d9534f;
 			}
@@ -77,6 +80,7 @@
 		<link rel="icon" type="image/png" href="{{site.url}}/favicon.ico">
 
 		<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+		
 		<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
 		<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 
@@ -95,7 +99,7 @@
 
 			{% if set.messages.success|length > 0 %}
 			<section>
-				<h2 style="display:none">Success</h2>
+				<h3 style="display:none">Success</h3>
 				<ul >
 					{% for message in set.messages.success %}
 					<li class="alert alert-success" role="alert">{{message.message}}</li>		        				
@@ -106,7 +110,7 @@
 
 			{% if set.messages.error|length > 0 %}
 			<section>
-				<h2 style="display:none">Errors</h2>
+				<h3 style="display:none">Errors</h3>
 				<ul >
 					{% for message in set.messages.error %}
 					<li class="alert alert-danger" role="alert">{{message.message}}</li>		        				
@@ -117,7 +121,7 @@
 
 			{% if set.messages.warning|length > 0 %}
 			<section>
-				<h2 style="display:none">Warning</h2>
+				<h3 style="display:none">Warning</h3>
 				<ul >
 					{% for message in set.messages.warning %}
 					<li class="alert alert-warning" role="alert">{{message.message}}</li>		        				
@@ -128,7 +132,7 @@
 
 			{% if set.messages.info|length > 0 %}
 			<section>
-				<h2 style="display:none">Info</h2>
+				<h3 style="display:none">Info</h3>
 				<ul >
 					{% for message in set.messages.info %}
 					<li class="alert alert-info" role="alert">{{message.message}}</li>		        				
@@ -137,39 +141,58 @@
 			</section>
 			{% endif %}
 
-			<section>
-				<h2>Results</h2>
 
-					
-					<p>
-						<button type="button" class="btn btn-default expand-all">Expand All <span class="glyphicon glyphicon-arrow-down"></span></button>
-						<button type="button" class="btn btn-default collapse-all">Collapse All <span class="glyphicon glyphicon-arrow-up"></span></button>
-					</p>
+			<div class="panel-collapse collapse" id="pages">
+        		<div class="panel-body">
+        			PANEL BODY
+        		</div>
+        	</div>
 
-					{% for link_url, link in set.parsed_links|dictsort %}
-					{% set loop_index = loop.index %}
-					{% include 'result.html' with context %}
-					{% endfor %}
+					<!-- Nav tabs -->
+					<ul class="nav nav-tabs" role="tablist">
+					  	<li class="active"><a href="#pages-parsed" role="tab" data-toggle="tab">Parsed Pages</a></li>
+					  	<li><a href="#pages-loaded" role="tab" data-toggle="tab">Loaded Pages</a></li>
+					  	<li><a href="#pages-other" role="tab" data-toggle="tab">All Other Pages</a></li>
+					</ul>
 
-					{% for link_url, link in set.loaded_links|dictsort %}
-					{% if link_url not in set.parsed_links %}
-					{% set loop_index = loop.index %}
-					{% include 'result.html' with context %}
-					{% endif %}
-					{% endfor %}
+					<div class="tab-content">
+					  	<div class="tab-pane active" id="pages-parsed">				  	
+						  	<h2>Parsed Pages</h2>					
+							<p>
+								<button type="button" class="btn btn-default expand-all">Expand All <span class="glyphicon glyphicon-arrow-down"></span></button>
+								<button type="button" class="btn btn-default collapse-all">Collapse All <span class="glyphicon glyphicon-arrow-up"></span></button>
+							</p>
 
-					{% for link_url, link in set.current_links|dictsort %}
-					{% if link_url not in set.parsed_links and link_url not in set.loaded_links %}
-					{% set loop_index = loop.index %}
-					{% include 'result.html' with context %}
-					{% endif %}
-					{% endfor %}
-				
-			</section>
+							{% for link_url, link in set.parsed_links|dictsort %}
+							{% set loop_index = loop.index %}
+							{% include 'result_full.html' with context %}
+							{% endfor %}
+						</div>
+						<div class="tab-pane" id="pages-loaded">
+							<h2>Loaded Pages</h2>	
+
+							{% for link_url, link in set.loaded_links|dictsort %}
+							{% if link_url not in set.parsed_links %}
+							{% set loop_index = loop.index %}
+							{% include 'result_loaded.html' with context %}
+							{% endif %}
+							{% endfor %}
+						</div>
+						<div class="tab-pane" id="pages-other">
+							<h2>All Other Pages</h2>	
+
+							{% for link_url, link in set.current_links|dictsort %}
+							{% if link_url not in set.parsed_links and link_url not in set.loaded_links %}
+							{% set loop_index = loop.index %}
+							{% include 'result_not_loaded.html' with context %}
+							{% endif %}
+							{% endfor %}	
+						</div>		
+					</div>
+
 		</div>
 
-		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-		<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.2.min.js"><\/script>')</script>
+		
 		<script>
 			//console.log("scripts go here")
 
@@ -181,13 +204,31 @@
 				$('.panel-collapse').addClass('in');
 				
 			})
+
+			$(".pagelink").bind("click", function(event){
+				var full_link_target = $(this).attr('href')
+			
+				var link_target = (full_link_target).split("#")[1];
+				var parsed_id = "#pages-parsed"
+				var loaded_id = "#pages-loaded"
+				var other_id = "#pages-other"
+
+				var is_in_parsed = $(parsed_id).find("#"+link_target).length > 0;
+				var is_in_loaded = $(loaded_id).find("#"+link_target).length > 0;
+				var is_in_other = $(other_id).find("#"+link_target).length > 0;
+
+				var target_tag = is_in_parsed? parsed_id : is_in_loaded? loaded_id : other_id
+				$('[href='+target_tag+']').tab('show');			
+			
+			});
 		</script>
 
-	</body>
 	<!-- child of the body tag -->
 	<span class="toplink">
 		<a href="#top">
 			<i class="fa fa-angle-double-up"></i> Back to Top
 		</a>
 	</span><!-- /top-link-block -->
+	</body>
+	
 </html>

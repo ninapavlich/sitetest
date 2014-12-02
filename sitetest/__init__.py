@@ -7,6 +7,7 @@ from boto.s3.key import Key
 import boto.s3
 from bs4 import BeautifulSoup
 import codecs    
+import htmlmin
 from jinja2 import Template, FileSystemLoader, Environment
 from pyslack import SlackClient
 import webbrowser
@@ -30,11 +31,6 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
 
     # recursive = False
     
-    #TODO: Add screenshots from browserstack http://www.browserstack.com/screenshots/api
-    #TODO: Add linting for css and js files and make sure they are being served as GZIP
-    #TODO: Add social meta tag verification
-    #TODO: Pagespeed Insights: https://developers.google.com/speed/docs/insights/v1/getting_started#intro
-
     #TODO: Add to python index and readthedocs
 
     start_time = datetime.datetime.now()
@@ -169,7 +165,8 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
 
 
     html = render_results(results)
-    report_url = save_results(html, test_id, credentials, verbose)
+    html_minified = htmlmin.minify(html, True, True)
+    report_url = save_results(html_minified, test_id, credentials, verbose)
     results['report_url'] = report_url
     open_results(report_url)
 
@@ -204,8 +201,6 @@ def render_results(results, template_file = 'results.html'):
     templateLoader = FileSystemLoader( [os.path.join(os.path.dirname(__file__), 'templates/')] )
     templateEnv = Environment( loader=templateLoader )
 
-    
-    print 'TEMPLATE_FILE? %s'%(template_file)
     template = templateEnv.get_template( template_file )
     rendered = template.render( results )
     return rendered
@@ -302,7 +297,7 @@ def open_results(path):
     webbrowser.open(url,new=new)
 
 def notify_results(results, credentials):
-
+    return
     if 'slack' in credentials and 'SLACK_TOKEN' in credentials['slack']:
         SLACK_TOKEN = credentials['slack']['SLACK_TOKEN']
         SLACK_CHANNEL = credentials['slack']['SLACK_CHANNEL']
@@ -310,11 +305,9 @@ def notify_results(results, credentials):
 
         client = SlackClient(SLACK_TOKEN)
 
-        message_output = "TEST RESULTS for \"%s\"\n\n"%(results['site'].title)
+        message_output = "SCORE: %s for TEST: \"%s\"\n\n"%(results['set'].get_score(), results['site'].title)
 
-        message_output += ("Full Report: %s\n\n"%(results['report_url']))
-
-        message_output += ('SCORE: %s (Lower is better, Best is 0-0-X)\n\n'%(results['set'].get_score()))
+        message_output += "Full Report: %s\n\n"%(results['report_url'])        
 
         # for message in results['messages']['success']:
         #     message_output += (message+'\n\n')

@@ -1,0 +1,23 @@
+{% for message in link.validation.errors %}
+<li class="alert alert-warning" role="alert">
+
+	{% if message.lastLine %}
+
+	<p>Error on Line {{message.lastLine}}, Column {{message.lastColumn}}: <strong>{{message.message}}</strong></p>
+	<pre>{{message.src|e}}</pre>
+
+	{% else %}
+	
+	<p>Error:</p>
+	<pre>{{message|e}}</pre>
+	
+	{% endif %}
+</li>		        				
+{% endfor %}  
+
+{% for message in link.validation.warnings %}
+<li class="alert alert-info" role="alert">
+	<p>Warning Line {{message.lastLine}}, Column {{message.lastColumn}}: <strong>{{message.message}}</strong></p>
+	<pre>{{message.src|e}}</pre>
+</li>		        				
+{% endfor %}  

@@ -14,16 +14,16 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # http://packaging.python.org/en/latest/tutorial.html#version
-    version='0.9',
+    version='1.0',
 
     description='Python library for testing websites',
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/pypa/sampleproject',
+    url='https://github.com/ninapavlich/sitetest',
 
     # Author details
-    author='https://github.com/ninapavlich/sitetest',
+    author='https://github.com/ninapavlich/',
     author_email='nina@ninalp.com',
 
     # Choose your license
@@ -32,10 +32,11 @@ setup(
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         # How mature is this project? Common values are
+        #   2 - Pre-Alpha
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
@@ -66,7 +67,9 @@ setup(
     # project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/technical.html#install-requires-vs-requirements-files
-    install_requires=['setuptools','httplib2','beautifulsoup4', 'jinja2', 'w3c-validator', 'pyenchant', 'pyjslint','pyslack', 'boto', 'jsbeautifier', 'google-api-python-client'],
+    install_requires=['setuptools','httplib2','beautifulsoup4', 'jinja2', 
+        'w3c-validator', 'pyenchant', 'pyjslint','pyslack', 'boto', 
+        'jsbeautifier', 'google-api-python-client', 'htmlmin', 'python-slugify'],
 
     # List additional groups of dependencies here (e.g. development dependencies).
     # You can install these using the following syntax, for example:

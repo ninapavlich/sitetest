@@ -1,0 +1,41 @@
+<h4 class="panel-title clearfix" id="{{link.internal_page_url}}">
+	<span class="pull-left">
+
+		{% if link.response_code %} 
+        {% if link.response_code == 200 %}
+        <span class="label label-success">{{link.response_code}}</span> 
+        {% elif link.response_code == "Unknown" %} 
+        <span class="label label-warning">Response Code {{link.response_code}}</span> 
+        {% else %} 
+        <span class= "label label-danger">{{link.response_code}}</span>
+        {% endif %} 
+        {% else %}
+        <span class="label label-default">N/A</span> 
+        {% endif %}
+
+    	<a data-parent="#accordion" data-toggle="collapse" href="#load-test-result-body-{{loop_index}}">
+    		{% if link.title %}{{link.title}}<br /><br />{% endif %}
+        	{{link.url}}
+        	{% if link.url != link.ending_url %} > {{link.ending_url}} {% endif %}
+        </a>
+
+        
+    </span>
+	
+	<span class="pull-right">
+		
+		{% if link.messages.error|length > 0 %}
+		<span class="label label-danger">Error <span class="glyphicon glyphicon-fire"></span></span>
+		{% endif %}
+		{% if link.messages.warning|length > 0 %}
+		<span class="label label-warning">Warning <span class="glyphicon glyphicon-warning-sign"></span></span>
+		{% endif %}
+		{% if link.messages.info|length > 0 %}
+		<span class="label label-info">Notice <span class="glyphicon glyphicon-hand-left"></span></span>
+		{% endif %}
+		{% if link.loading_score %}
+		<span class="score-{{link.loading_score_group}}" ><i class="fa fa-dashboard"></i> {{link.loading_score.score}}</span>
+		{% endif %}
+		<a class='fa fa-external-link' href="{{link.url}}" target="_blank"> Visit</a> 
+	</span>
+</h4>

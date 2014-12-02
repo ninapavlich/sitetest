@@ -1,0 +1,16 @@
+<h5>This page scored <strong class="score-{{link.loading_score_group}}">{{link.loading_score.score}}</strong> on google page speed tests.</h5>
+<ul>
+	{% for rule_id, rule in link.loading_score.formattedResults.ruleResults|dictsort %}
+
+	{% if rule.ruleImpact>0 %}
+    <li>
+        <p>{{rule.localizedRuleName}}</p>
+    </li>
+    {% endif %}
+    {% endfor %}
+    <li>
+        <a class='fa fa-external-link' href=
+        "http://developers.google.com/speed/pagespeed/insights/?url={{link.url}}"
+        target="_blank"> View on Google Page Speed</a>
+    </li>
+</ul>

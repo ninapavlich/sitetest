@@ -10,6 +10,7 @@ import cgi
 import re
 import os
 import sys
+from slugify import slugify
 from bs4 import BeautifulSoup
 
 
@@ -365,7 +366,7 @@ class LinkItem(BaseMessageable):
 
     @property
     def internal_page_url(self):
-        return "load-test-result-%s"%(self.url)
+        return slugify("load-test-result-%s"%(self.url))
 
     @property
     def encoded_url(self):
