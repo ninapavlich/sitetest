@@ -10,9 +10,19 @@ to an AWS bucket as static HTML and notifications are sent to a Slack channel.
 brew install enchant
 ```
 
-##Usage:
+**Example Report:** http://s3.amazonaws.com/cgp-dev/test_results/fw-django-prod-01-basic/2014-12-02_15-13.html
 
+##Example Usage:
 ```python
+
+from sitetest import testSite
+
+canonical_domain = 'https://www.example.com'
+test_id = "example-site-test-full"
+full = False
+recursive = True
+verbose = True
+
 
 credentials = {
     "slack":{
@@ -30,15 +40,36 @@ credentials = {
         "PRIVATE_KEY_PASSWORD": "XXXXXXXXX",
         "CLIENT_ID": "XXXXXXXXXXXXXXXXXXXXXXXXXXX",
         "EMAIL_ADDRESS": "XXXXXXXXXXXXXXXXXXXXXXXXXXX",
-        "PUBLIC_KEY_FINGERPRINTS":"XXXXXXXXXXXXXXXXXXXXXXXXXXX",
-        "API_KEY":"XXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        "PUBLIC_KEY_FINGERPRINTS":"XXXXXXXXXXXXXXXXXXXXXXXXXXX"
     },
     "browserstack":{
         "USERNAME":"XXXXXXXXX",
         "PASSWORD":"XXXXXXXXX"
     }
 }
+
+domain_aliases = [
+    'http://www.example.com',
+    'https://example.com',
+    'http://example.com'
+]
+
+options = {
+    'special_dictionary':['yolo',],
+    'ignore_query_string_keys':['next'],
+    'alias_query_strings':['page'],
+    'ignore_validation_errors':[],
+    'skip_urls':['blog'],
+    'skip_test_urls':['comments/reply','comments/flag' ]
+}
+
+testSite(credentials, canonical_domain, domain_aliases, test_id, full, 
+	recursive, options, verbose)
 ```
+
+
+##Options:
+
 
 **canonical_domain** is the domain that we're testing. If you're running a 
 non-recursive test on a single url, then canonical_domain should be the single
@@ -67,13 +98,12 @@ this url:
 test_id = "example-site-test-full"
 ```
 
-**if full == False,** the test will check each page for 200 response, test each page
- for Lorem Ipsum and spelling errors and test each page for unique title and 
- description
+**if full == False,** the test will check each page (excluding media) for 200 response, and all
+other basic tests that don't require 3rd-party API access.
 
 **if full == True,** the test will ALSO verify that media files (images, docs, zips,
- etc) are valid, validate W3C Compliance for each URL, Generate browser 
- screenshots (someday), and lint JS and CSS (someday)
+ etc) are valid, validate W3C Compliance for each URL, run Google PageSpeed tests for each URL, and Generate browser 
+ screenshots (someday).
 ```python
 full = True 
 
@@ -135,18 +165,8 @@ the overall test status
 verbose = True
 ```
 
-EXAMPLE USAGE:
+**credentials** allow you to integrate with third party tools for tests and notification. Result notifications are sent to slack. Test results are uploaded to Amazon S3. Google Pagespeed is run on each URL for "Full" tests; only the API_KEY is needed for that. Browserstack screenshots are not fully implemented due to the high cost of API access.
 ```python
-
-from sitetest import testSite
-
-canonical_domain = 'https://www.example.com'
-test_id = "example-site-test-full"
-full = False
-recursive = True
-verbose = True
-
-
 credentials = {
     "slack":{
         "SLACK_TOKEN" : "XXXX-XXXXXXXXX-XXXXXXXXX-XXXXXXXXX-XXXXXX",
@@ -163,29 +183,12 @@ credentials = {
         "PRIVATE_KEY_PASSWORD": "XXXXXXXXX",
         "CLIENT_ID": "XXXXXXXXXXXXXXXXXXXXXXXXXXX",
         "EMAIL_ADDRESS": "XXXXXXXXXXXXXXXXXXXXXXXXXXX",
-        "PUBLIC_KEY_FINGERPRINTS":"XXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        "PUBLIC_KEY_FINGERPRINTS":"XXXXXXXXXXXXXXXXXXXXXXXXXXX",
+        "API_KEY":"XXXXXXXXXXXXXXXXXXXXXXXXXXX"
     },
     "browserstack":{
         "USERNAME":"XXXXXXXXX",
         "PASSWORD":"XXXXXXXXX"
     }
 }
-
-domain_aliases = [
-    'http://www.example.com',
-    'https://example.com',
-    'http://example.com'
-]
-
-options = {
-    'special_dictionary':['yolo',],
-    'ignore_query_string_keys':['next'],
-    'alias_query_strings':['page'],
-    'ignore_validation_errors':[],
-    'skip_urls':['blog'],
-    'skip_test_urls':['comments/reply','comments/flag' ]
-}
-
-testSite(credentials, canonical_domain, domain_aliases, test_id, full, 
-	recursive, options, verbose)
 ```
