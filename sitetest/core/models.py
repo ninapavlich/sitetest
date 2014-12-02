@@ -156,7 +156,7 @@ class LinkSet(BaseMessageable):
             load_successful, response = page_link.load(expected_code)
             
             if not load_successful:
-                message = "Loading error on page <a href='#%s' class='alert-link'>%s</a> Expected %s Received %s"%(page_link.internal_page_url, page_link.url, 200, page_link.response_code)
+                message = "Loading error on page <a href='#%s' class='pagelink alert-link'>%s</a> Expected %s Received %s"%(page_link.internal_page_url, page_link.url, 200, page_link.response_code)
                 self.add_error_message(message)
             
 
