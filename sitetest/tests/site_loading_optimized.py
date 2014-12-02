@@ -1,18 +1,20 @@
 import urllib2
 import json
 
-def test_site_loading_optimized(set, credentials):
+def test_site_loading_optimized(set, credentials, verbose=False):
     
     if 'google' in credentials and 'API_KEY' in credentials['google']:
 
-        print 'Running site speed and optimization tests...'
+        if verbose:
+            print 'Running site speed and optimization tests...'
         
         API_KEY = credentials['google']['API_KEY']
 
         total = len(set.parsed_links)
         count = 0
         for link_url in set.parsed_links:
-            print "%s/%s"%(count, total)
+            if verbose:
+                print "%s/%s"%(count, total)
             count += 1
 
             link = set.parsed_links[link_url]

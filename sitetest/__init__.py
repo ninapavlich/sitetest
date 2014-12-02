@@ -96,13 +96,13 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
     #if recursive:
     #1. Site quality test
     try:
-        test_basic_site_quality(set)
+        test_basic_site_quality(set, verbose)
     except:
         print "Error running site quality check: %s"%(traceback.format_exc())
 
     #2. Page quality test
     try:
-        test_basic_page_quality(set)
+        test_basic_page_quality(set, verbose)
     except Exception:        
         print "Error running page quality check: %s"%(traceback.format_exc())
 
@@ -112,13 +112,13 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
     #3. Spell Check test
     try:
         print 'running spellcheck...'
-        test_basic_spell_check(set, special_dictionary)
+        test_basic_spell_check(set, special_dictionary, verbose)
     except Exception:        
         print "Error running spellcheck: %s"%(traceback.format_exc())
 
     #4. Lint JS
     try:
-        test_lint_js(set)
+        test_lint_js(set, verbose)
     except Exception:        
         print "Error linting JS: %s"%(traceback.format_exc())
 
@@ -132,13 +132,13 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
 
         #5. Page Speed
         try:
-            test_site_loading_optimized(set, credentials)
+            test_site_loading_optimized(set, credentials, verbose)
         except Exception:        
            print "Error testing site loading optimization: %s"%(traceback.format_exc())
-           
+
         #6. W3C Compliance test
         try:
-            test_w3c_compliance(set, ignore_validation_errors)
+            test_w3c_compliance(set, ignore_validation_errors, verbose)
         except Exception:        
             print "Error validating with w3c: %s"%(traceback.format_exc())
 
