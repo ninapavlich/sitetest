@@ -55,6 +55,11 @@ domain_aliases = [
 ]
 
 options = {
+    'recursive':True,
+    'test_media':True,
+    'test_external_links':True,
+    'run_third_party_tests':False,
+    'verbose':True,
     'special_dictionary':['yolo',],
     'ignore_query_string_keys':['next'],
     'alias_query_strings':['page'],
@@ -63,13 +68,29 @@ options = {
     'skip_test_urls':['comments/reply','comments/flag' ]
 }
 
-testSite(credentials, canonical_domain, domain_aliases, test_id, full, 
-	recursive, options, verbose)
+testSite(credentials, canonical_domain, domain_aliases, test_id, options)
 ```
 
 
 ##Options:
 
+**If recursive == False,** the test will test only the canonical_domain
+**if recursive == True,** the test will recursively test all links found within 
+the canonical_domain. It will also test /robots.txt, /sitemap.xml, /favicon.ico 
+and /thisShouldNotExist returns a 404
+
+**if test_media == True,** the test will ALSO verify that media files (images, 
+docs, zips, etc) return 404s.
+
+**if test_external_links == True,** the test will ALSO verify that external 
+links return 404s.
+
+**if run_third_party_tests == True,** the test will validate W3C Compliance for 
+each URL, run Google PageSpeed tests for each URL, and Generate browser 
+screenshots (someday).
+
+**If verbose == True,** you will see log output of the urls as they're parsed 
+and the overall test status
 
 **canonical_domain** is the domain that we're testing. If you're running a 
 non-recursive test on a single url, then canonical_domain should be the single
@@ -98,26 +119,7 @@ this url:
 test_id = "example-site-test-full"
 ```
 
-**if full == False,** the test will check each page (excluding media) for 200 response, and all
-other basic tests that don't require 3rd-party API access.
 
-**if full == True,** the test will ALSO verify that media files (images, docs, zips,
- etc) are valid, validate W3C Compliance for each URL, run Google PageSpeed tests for each URL, and Generate browser 
- screenshots (someday).
-```python
-full = True 
-
-```
-
-
-**If recursive == False,** the test will test only the canonical_domain
-**if recursive == True,** the test will recursively test all links found within the 
-canonical_domain. It will also test /robots.txt, /sitemap.xml, /favicon.ico and 
-/thisShouldNotExist returns a 404
-```python
-recursive = True
-
-```
 
 **special_dictionary** is a list of words to ignore in the spelling test
 ```python
@@ -156,13 +158,6 @@ skip_test_urls is a list of url fragments that, if matched using regex, it will 
 ```python
 skip_test_urls = ['comments/reply','comments/flag' ]
 
-```
-
-
-**If verbose == True,** you will see log output of the urls as they're parsed and 
-the overall test status
-```python
-verbose = True
 ```
 
 **credentials** allow you to integrate with third party tools for tests and notification. Result notifications are sent to slack. Test results are uploaded to Amazon S3. Google Pagespeed is run on each URL for "Full" tests; only the API_KEY is needed for that. Browserstack screenshots are not fully implemented due to the high cost of API access.

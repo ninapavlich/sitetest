@@ -113,7 +113,7 @@ class LinkSet(BaseMessageable):
     parsed_links = {}
     parsable_links = {}
 
-    def __init__(self, include_media, canonical_domain, domain_aliases, ignore_query_string_keys=None, alias_query_strings=None, skip_test_urls=None, skip_urls=None):
+    def __init__(self, include_media, include_external_links, canonical_domain, domain_aliases, ignore_query_string_keys=None, alias_query_strings=None, skip_test_urls=None, skip_urls=None):
 
         self.messages = MessageSet()
 
@@ -130,6 +130,7 @@ class LinkSet(BaseMessageable):
             skip_test_urls = []
 
         self.include_media = include_media
+        self.include_external_links = include_external_links
         self.canonical_domain = canonical_domain
         self.domain_aliases = domain_aliases
         self.ignore_query_string_keys = ignore_query_string_keys
@@ -147,7 +148,7 @@ class LinkSet(BaseMessageable):
         #     print "PARSED %s PAGES, turn recursive off"%(max_count)
         #     return
 
-        if page_link.is_loadable_type(self.include_media) and page_link.url not in self.loaded_links:
+        if page_link.is_loadable_type(self.include_media, self.include_external_links) and page_link.url not in self.loaded_links:
 
             if verbose:
                 trace_memory_usage()
@@ -378,11 +379,12 @@ class LinkItem(BaseMessageable):
     def links(self):
        return dict(self.image_links.items() + self.hyper_links.items() + self.css_links.items() + self.script_links.items())
 
-    def is_loadable_type(self, include_media):
-        is_internal_or_external = self.starting_type == TYPE_INTERNAL or self.starting_type == TYPE_EXTERNAL
-        allow_media = (self.is_media and include_media) or (self.is_media==False)
+    def is_loadable_type(self, include_media, include_external_links):
+        is_internal = self.starting_type == TYPE_INTERNAL
+        is_allowed_external = (self.starting_type == TYPE_EXTERNAL and include_external_links)
+        is_allowed_media = (self.is_media and include_media)
         not_skip = self.skip == False
-        return is_internal_or_external and allow_media and not_skip
+        return (is_internal or is_allowed_external or is_allowed_media) and not_skip
 
     def is_internal(self):
         return self.ending_type == TYPE_INTERNAL and self.starting_type == TYPE_INTERNAL

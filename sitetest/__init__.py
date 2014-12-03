@@ -22,13 +22,8 @@ from .tests.lint_js import test_lint_js
 from .tests.pagespeed import test_pagespeed
 
             
-def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False, recursive=True, options=None, verbose=False):
-    if verbose:
-        if full:
-            print "FULL SITE TEST :: %s"%(canonical_domain)
-        else:
-            print "BASIC SITE TEST :: %s"%(canonical_domain)
-
+def testSite(credentials, canonical_domain, domain_aliases, test_id, options=None):
+    
     # recursive = False
     
     #TODO: Add to python index and readthedocs
@@ -42,47 +37,45 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
             'alias_query_strings':[],
             'ignore_validation_errors':[],
             'skip_test_urls':[],
-            'skip_urls':[]
+            'skip_urls':[],
+            'recursive':True,
+            'test_media':True,
+            'test_external_links':True,
+            'run_third_party_tests':False,
+            'verbose':True
         }
 
 
-    if 'special_dictionary' not in options:
-        special_dictionary = []
-    else:
-        special_dictionary = options['special_dictionary']
+    recursive = True if 'recursive' not in options else options['recursive']
 
-    if 'ignore_query_string_keys' not in options:
-        ignore_query_string_keys = []
-    else:
-        ignore_query_string_keys = options['ignore_query_string_keys']
+    test_media = True if 'test_media' not in options else options['test_media']
 
-    if 'alias_query_strings' not in options:
-        alias_query_strings = []
-    else:
-        alias_query_strings = options['alias_query_strings']
+    test_external_links = True if 'test_external_links' not in options else options['test_external_links']
 
-    if 'ignore_validation_errors' not in options:
-        ignore_validation_errors = []
-    else:
-        ignore_validation_errors = options['ignore_validation_errors']
+    run_third_party_tests = True if 'run_third_party_tests' not in options else options['run_third_party_tests']
 
-
-    if 'skip_test_urls' not in options:
-        skip_test_urls = []
-    else:
-        skip_test_urls = options['skip_test_urls']
-
-    if 'skip_urls' not in options:
-        skip_urls = []
-    else:
-        skip_urls = options['skip_urls']
-
-
-
-
+    verbose = True if 'verbose' not in options else options['verbose']
     
+    special_dictionary = [] if 'special_dictionary' not in options else options['special_dictionary']
+
+    ignore_query_string_keys = [] if 'ignore_query_string_keys' not in options else options['ignore_query_string_keys']
+
+    alias_query_strings = [] if 'alias_query_strings' not in options else options['alias_query_strings']
+
+    ignore_validation_errors = [] if 'ignore_validation_errors' not in options else options['ignore_validation_errors']
+
+    skip_test_urls = [] if 'skip_test_urls' not in options else options['skip_test_urls']
+
+    skip_urls = [] if 'skip_urls' not in options else options['skip_urls']
+
+
+    if verbose:
+        print "SITE TEST :: %s Recursive:%s Media:%s External Links:%s 3rd Party:%s"%(canonical_domain, recursive, test_media, test_external_links, run_third_party_tests)
+
+
+
     #Load pages, starting with homepage    
-    set = LinkSet(full, canonical_domain, domain_aliases, ignore_query_string_keys, alias_query_strings, skip_test_urls, skip_urls)
+    set = LinkSet(test_media, test_external_links, canonical_domain, domain_aliases, ignore_query_string_keys, alias_query_strings, skip_test_urls, skip_urls)
     homepage_link = set.get_or_create_link_object(canonical_domain, None)
     if homepage_link:
         set.load_link(homepage_link, recursive, 200, verbose)
@@ -131,7 +124,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
 
 
 
-    if full:
+    if run_third_party_tests:
 
         #5. Page Speed
         try:
@@ -155,7 +148,9 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, full=False,
     end_time = datetime.datetime.now()
 
     results = {
-        'full':full,
+        'test_media':test_media,
+        'test_external_links':test_external_links,
+        'run_third_party_tests':run_third_party_tests,
         'set':set,
         'site':set.current_links[canonical_domain],
         'start_time':start_time,
@@ -289,8 +284,8 @@ def notify_results(results, credentials):
 
         client = SlackClient(SLACK_TOKEN)
 
-        type = 'Basic' if not results['full'] else 'Full'
-        message_output = "Score %s for %s Test of \"%s\"\n\n"%(results['set'].get_score(), type, results['site'].title)
+        
+        message_output = "Score %s for Test of \"%s\"\n\n"%(results['set'].get_score(), results['site'].title)
 
         message_output += "Full Report: %s\n\n"%(results['report_url'])        
 

@@ -6,7 +6,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<title>{% if full %}Full{% else %}Basic{% endif %} Site Test Results for {{site.title}}</title>
+		<title>Site Test Results for {{site.title}}</title>
 		<meta name="description" content="">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -96,6 +96,29 @@
 			<h1 id="top">{% if full %}Full{% else %}Basic{% endif %} Site Test Results for &ldquo;{{site.title}}&rdquo;</h1>
 			<p>Test took {{duration.seconds}} seconds, starting on {{start_time.strftime('%b %d, %Y at %I:%M %p')}} and ended at {{end_time.strftime('%I:%M %p')}}</p>
 			<p>{{set.parsed_links|length}} links were parsed, {{set.loaded_links|length}} loaded, {{set.current_links|length}} total.</p>
+
+			<p><strong>Media Tested:</strong> {{test_media}}</p>
+			<p><strong>External Links Tested:</strong> {{test_external_links}}</p>
+			<p><strong>3rd Party Tests Included:</strong> {{run_third_party_tests}}</p>
+			{% if ignore_query_string_keys|length > 0 %}
+			<p><strong>Query String Keys Ignore:</strong> {{ignore_query_string_keys}}</p>
+			{% endif %}
+
+			{% if alias_query_strings|length > 0 %}
+			<p><strong>Alias Query Strings:</strong> {{alias_query_strings}}</p>
+			{% endif %}
+			{% if skip_test_urls|length > 0 %}
+			<p><strong>Skip Test URLS:</strong> {{skip_test_urls}}</p>
+			{% endif %}
+			
+			{% if skip_urls|length > 0 %}
+			<p><strong>Skip URLS:</strong> {{skip_urls}}</p>
+			{% endif %}
+
+			{% if ignore_validation_errors|length > 0 and run_third_party_tests %}
+			<p><strong>Ignore W3C Validation Errors:</strong> {{ignore_validation_errors}}</p>
+			{% endif %}
+
 
 			{% if set.messages.success|length > 0 %}
 			<section>
