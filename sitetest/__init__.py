@@ -43,7 +43,8 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, options=Non
             'test_external_links':True,
             'run_third_party_tests':False,
             'verbose':True,
-            'output_unloaded_links':True
+            'output_unloaded_links':True,
+            'max_parse_count':None
         }
 
 
@@ -71,6 +72,8 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, options=Non
 
     skip_urls = [] if 'skip_urls' not in options else options['skip_urls']
 
+    max_parse_count = None if 'max_parse_count' not in options else options['max_parse_count']
+
 
     if verbose:
         print "SITE TEST :: %s Recursive:%s Media:%s External Links:%s 3rd Party:%s"%(canonical_domain, recursive, test_media, test_external_links, run_third_party_tests)
@@ -78,7 +81,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, options=Non
 
 
     #Load pages, starting with homepage    
-    set = LinkSet(test_media, test_external_links, canonical_domain, domain_aliases, ignore_query_string_keys, alias_query_strings, skip_test_urls, skip_urls, verbose)
+    set = LinkSet(test_media, test_external_links, canonical_domain, domain_aliases, max_parse_count, ignore_query_string_keys, alias_query_strings, skip_test_urls, skip_urls, verbose)
     homepage_link = set.get_or_create_link_object(canonical_domain, None)
     if homepage_link:
         set.load_link(homepage_link, recursive, 200)
@@ -127,11 +130,11 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, options=Non
 
 
 
-    if run_third_party_tests:
+    if run_third_party_tests==True:
 
         #5. Page Speed
         try:
-            test_site_loading_optimized(set, credentials, verbose)
+            test_pagespeed(set, credentials, verbose)
         except Exception:        
            print "Error testing site loading optimization: %s"%(traceback.format_exc())
 

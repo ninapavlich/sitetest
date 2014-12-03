@@ -121,7 +121,7 @@ class LinkSet(BaseMessageable):
     parsed_links = {}
     parsable_links = {}
 
-    def __init__(self, include_media, include_external_links, canonical_domain, domain_aliases, ignore_query_string_keys=None, alias_query_strings=None, skip_test_urls=None, skip_urls=None, verbose=False):
+    def __init__(self, include_media, include_external_links, canonical_domain, domain_aliases, max_parse_count=None, ignore_query_string_keys=None, alias_query_strings=None, skip_test_urls=None, skip_urls=None, verbose=False):
 
         self.verbose = verbose
         self.messages = MessageSet(verbose)
@@ -146,16 +146,16 @@ class LinkSet(BaseMessageable):
         self.alias_query_strings = alias_query_strings
         self.skip_test_urls = skip_test_urls
         self.skip_urls = skip_urls
+        self.max_parse_count = max_parse_count
 
         super(LinkSet, self).__init__()    
 
         
     def load_link(self, page_link, recursive, expected_code=200):
 
-        # max_count = 170
-        # if len(self.parsed_links) > max_count:
-        #     print "PARSED %s PAGES, turn recursive off"%(max_count)
-        #     return
+        if self.max_parse_count and len(self.parsed_links) > self.max_parse_count:
+            print "PARSED %s PAGES, turn recursive off"%(max_count)
+            return
 
         is_loadable = page_link.is_loadable_type(self.include_media, self.include_external_links)
         not_already_loaded = (page_link.url not in self.loaded_links)
