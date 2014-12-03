@@ -5,6 +5,9 @@ def test_basic_page_quality(set, verbose=False):
     """
     For each page, make sure there is a unique title and description
     """
+
+    if verbose:
+        print 'Running page quality tests...'
     
     unique_titles = {}
     unique_descriptions = {}
@@ -16,7 +19,14 @@ def test_basic_page_quality(set, verbose=False):
     ssl_error_count = 0
     h1_error_count = 0
     
+
+    total = len(set.parsed_links)
+    count = 0
     for link_url in set.parsed_links:
+        if verbose:
+            print "%s/%s"%(count, total)
+        count += 1
+
         link = set.parsed_links[link_url]
         
 

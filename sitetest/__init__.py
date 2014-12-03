@@ -42,7 +42,8 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, options=Non
             'test_media':True,
             'test_external_links':True,
             'run_third_party_tests':False,
-            'verbose':True
+            'verbose':True,
+            'output_unloaded_links':True
         }
 
 
@@ -55,6 +56,8 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, options=Non
     run_third_party_tests = True if 'run_third_party_tests' not in options else options['run_third_party_tests']
 
     verbose = True if 'verbose' not in options else options['verbose']
+
+    output_unloaded_links = True if 'output_unloaded_links' not in options else options['output_unloaded_links']    
     
     special_dictionary = [] if 'special_dictionary' not in options else options['special_dictionary']
 
@@ -75,17 +78,17 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, options=Non
 
 
     #Load pages, starting with homepage    
-    set = LinkSet(test_media, test_external_links, canonical_domain, domain_aliases, ignore_query_string_keys, alias_query_strings, skip_test_urls, skip_urls)
+    set = LinkSet(test_media, test_external_links, canonical_domain, domain_aliases, ignore_query_string_keys, alias_query_strings, skip_test_urls, skip_urls, verbose)
     homepage_link = set.get_or_create_link_object(canonical_domain, None)
     if homepage_link:
-        set.load_link(homepage_link, recursive, 200, verbose)
+        set.load_link(homepage_link, recursive, 200)
 
 
     #Load any additional from sitemap
     sitemap_url = "%ssitemap.xml"%(canonical_domain) if canonical_domain.endswith("/") else "%s/sitemap.xml"%(canonical_domain)
     sitemap_link = set.get_or_create_link_object(sitemap_url, None)
     if sitemap_link:
-        set.load_link(sitemap_link, recursive, 200, verbose)
+        set.load_link(sitemap_link, recursive, 200)
    
 
 
@@ -151,6 +154,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, options=Non
         'test_media':test_media,
         'test_external_links':test_external_links,
         'run_third_party_tests':run_third_party_tests,
+        'output_unloaded_links':output_unloaded_links,
         'set':set,
         'site':set.current_links[canonical_domain],
         'start_time':start_time,

@@ -5,6 +5,9 @@ def test_basic_site_quality(site, verbose=False):
     This tests for robots.txt, sitemap.xml, top-level favicon.ico, test 400 page
     """
 
+    if verbose:
+        print 'Running site quality tests...'
+
     canonical_domain = site.canonical_domain
 
     if canonical_domain.endswith("/"):
@@ -50,10 +53,19 @@ def test_basic_site_quality(site, verbose=False):
             link_item.has_sitemap_entry = True
 
 
+        if verbose:
+            print 'Verifying pages are included in sitemap...'
+        total = len(set.loaded_links)
+        count = 0
+        
         #For any internal page that doesn't have a sitemap entry, add a notice
         page_missing_sitemap = 0
-        for link_url in site.current_links:
-            link = site.current_links[link_url]
+        for link_url in site.loaded_links:
+            link = site.loaded_links[link_url]
+
+            if verbose:
+                print "%s/%s"%(count, total)
+            count += 1
             
 
             if link.is_internal_html():
@@ -62,9 +74,18 @@ def test_basic_site_quality(site, verbose=False):
                     link.add_info_message("Page is not included in sitemap")
                     page_missing_sitemap += 1
 
+        if verbose:
+            print 'Verifying sitemap pages are not orphans...'
+        total = len(set.parsed_links)
+        count = 0
+
         orphan_page = 0
         for link_url in site.parsed_links:
             link = site.parsed_links[link_url]
+
+            if verbose:
+                print "%s/%s"%(count, total)
+            count += 1
             
             if len(link.referers) == 0 and link.has_sitemap_entry:
                 link.add_info_message("Page is in the sitemap, but not accessible from elsewhere in the site.")

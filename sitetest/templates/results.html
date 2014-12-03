@@ -171,7 +171,9 @@
 			<ul class="nav nav-tabs" role="tablist">
 			  	<li class="active"><a href="#pages-parsed" role="tab" data-toggle="tab">Parsed Pages</a></li>
 			  	<li><a href="#pages-loaded" role="tab" data-toggle="tab">Loaded Pages</a></li>
+			  	{% if output_unloaded_links %}
 			  	<li><a href="#pages-other" role="tab" data-toggle="tab">All Other Pages</a></li>
+			  	{% endif %}
 			</ul>
 
 			<div class="tab-content">
@@ -197,6 +199,8 @@
 					{% endif %}
 					{% endfor %}
 				</div>
+
+				{% if output_unloaded_links %}
 				<div class="tab-pane" id="pages-other">
 					<h2>All Other Pages</h2>	
 
@@ -206,7 +210,8 @@
 					{% include 'result_not_loaded.html' with context %}
 					{% endif %}
 					{% endfor %}	
-				</div>		
+				</div>	
+				{% endif %}	
 			</div>
 
 		</div>

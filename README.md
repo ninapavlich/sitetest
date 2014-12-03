@@ -65,7 +65,8 @@ options = {
     'alias_query_strings':['page'],
     'ignore_validation_errors':[],
     'skip_urls':['blog'],
-    'skip_test_urls':['comments/reply','comments/flag' ]
+    'skip_test_urls':['comments/reply','comments/flag' ],
+    'output_unloaded_links':True
 }
 
 testSite(credentials, canonical_domain, domain_aliases, test_id, options)
@@ -91,6 +92,9 @@ screenshots (someday).
 
 **If verbose == True,** you will see log output of the urls as they're parsed 
 and the overall test status
+
+**If output_unloaded_links == True,** a list of all links will be included in
+the report, including links that weren't loaded.
 
 **canonical_domain** is the domain that we're testing. If you're running a 
 non-recursive test on a single url, then canonical_domain should be the single

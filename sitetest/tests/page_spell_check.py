@@ -52,8 +52,15 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
     d = enchant.Dict("en_US")
     tknzr = get_tokenizer("en_US")
 
+    total = len(set.parsed_links)
+    count = 0
+    
     for link_url in set.parsed_links:
         link = set.parsed_links[link_url]
+
+        if verbose:
+            print "%s/%s"%(count, total)
+        count += 1
         
         if link.is_internal() and not link.skip_test == True:
             link_html = link.html

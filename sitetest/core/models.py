@@ -41,8 +41,10 @@ class MessageSet(object):
     error = None
     warning = None
     info = None
+    verbose = False
 
-    def __init__(self):
+    def __init__(self, verbose=False):
+        self.verbose = verbose
         self.success = []
         self.error = []
         self.warning = []
@@ -79,6 +81,7 @@ class InfoMessage(Message):
 
 class BaseMessageable(object):
     messages = None
+    verbose = False
 
     def __init__(self):
         pass
@@ -90,9 +93,13 @@ class BaseMessageable(object):
     
 
     def add_error_message(self, message, count=1):
+        if self.verbose:
+            print "ERROR: %s"%(message)
         self.messages.error.append(ErrorMessage(message, count))
 
     def add_warning_message(self, message, count=1):
+        if self.verbose:
+            print "WARNING: %s"%(message)
         self.messages.warning.append(WarningMessage(message, count))
 
     def add_info_message(self, message, count=1):
@@ -102,6 +109,7 @@ class BaseMessageable(object):
         self.messages.success.append(SuccessMessage(message, count))
 
 class LinkSet(BaseMessageable):
+    
     include_media = False
     canonical_domain = None
     domain_aliases = None
@@ -113,9 +121,10 @@ class LinkSet(BaseMessageable):
     parsed_links = {}
     parsable_links = {}
 
-    def __init__(self, include_media, include_external_links, canonical_domain, domain_aliases, ignore_query_string_keys=None, alias_query_strings=None, skip_test_urls=None, skip_urls=None):
+    def __init__(self, include_media, include_external_links, canonical_domain, domain_aliases, ignore_query_string_keys=None, alias_query_strings=None, skip_test_urls=None, skip_urls=None, verbose=False):
 
-        self.messages = MessageSet()
+        self.verbose = verbose
+        self.messages = MessageSet(verbose)
 
         if ignore_query_string_keys is None:
             ignore_query_string_keys = []
@@ -141,20 +150,23 @@ class LinkSet(BaseMessageable):
         super(LinkSet, self).__init__()    
 
         
-    def load_link(self, page_link, recursive, expected_code=200, verbose=False):
+    def load_link(self, page_link, recursive, expected_code=200):
 
         # max_count = 170
         # if len(self.parsed_links) > max_count:
         #     print "PARSED %s PAGES, turn recursive off"%(max_count)
         #     return
 
-        if page_link.is_loadable_type(self.include_media, self.include_external_links) and page_link.url not in self.loaded_links:
+        is_loadable = page_link.is_loadable_type(self.include_media, self.include_external_links)
+        not_already_loaded = (page_link.url not in self.loaded_links)
 
-            if verbose:
+        if is_loadable==True and not_already_loaded==True:
+
+            if self.verbose:
                 trace_memory_usage()
                 print ">>> Load Link %s (%s/%s, %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.current_links))
 
-            load_successful, response = page_link.load(expected_code)
+            load_successful, response = page_link.load(self, expected_code)
             
             if not load_successful:
                 message = "Loading error on page <a href='#%s' class='pagelink alert-link'>%s</a> Expected %s Received %s"%(page_link.internal_page_url, page_link.url, 200, page_link.response_code)
@@ -169,7 +181,7 @@ class LinkSet(BaseMessageable):
             #parse child links of internal pages only
             if page_link.has_response and page_link.is_internal():
 
-                page_link.parse_response(response)
+                page_link.parse_response(response, self)
 
                 #record that we have parsed it
                 if page_link.url not in self.parsed_links:
@@ -179,7 +191,7 @@ class LinkSet(BaseMessageable):
                 if recursive:
                     for child_link_url in page_link.links:
                         if child_link_url not in self.parsed_links:                                                              
-                            self.load_link(page_link.links[child_link_url], recursive, 200, verbose)
+                            self.load_link(page_link.links[child_link_url], recursive, 200)
        
 
 
@@ -199,7 +211,7 @@ class LinkSet(BaseMessageable):
         if url in self.current_links:
             link = self.current_links[url]
         else:
-            link = LinkItem(url, self)
+            link = LinkItem(url, self, self.verbose)
             self.current_links[url] = link
             
             if link.is_internal():
@@ -338,20 +350,20 @@ class LinkItem(BaseMessageable):
     has_sitemap_entry = False
 
 
-    def __init__(self, url, set):
 
-        self.messages = MessageSet()
+    def __init__(self, url, set, verbose=False):
 
+        self.messages = MessageSet(verbose)
+        self.verbose = verbose
         self.referers = {}
         self.image_links = {}
         self.hyper_links = {}
         self.css_links = {}
         self.script_links = {}
-        self._set = set
         self.url = self.ending_url = url
         parsed = urlparse.urlparse(url)
         name, extension = os.path.splitext(parsed.path)
-        self.starting_type = self.ending_type = self._set.get_link_type(url)
+        self.starting_type = self.ending_type = set.get_link_type(url)
         self.path = parsed.path
         self.is_media = (extension.lower() in MEDIA_SUFFIXES)
 
@@ -380,11 +392,16 @@ class LinkItem(BaseMessageable):
        return dict(self.image_links.items() + self.hyper_links.items() + self.css_links.items() + self.script_links.items())
 
     def is_loadable_type(self, include_media, include_external_links):
-        is_internal = self.starting_type == TYPE_INTERNAL
+        if self.skip == True:
+            return False
+
+        is_internal = (self.starting_type == TYPE_INTERNAL and not self.is_media)
         is_allowed_external = (self.starting_type == TYPE_EXTERNAL and include_external_links)
         is_allowed_media = (self.is_media and include_media)
-        not_skip = self.skip == False
-        return (is_internal or is_allowed_external or is_allowed_media) and not_skip
+        
+        is_loadable = is_internal or is_allowed_external or is_allowed_media
+
+        return is_loadable
 
     def is_internal(self):
         return self.ending_type == TYPE_INTERNAL and self.starting_type == TYPE_INTERNAL
@@ -398,7 +415,7 @@ class LinkItem(BaseMessageable):
         content_type = self.response_content_type
         return content_type and 'javascript' in content_type.lower()
 
-    def load(self, expected_code=200):
+    def load(self, set, expected_code=200):
 
 
         request = urllib2.Request(self.url, headers=HEADERS)
@@ -414,7 +431,7 @@ class LinkItem(BaseMessageable):
             self.has_response = True
             self.response_content_type = response.info().getheader('Content-Type')
             self.ending_url = response.geturl()
-            self.ending_type = self._set.get_link_type(self.ending_url)
+            self.ending_type = set.get_link_type(self.ending_url)
 
             if self.url != self.ending_url:
                 redirect_path = trace_path(self.url, [])
@@ -457,7 +474,7 @@ class LinkItem(BaseMessageable):
         else:
             return (True, response)
 
-    def parse_response(self, response):
+    def parse_response(self, response, set):
         try:
             soup = BeautifulSoup(response)
         except:
@@ -479,16 +496,16 @@ class LinkItem(BaseMessageable):
                 counter += 1
             self.enumerated_html = enumerated_html
 
-            self.add_links(get_images_on_page(soup), self.image_links)
-            self.add_links(get_css_on_page(soup), self.css_links)
-            self.add_links(get_scripts_on_page(soup), self.script_links)
-            self.add_links(get_hyperlinks_on_page(soup)+get_sitemap_links_on_page(soup), self.hyper_links)
+            self.add_links(get_images_on_page(soup), self.image_links, set)
+            self.add_links(get_css_on_page(soup), self.css_links, set)
+            self.add_links(get_scripts_on_page(soup), self.script_links, set)
+            self.add_links(get_hyperlinks_on_page(soup)+get_sitemap_links_on_page(soup), self.hyper_links, set)
             
         
 
-    def add_links(self, input_links, list):
+    def add_links(self, input_links, list, set):
         for input_link in input_links:
-            link_item = self._set.get_or_create_link_object(input_link, self)
+            link_item = set.get_or_create_link_object(input_link, self)
             if link_item:
                 self.add_link(link_item, list)
 

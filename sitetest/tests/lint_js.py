@@ -10,11 +10,22 @@ def test_lint_js(set, verbose=False):
     For each page, make sure there is a unique title and description
     """
 
+    if verbose:
+        print 'Running JS Lint test...'
+
 
     total_js_error_count = 0
     
+    total = len(set.parsed_links)
+    count = 0
+
     for link_url in set.parsed_links:
         link = set.parsed_links[link_url]
+
+        if verbose:
+            print "%s/%s"%(count, total)
+        count += 1
+    
 
         if link.is_javascript():
             
