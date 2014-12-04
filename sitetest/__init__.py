@@ -76,7 +76,7 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, options=Non
 
 
     if verbose:
-        print "SITE TEST :: %s Recursive:%s Media:%s External Links:%s 3rd Party:%s"%(canonical_domain, recursive, test_media, test_external_links, run_third_party_tests)
+        print "SITE TEST :: %s Recursive:%s Media:%s External Links:%s 3rd Party:%s MAX:%s"%(canonical_domain, recursive, test_media, test_external_links, run_third_party_tests, max_parse_count)
 
 
 
@@ -162,12 +162,19 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, options=Non
         'site':set.current_links[canonical_domain],
         'start_time':start_time,
         'end_time':end_time,
-        'duration':end_time-start_time
+        'duration':end_time-start_time,
+        'max_parse_count':max_parse_count
     }
 
 
     html = render_results(results)
-    html_minified = htmlmin.minify(html, True, True)
+
+    try:
+        html_minified = htmlmin.minify(html, True, True)
+    except Exception:
+        print "Error minifying html: %s"%(traceback.format_exc())
+        html_minified = html
+        
     report_url = save_results(html_minified, test_id, credentials, verbose)
     results['report_url'] = report_url
     open_results(report_url)

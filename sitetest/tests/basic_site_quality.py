@@ -25,23 +25,23 @@ def test_basic_site_quality(site, verbose=False):
         
     #1 - Test robots.txt
     robots_link = site.get_or_create_link_object(robots_url)
-    site.load_link(robots_link, False, 200, verbose)
+    site.load_link(robots_link, False, 200)
     
     
     #2 - Test sitemap.xml
     sitemap_link = site.get_or_create_link_object(sitemap_url)
-    site.load_link(sitemap_link, False, 200, verbose)
+    site.load_link(sitemap_link, False, 200)
     
     #3 - Test favicon.ico
     favicon_link = site.get_or_create_link_object(favicon_url)
-    site.load_link(favicon_link, False, 200, verbose)
+    site.load_link(favicon_link, False, 200)
 
     #4 - Test thisShouldNotExist
     error_link = site.get_or_create_link_object(error_url)
-    site.load_link(error_link, False, 404, verbose)
+    site.load_link(error_link, False, 404)
 
     image_error_link = site.get_or_create_link_object(image_error_url)
-    site.load_link(image_error_link, False, 404, verbose)
+    site.load_link(image_error_link, False, 404)
     
 
     #5 - Verify that sitemap matches up with the actual pages

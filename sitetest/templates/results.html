@@ -119,6 +119,10 @@
 			<p><strong>Ignore W3C Validation Errors:</strong> {{ignore_validation_errors}}</p>
 			{% endif %}
 
+			{% if max_parse_count %}
+			<p><strong>The number of pages parsed was limited to {{max_parse_count}}</strong></p>
+			{% endif %}
+
 
 			{% if set.messages.success|length > 0 %}
 			<section>

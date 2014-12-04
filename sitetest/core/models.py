@@ -98,8 +98,8 @@ class BaseMessageable(object):
         self.messages.error.append(ErrorMessage(message, count))
 
     def add_warning_message(self, message, count=1):
-        if self.verbose:
-            print "WARNING: %s"%(message)
+        #if self.verbose:
+        #    print "WARNING: %s"%(message)
         self.messages.warning.append(WarningMessage(message, count))
 
     def add_info_message(self, message, count=1):
@@ -146,15 +146,17 @@ class LinkSet(BaseMessageable):
         self.alias_query_strings = alias_query_strings
         self.skip_test_urls = skip_test_urls
         self.skip_urls = skip_urls
-        self.max_parse_count = max_parse_count
+        self.max_parse_count = None if not max_parse_count else int(max_parse_count)
+
+        print 'MAX PARSE COUNT: %s'%(self.max_parse_count)
 
         super(LinkSet, self).__init__()    
 
         
     def load_link(self, page_link, recursive, expected_code=200):
 
-        if self.max_parse_count and len(self.parsed_links) > self.max_parse_count:
-            print "PARSED %s PAGES, turn recursive off"%(max_count)
+        if self.max_parse_count and len(self.parsed_links) >= self.max_parse_count:
+            #print "PARSED %s PAGES, turn recursive off"%(self.max_parse_count)
             return
 
         is_loadable = page_link.is_loadable_type(self.include_media, self.include_external_links)
