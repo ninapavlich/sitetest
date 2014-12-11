@@ -3,6 +3,7 @@
 import traceback     
 import datetime
 import httplib
+import html5lib
 import urllib2
 import urllib
 import urlparse
@@ -478,7 +479,7 @@ class LinkItem(BaseMessageable):
 
     def parse_response(self, response, set):
         try:
-            soup = BeautifulSoup(response)
+            soup = BeautifulSoup(response, 'html5lib')
         except Exception:
             soup = None
             self.add_error_message("Error parsing HTML on page %s: %s"%(self.url, traceback.format_exc()))
