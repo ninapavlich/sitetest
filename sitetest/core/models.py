@@ -479,9 +479,9 @@ class LinkItem(BaseMessageable):
     def parse_response(self, response, set):
         try:
             soup = BeautifulSoup(response)
-        except:
+        except Exception:
             soup = None
-            self.add_error_message("Error parsing HTML on page %s"%(self.url))
+            self.add_error_message("Error parsing HTML on page %s: %s"%(self.url, traceback.format_exc()))
 
     
         if soup:
