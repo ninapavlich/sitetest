@@ -11,6 +11,30 @@
     <li>This page is an alias to <strong>{{link.alias_to}}</strong></li>
 	{% endif %}
 
+    {% if link.has_sitemap_entry %}
+    <li class="green"><span class="fa fa-check"></span>This page is in the sitemap.</li>
+    {% else %}
+    <li class="yellow"><span class="fa fa-times"></span>This page is not in the sitemap.</li>
+    {% endif %}
+
+    {% if link.accessible_to_robots %}
+    <li class="green"><span class="fa fa-check"></span>This page is accessible to robots.</li>
+    {% else %}
+    <li class="yellow"><span class="fa fa-times"></span>This page is not accessible to robots.</li>
+    {% endif %}
+
+    {% if link.compression %}
+    {% if link.compression == 'None' %}
+    <li class="green"><span class="fa fa-times"></span>This content is not compressed.</li>
+    {% else %}
+    <li class="yellow"><span class="fa fa-check"></span>This content is compressed with {{link.compression}}.</li>
+    {% endif %}
+    {% endif %}
+
+
+
+
+
     {% if link.description %}
     <li><strong>Page description:</strong> {{link.description}}</li>{% endif %}
 

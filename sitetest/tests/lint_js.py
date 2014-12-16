@@ -29,31 +29,7 @@ def test_lint_js(set, verbose=False):
 
         if link.is_javascript():
             
-            local_file_path = store_file_locally(link_url)
-            #local_file_path = 'test.js'
-
-            
-            
-            try:
-                #Attempt to read as gzipped file
-                f = gzip.open(local_file_path, 'rb')
-                link_source = f.read()
-                f.close()
-            except:
-                try:
-                    #Attempt to read as uncompressed file
-                    f = open(local_file_path, 'rb')
-                    link_source = f.read()
-                    f.close()
-
-                    link.add_warning_message("Javascript file is not gzipped")
-
-                except:
-                    link_source = None
-
-                    link.add_error_message("Unable to read file")
-
-
+            link_source = link.content
 
 
             if link_source:
@@ -92,8 +68,7 @@ def test_lint_js(set, verbose=False):
             
 #/*jslint white: true */
 
-            #DELETE local file
-            os.unlink(local_file_path)
+            
 
             
     if total_js_error_count > 0:
@@ -108,28 +83,7 @@ def test_lint_js(set, verbose=False):
         
 
 
-def store_file_locally(url):
 
-    temp_folder = 'tmp'
-    if not os.path.exists(temp_folder):
-        os.makedirs(temp_folder)
-
-    # Open the url
-    try:
-        f = urllib2.urlopen(url)
-        local_path = os.path.join(temp_folder, os.path.basename(url))
-
-        # Open our local file for writing
-        with open(local_path, "wb") as local_file:
-            local_file.write(f.read())
-
-    #handle errors
-    except urllib2.HTTPError, e:
-        print "HTTP Error:", e.code, url
-    except urllib2.URLError, e:
-        print "URL Error:", e.reason, url
-
-    return local_path
 
 
 def grouped(iterable, n):

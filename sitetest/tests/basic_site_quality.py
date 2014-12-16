@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+import robotparser
 
 def test_basic_site_quality(site, verbose=False):
     """
@@ -21,7 +22,7 @@ def test_basic_site_quality(site, verbose=False):
         sitemap_url = "%s/sitemap.xml"%(canonical_domain)
         favicon_url = "%s/favicon.ico"%(canonical_domain)
         error_url = "%s/thisShouldNotExist"%(canonical_domain)
-        image_error_url = "%s/sthisShouldNotExist.jpg"%(canonical_domain)
+        image_error_url = "%s/thisShouldNotExist.jpg"%(canonical_domain)
         
     #1 - Test robots.txt
     robots_link = site.get_or_create_link_object(robots_url)
@@ -92,9 +93,21 @@ def test_basic_site_quality(site, verbose=False):
                 orphan_page += 1
 
         if page_missing_sitemap > 0:
-            site.add_warning_message("%s pages were found to be missing from sitemap"%(page_missing_sitemap))
+            site.add_warning_message("%s pages were not included in sitemap"%(page_missing_sitemap))
 
         if orphan_page > 0:
-            site.add_info_message("%s pages were found in the sitemap but not elsewhere in the site."%(page_missing_sitemap))
+            site.add_info_message("%s pages were found in the sitemap, but not accessible from elsewhere in the site."%(page_missing_sitemap))
 
         
+    #6 - Verify that no public pages are blocked by robots.txt
+    rp = robotparser.RobotFileParser()
+    rp.set_url(robots_url)
+    rp.read()
+    if robots_link.response_code == 200:
+        for link_url in site.parsed_links:
+            link = site.parsed_links[link_url]
+            accessible_to_robots = rp.can_fetch("*", link.url)
+            link.accessible_to_robots = accessible_to_robots
+            if not accessible_to_robots:
+                link.add_info_message("Page is accessible, but not to robots.")
+            

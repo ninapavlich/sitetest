@@ -2,6 +2,7 @@
 
 import traceback     
 import datetime
+import gzip
 import httplib
 import html5lib
 import urllib2
@@ -20,8 +21,14 @@ TYPE_MAILTO = 'mailto'
 TYPE_INTERNAL = 'internal'
 TYPE_EXTERNAL = 'external'
 
-MEDIA_SUFFIXES = [
-    '.png', '.jpg', '.jpeg', '.gif','.ico',
+
+IMAGE_SUFFIXES = [
+    '.png', '.jpg', '.jpeg', '.gif','.ico','.svg'
+]
+FONT_SUFFIXES = [
+    '.otf','.ttf','.eot', '.cff','.afm','.lwfn','.ffil','.fon','.pfm','.woff','.std','.pro','.xsf'
+]
+MEDIA_SUFFIXES = IMAGE_SUFFIXES + FONT_SUFFIXES + [
     '.doc', '.pdf', '.ppt', '.zip', '.gzip', '.mp3', '.rar', '.exe', 
     '.avi', '.mpg', '.tif', '.wav', '.mov', '.psd', '.ai', '.wma',
     '.eps','.mp4','.bmp','.indd','.swf','.jar','.dmg','.iso','.flv',
@@ -149,13 +156,10 @@ class LinkSet(BaseMessageable):
         self.skip_urls = skip_urls
         self.max_parse_count = None if not max_parse_count else int(max_parse_count)
 
-        print 'MAX PARSE COUNT: %s'%(self.max_parse_count)
-
         super(LinkSet, self).__init__()    
 
         
     def load_link(self, page_link, recursive, expected_code=200):
-
         if self.max_parse_count and len(self.parsed_links) >= self.max_parse_count:
             #print "PARSED %s PAGES, turn recursive off"%(self.max_parse_count)
             return
@@ -163,10 +167,11 @@ class LinkSet(BaseMessageable):
         is_loadable = page_link.is_loadable_type(self.include_media, self.include_external_links)
         not_already_loaded = (page_link.url not in self.loaded_links)
 
+
         if is_loadable==True and not_already_loaded==True:
 
             if self.verbose:
-                trace_memory_usage()
+                # trace_memory_usage()
                 print ">>> Load Link %s (%s/%s, %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.current_links))
 
             load_successful, response = page_link.load(self, expected_code)
@@ -181,15 +186,20 @@ class LinkSet(BaseMessageable):
                 self.loaded_links[page_link.url] = page_link
             
 
-            #parse child links of internal pages only
-            if page_link.has_response and page_link.is_internal():
+            #parse child links of internal pages and css only
+            if page_link.is_parseable_type():
+
+                if self.verbose:
+                    # trace_memory_usage()
+                    print ">>> Parse Link %s (%s/%s, %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.current_links))
 
                 page_link.parse_response(response, self)
 
                 #record that we have parsed it
                 if page_link.url not in self.parsed_links:
                     self.parsed_links[page_link.url] = page_link
-                
+            
+
                 #Let's do it again!
                 if recursive:
                     for child_link_url in page_link.links:
@@ -213,11 +223,13 @@ class LinkSet(BaseMessageable):
 
         if url in self.current_links:
             link = self.current_links[url]
+        elif (u"%s/"%url) in self.current_links:
+            link = self.current_links[u"%s/"%url]
         else:
             link = LinkItem(url, self, self.verbose)
             self.current_links[url] = link
             
-            if link.is_internal():
+            if link.likely_parseable_type():
                 self.parsable_links[link.url] = link
 
             #print ">>> Create Link %s (<<< %s)"%(link.__unicode__(), referer_url)
@@ -351,7 +363,8 @@ class LinkItem(BaseMessageable):
     skip_test = False
     skip = False
     has_sitemap_entry = False
-
+    accessible_to_robots = False
+    
 
 
     def __init__(self, url, set, verbose=False):
@@ -360,15 +373,25 @@ class LinkItem(BaseMessageable):
         self.verbose = verbose
         self.referers = {}
         self.image_links = {}
+        self.audio_links = {}
+        self.video_links = {}
         self.hyper_links = {}
+        # self.object_links = {}
         self.css_links = {}
+        self.css_image_links = {}
+        self.font_links = {}
         self.script_links = {}
+        self.iframe_links = {}
+        # self.xhr_links = {}
         self.url = self.ending_url = url
         parsed = urlparse.urlparse(url)
         name, extension = os.path.splitext(parsed.path)
         self.starting_type = self.ending_type = set.get_link_type(url)
         self.path = parsed.path
         self.is_media = (extension.lower() in MEDIA_SUFFIXES)
+        self.is_font = (extension.lower() in FONT_SUFFIXES)
+        self.is_image = (extension.lower() in IMAGE_SUFFIXES)
+
 
         super(LinkItem, self).__init__()
 
@@ -389,10 +412,22 @@ class LinkItem(BaseMessageable):
     def encoded_url(self):
         return urllib.quote_plus(self.url)
 
+    @property
+    def active_mixed_content_links(self):
+        #https://community.qualys.com/blogs/securitylabs/2014/03/19/https-mixed-content-still-the-easiest-way-to-break-ssl
+        #css + scripts + xhr + web sockets + iframes
+        return dict(self.css_links.items() + self.script_links.items() + self.iframe_links.items() + self.font_links.items())
 
     @property
     def links(self):
        return dict(self.image_links.items() + self.hyper_links.items() + self.css_links.items() + self.script_links.items())
+
+    @property
+    def content(self):
+        if self.is_html():
+            return self.html
+        elif self.is_javascript() or self.is_css():
+            return self.source
 
     def is_loadable_type(self, include_media, include_external_links):
         if self.skip == True:
@@ -406,17 +441,29 @@ class LinkItem(BaseMessageable):
 
         return is_loadable
 
+    def is_parseable_type(self):
+        return self.has_response and (self.is_internal() or self.is_css() or self.is_javascript())
+
+    def likely_parseable_type(self):
+        return (self.starting_type == TYPE_INTERNAL) or ('.css' in self.url.lower()) or ('.js' in self.url.lower())
+
     def is_internal(self):
         return self.ending_type == TYPE_INTERNAL and self.starting_type == TYPE_INTERNAL
 
     def is_internal_html(self):
-        content_type = self.response_content_type
-        return self.is_internal() and content_type and 'html' in content_type.lower()
+        return self.is_internal() and self.is_html()
 
+    def is_html(self):
+        content_type = self.response_content_type
+        return content_type and 'html' in content_type.lower()
 
     def is_javascript(self):
         content_type = self.response_content_type
         return content_type and 'javascript' in content_type.lower()
+
+    def is_css(self):
+        content_type = self.response_content_type
+        return content_type and 'css' in content_type.lower()
 
     def load(self, set, expected_code=200):
 
@@ -478,33 +525,77 @@ class LinkItem(BaseMessageable):
             return (True, response)
 
     def parse_response(self, response, set):
-        try:
-            soup = BeautifulSoup(response, 'html5lib')
-        except Exception:
-            soup = None
-            self.add_error_message("Error parsing HTML on page %s: %s"%(self.url, traceback.format_exc()))
 
-    
-        if soup:
+        if self.is_html():
 
-            page_html = soup.prettify()
-            self.html = page_html
-            
-            enumerated_html_list = page_html.split("\n")
-            counter = 0
-            enumerated_html = ''
-            for line in enumerated_html_list:
-                new_line = "%s: %s"%(counter, line)
-                enumerated_html += "%s\n"%(new_line)
-                counter += 1
-            self.enumerated_html = enumerated_html
+            try:
+                soup = BeautifulSoup(response, 'html5lib')
+            except Exception:
+                soup = None
+                self.add_error_message("Error parsing HTML on page %s: %s"%(self.url, traceback.format_exc()))
 
-            self.add_links(get_images_on_page(soup), self.image_links, set)
-            self.add_links(get_css_on_page(soup), self.css_links, set)
-            self.add_links(get_scripts_on_page(soup), self.script_links, set)
-            self.add_links(get_hyperlinks_on_page(soup)+get_sitemap_links_on_page(soup), self.hyper_links, set)
-            
         
+            if soup:
+
+                page_html = soup.prettify()
+                self.html = page_html
+
+                self.add_links(get_css_on_page(soup), self.css_links, set)
+                self.add_links(get_images_on_page(soup), self.image_links, set)
+                self.add_links(get_images_from_css(set, self), self.css_image_links, set)
+                self.add_links(get_fonts_on_page(set, self), self.font_links, set)
+
+                self.add_links(get_scripts_on_page(soup), self.script_links, set)
+                self.add_links(get_hyperlinks_on_page(soup)+get_sitemap_links_on_page(soup), self.hyper_links, set)
+
+                self.add_links(get_audio_on_page(soup), self.audio_links, set)
+                self.add_links(get_video_on_page(soup), self.video_links, set)
+                #TODO: self.add_links(get_video_on_page(soup), self.object_links, set)
+                self.add_links(get_iframes_on_page(soup), self.iframe_links, set)
+                #self.add_links(get_xhr_links_on_page(soup), self.xhr_links, set)
+
+        elif self.is_javascript() or self.is_css():
+            
+
+            local_file_path = store_file_locally(self.url)
+            
+            try:
+                #Attempt to read as gzipped file
+                f = gzip.open(local_file_path, 'rb')
+                source = f.read()
+                f.close()
+                self.compression = 'GZIP'
+
+            except:
+                try:
+                    #Attempt to read as uncompressed file
+                    f = open(local_file_path, 'rb')
+                    source = f.read()
+                    f.close()
+
+                    self.compression = 'None'
+
+                except:
+                    source = None
+                    self.add_error_message("Unable to read file")
+
+            #DELETE local file
+            os.unlink(local_file_path)
+
+            if source:
+                self.source = source.decode('utf-8')
+
+        if self.content:
+            enumerated_source_list = self.content.split(u"\n")
+            counter = 0
+            enumerated_source = u''
+            for line in enumerated_source_list:
+                new_line = (u"%s: %s"%(counter, line))
+                enumerated_source += (u"%s\n"%(new_line))
+                counter += 1
+            self.enumerated_source = enumerated_source
+
+
 
     def add_links(self, input_links, list, set):
         for input_link in input_links:
@@ -631,6 +722,99 @@ def get_images_on_page(soup):
 
     return output
 
+def get_audio_on_page(soup):
+    output = []
+
+    for audio in soup.findAll('audio'):
+
+        try:
+            src = audio['src']  
+            output.append(src)      
+        except:
+            src = None
+
+        for source in audio.findAll('source'):
+            try:
+                src = source['src']  
+                output.append(src)      
+            except:
+                src = None
+
+
+
+    return output
+
+def get_video_on_page(soup):
+    output = []
+
+    for video in soup.findAll('video'):
+
+        try:
+            src = video['src']  
+            output.append(src)      
+        except:
+            src = None
+
+        for source in video.findAll('source'):
+            try:
+                src = source['src']  
+                output.append(src)      
+            except:
+                src = None
+
+    return output
+
+def get_iframes_on_page(soup):
+    output = []
+
+    for iframe in soup.findAll('iframe'):
+
+        try:
+            src = iframe['src']  
+            output.append(src)      
+        except:
+            src = None
+
+    return output
+
+def get_images_from_css(set, link):
+    #TODO -- also include inline css
+    output = []
+    for css_url in link.css_links:
+        css_link = link.css_links[css_url]
+        set.load_link(css_link, False, 200)
+
+        if css_link.response_code == 200:
+            all_urls = re.findall('url\(([^)]+)\)',css_link.content)
+            for url in all_urls:
+                full_url = urlparse.urljoin(css_link.url, url.strip("'").strip('"'))
+                parsed = urlparse.urlparse(full_url)
+                name, extension = os.path.splitext(parsed.path)
+                is_font = (extension.lower() in FONT_SUFFIXES)
+                if is_font:
+                    output.append(full_url)
+    return output
+
+def get_fonts_on_page(set, link):
+    #TODO -- also include inline css
+    output = []
+    for css_url in link.css_links:
+        css_link = link.css_links[css_url]
+        set.load_link(css_link, False, 200)
+
+        if css_link.response_code == 200:
+            all_urls = re.findall('url\(([^)]+)\)',css_link.content)
+            for url in all_urls:
+                full_url = urlparse.urljoin(css_link.url, url.strip("'").strip('"'))
+                parsed = urlparse.urlparse(full_url)
+                name, extension = os.path.splitext(parsed.path)
+                is_font = (extension.lower() in FONT_SUFFIXES)
+                if is_font:
+                    output.append(full_url)
+
+    
+    return output
+
 def timedelta_milliseconds(td):
     return td.days*86400000 + td.seconds*1000 + td.microseconds/1000    
 
@@ -719,7 +903,30 @@ def url_fix(s, charset='utf-8'):
     scheme, netloc, path, qs, anchor = urlparse.urlsplit(s)
     path = urllib.quote(path, '/%')
     qs = urllib.quote_plus(qs, ':&=')
-    return urlparse.urlunsplit((scheme, netloc, path, qs, anchor))    
+    return urlparse.urlunsplit((scheme, netloc, path, qs, anchor)) 
+
+def store_file_locally(url):
+
+    temp_folder = 'tmp'
+    if not os.path.exists(temp_folder):
+        os.makedirs(temp_folder)
+
+    # Open the url
+    try:
+        f = urllib2.urlopen(url)
+        local_path = os.path.join(temp_folder, os.path.basename(url))
+
+        # Open our local file for writing
+        with open(local_path, "wb") as local_file:
+            local_file.write(f.read())
+
+    #handle errors
+    except urllib2.HTTPError, e:
+        print "HTTP Error:", e.code, url
+    except urllib2.URLError, e:
+        print "URL Error:", e.reason, url
+
+    return local_path   
 
 def trace_memory_usage():
     print 'Memory usage: %s' % memory_usage_resource()

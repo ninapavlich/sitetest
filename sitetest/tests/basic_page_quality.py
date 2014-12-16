@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup, SoupStrainer
 import traceback  
 
+
+
 def test_basic_page_quality(set, verbose=False):
     """
     For each page, make sure there is a unique title and description
@@ -136,16 +138,17 @@ def test_basic_page_quality(set, verbose=False):
                         has_asynca = asynchronous_analytics_indicator.lower() in link_html.lower()
                         if not has_ua and not has_asynca:
                             analytics_missing_error_count += 1
-                            message = "Page missing google analytics"
+                            message = "Page missing google analytics. <br /><small>Try validating page; this error is often a symptom of invalid markup.</small>"
                             link.add_warning_message(message)
 
 
                         if is_https:
                             #5 - Verity that javascript, css and images are all loaded with https also
-                            for link_url in link.links:
+                            for link_url in link.active_mixed_content_links:
+                                
                                 if 'http:' in link_url:
                                     ssl_error_count += 1
-                                    message = "HTTPS page contains HTTP link: %s"%(link_url)
+                                    message = "HTTP active mixed resource was found on HTTPS page: %s"%(link_url)
                                     link.add_warning_message(message)
 
                         #6 - Verify that page has exactly one h1
@@ -171,7 +174,7 @@ def test_basic_page_quality(set, verbose=False):
         set.add_warning_message("%s social meta tags are missing"%(social_tag_error_count), social_tag_error_count)    
 
     if ssl_error_count > 0:
-        set.add_warning_message("%s HTTP links were found on HTTPS pages"%(ssl_error_count), ssl_error_count)             
+        set.add_warning_message("%s HTTP active mixed resource were found on HTTPS pages"%(ssl_error_count), ssl_error_count)             
 
     if h1_error_count > 0:
         set.add_warning_message("%s pages didn't have exactly one H1 tag"%(h1_error_count), h1_error_count)             
