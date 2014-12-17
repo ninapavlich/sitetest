@@ -12,12 +12,8 @@
         {% else %}
         <span class="label label-default">N/A</span> 
         {% endif %}
-
-    	<a data-parent="#accordion" data-toggle="collapse" href="#load-test-result-body-{{loop_index}}">
-    		{% if link.title %}{{link.title}}<br /><br />{% endif %}
-        	{{link.url}}
-        	{% if link.url != link.ending_url %} > {{link.ending_url}} {% endif %}
-        </a>
+        &nbsp;
+    	<a data-parent="#accordion" data-toggle="collapse" href="#load-test-result-body-{{loop_index}}">{% if link.title %}{{link.title}}<br /><br />{% endif %}{{link.url}}{% if link.url != link.ending_url %} > {{link.ending_url}} {% endif %}</a>
 
         
     </span>

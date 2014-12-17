@@ -29,7 +29,7 @@ def test_lint_js(set, verbose=False):
 
         if link.is_javascript():
             
-            link_source = link.content
+            link_source = link.content.encode('ascii', 'ignore')
 
 
             if link_source:
@@ -72,7 +72,7 @@ def test_lint_js(set, verbose=False):
 
             
     if total_js_error_count > 0:
-        site.add_info_message("%s js lint errors found."%(total_js_error_count))             
+        set.add_info_message("%s js lint errors found."%(total_js_error_count))             
 
 
     #DELETE TMP FOLDER

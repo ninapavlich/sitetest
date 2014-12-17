@@ -167,7 +167,6 @@ class LinkSet(BaseMessageable):
         is_loadable = page_link.is_loadable_type(self.include_media, self.include_external_links)
         not_already_loaded = (page_link.url not in self.loaded_links)
 
-
         if is_loadable==True and not_already_loaded==True:
 
             if self.verbose:
@@ -187,11 +186,11 @@ class LinkSet(BaseMessageable):
             
 
             #parse child links of internal pages and css only
-            if page_link.is_parseable_type():
+            if page_link.likely_parseable_type():
 
-                if self.verbose:
-                    # trace_memory_usage()
-                    print ">>> Parse Link %s (%s/%s, %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.current_links))
+                # if self.verbose:
+                #     # trace_memory_usage()
+                #     print ">>> Parse Link %s (%s/%s, %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.current_links))
 
                 page_link.parse_response(response, self)
 
@@ -214,17 +213,19 @@ class LinkSet(BaseMessageable):
         referer_url = None if not referer else referer.url
 
         url = self.get_normalized_href(url, referer_url)
-    
+        slashed_url = u"%s/"%url
+        deslashed_url = url.rstrip(u"/")
 
         if not url or url == '':
             return None
 
 
-
         if url in self.current_links:
             link = self.current_links[url]
-        elif (u"%s/"%url) in self.current_links:
-            link = self.current_links[u"%s/"%url]
+        elif slashed_url in self.current_links:
+            link = self.current_links[slashed_url]
+        elif deslashed_url in self.current_links:
+            link = self.current_links[deslashed_url]
         else:
             link = LinkItem(url, self, self.verbose)
             self.current_links[url] = link
@@ -416,7 +417,13 @@ class LinkItem(BaseMessageable):
     def active_mixed_content_links(self):
         #https://community.qualys.com/blogs/securitylabs/2014/03/19/https-mixed-content-still-the-easiest-way-to-break-ssl
         #css + scripts + xhr + web sockets + iframes
-        return dict(self.css_links.items() + self.script_links.items() + self.iframe_links.items() + self.font_links.items())
+        return dict(\
+            self.script_links.items() + \
+            self.css_links.items() + \
+            self.iframe_links.items() + \
+            self.css_image_links.items() + \
+            self.font_links.items()\
+        )
 
     @property
     def links(self):
@@ -426,7 +433,7 @@ class LinkItem(BaseMessageable):
     def content(self):
         if self.is_html():
             return self.html
-        elif self.is_javascript() or self.is_css():
+        elif self.is_javascript() or self.is_css() or self.is_xml():
             return self.source
 
     def is_loadable_type(self, include_media, include_external_links):
@@ -445,7 +452,7 @@ class LinkItem(BaseMessageable):
         return self.has_response and (self.is_internal() or self.is_css() or self.is_javascript())
 
     def likely_parseable_type(self):
-        return (self.starting_type == TYPE_INTERNAL) or ('.css' in self.url.lower()) or ('.js' in self.url.lower())
+        return (self.starting_type == TYPE_INTERNAL and not self.is_media) or ('.css' in self.url.lower()) or ('.js' in self.url.lower())
 
     def is_internal(self):
         return self.ending_type == TYPE_INTERNAL and self.starting_type == TYPE_INTERNAL
@@ -460,6 +467,10 @@ class LinkItem(BaseMessageable):
     def is_javascript(self):
         content_type = self.response_content_type
         return content_type and 'javascript' in content_type.lower()
+
+    def is_xml(self):
+        content_type = self.response_content_type
+        return content_type and 'xml' in content_type.lower()
 
     def is_css(self):
         content_type = self.response_content_type
@@ -526,7 +537,7 @@ class LinkItem(BaseMessageable):
 
     def parse_response(self, response, set):
 
-        if self.is_html():
+        if self.is_html() or self.is_xml():
 
             try:
                 soup = BeautifulSoup(response, 'html5lib')
@@ -554,7 +565,7 @@ class LinkItem(BaseMessageable):
                 self.add_links(get_iframes_on_page(soup), self.iframe_links, set)
                 #self.add_links(get_xhr_links_on_page(soup), self.xhr_links, set)
 
-        elif self.is_javascript() or self.is_css():
+        if self.is_javascript() or self.is_css() or self.is_xml():
             
 
             local_file_path = store_file_locally(self.url)

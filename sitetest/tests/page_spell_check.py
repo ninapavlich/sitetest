@@ -63,7 +63,7 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
         count += 1
         
         if link.is_internal() and not link.skip_test == True:
-            link_html = link.html
+            link_html = link.content
             if link_html and '.xml' not in link_url:
                 # try:
                 soup = BeautifulSoup(link_html)

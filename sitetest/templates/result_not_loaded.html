@@ -3,7 +3,7 @@
     {% include 'partials/result_title.html' with context %}
   </div>
   <div class="panel-body">
-    <h5>There are {{link.referers|length}} links that refer to this page</h5>
+    <h5>There are {{link.referers|length}} links that refer to this page:</h5>
     <ul>
         {% for link_item_url,link_item in link.referers|dictsort %}
         <li>

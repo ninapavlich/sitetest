@@ -32,6 +32,7 @@ def test_basic_site_quality(site, verbose=False):
     #2 - Test sitemap.xml
     sitemap_link = site.get_or_create_link_object(sitemap_url)
     site.load_link(sitemap_link, False, 200)
+    print 'sitemap links %s'%(sitemap_link.hyper_links)
     
     #3 - Test favicon.ico
     favicon_link = site.get_or_create_link_object(favicon_url)
@@ -51,6 +52,7 @@ def test_basic_site_quality(site, verbose=False):
 
         for link_url in sitemap_link.hyper_links:
             link_item = sitemap_link.hyper_links[link_url]
+            print 'link in sitemap %s'%(link_item)
             link_item.has_sitemap_entry = True
 
 
