@@ -77,7 +77,7 @@ def test_basic_site_quality(site, verbose=False):
 
         if verbose:
             print 'Verifying sitemap pages are not orphans...'
-        total = len(set.parsed_links)
+        total = len(site.parsed_links)
         count = 0
 
         orphan_page = 0
