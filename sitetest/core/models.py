@@ -128,6 +128,7 @@ class LinkSet(BaseMessageable):
     loaded_links = {}
     parsed_links = {}
     parsable_links = {}
+    loadable_links = {}
 
     def __init__(self, include_media, include_external_links, canonical_domain, domain_aliases, max_parse_count=None, ignore_query_string_keys=None, alias_query_strings=None, skip_test_urls=None, skip_urls=None, verbose=False):
 
@@ -171,7 +172,7 @@ class LinkSet(BaseMessageable):
 
             if self.verbose:
                 # trace_memory_usage()
-                print ">>> Load Link %s (%s/%s, %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.current_links))
+                print ">>> Load Link %s (parsed: %s/%s, loaded: %s/%s, total: %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.loaded_links), len(self.loadable_links),  len(self.current_links))
 
             load_successful, response = page_link.load(self, expected_code)
             
@@ -232,6 +233,9 @@ class LinkSet(BaseMessageable):
             
             if link.likely_parseable_type():
                 self.parsable_links[link.url] = link
+
+            if link.is_loadable_type(self.include_media, self.include_external_links):
+                self.loadable_links[link.url] = link
 
             #print ">>> Create Link %s (<<< %s)"%(link.__unicode__(), referer_url)
 

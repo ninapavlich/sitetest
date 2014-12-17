@@ -21,7 +21,7 @@
     <li><strong>Page description:</strong> {{link.description}}</li>
     {% endif %}
 
-    {% if link.content and not link.is_media %}
+    {% if link.content and link.is_media==False %}
     {% if link.has_sitemap_entry %}
     <li class="green"><span class="fa fa-check"></span> This page is in the sitemap.</li>
     {% else %}
