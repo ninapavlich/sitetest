@@ -362,8 +362,8 @@ class LinkItem(BaseMessageable):
 
 
     has_response = False
+    response_code = None
     response_content_type = None    
-    
     alias_to = None
     skip_test = False
     skip = False
