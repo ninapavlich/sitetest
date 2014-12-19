@@ -187,7 +187,7 @@ class LinkSet(BaseMessageable):
             
 
             #parse child links of internal pages and css only
-            if page_link.likely_parseable_type():
+            if page_link.likely_parseable_type == True:
 
                 # if self.verbose:
                 #     # trace_memory_usage()
@@ -231,7 +231,7 @@ class LinkSet(BaseMessageable):
             link = LinkItem(url, self, self.verbose)
             self.current_links[url] = link
             
-            if link.likely_parseable_type():
+            if link.likely_parseable_type == True:
                 self.parsable_links[link.url] = link
 
             if link.is_loadable_type(self.include_media, self.include_external_links):
@@ -435,10 +435,15 @@ class LinkItem(BaseMessageable):
 
     @property
     def content(self):
-        if self.is_html():
+        if self.is_html == True:
             return self.html
-        elif self.is_javascript() or self.is_css() or self.is_xml():
+        elif self.is_javascript == True or self.is_css == True or self.is_xml == True:
             return self.source
+
+    @property
+    def is_alias(self):
+        return self.alias_to != None
+
 
     def is_loadable_type(self, include_media, include_external_links):
         if self.skip == True:
@@ -452,30 +457,38 @@ class LinkItem(BaseMessageable):
 
         return is_loadable
 
+    @property
     def is_parseable_type(self):
-        return self.has_response and (self.is_internal() or self.is_css() or self.is_javascript())
+        return self.has_response and (self.is_internal == True or self.is_css == True or self.is_javascript == True)
 
+    @property
     def likely_parseable_type(self):
-        return (self.starting_type == TYPE_INTERNAL and not self.is_media) or ('.css' in self.url.lower()) or ('.js' in self.url.lower())
+        return (self.starting_type == TYPE_INTERNAL and not self.is_media == True) or ('.css' in self.url.lower()) or ('.js' in self.url.lower())
 
+    @property
     def is_internal(self):
         return self.ending_type == TYPE_INTERNAL and self.starting_type == TYPE_INTERNAL
 
+    @property
     def is_internal_html(self):
-        return self.is_internal() and self.is_html()
+        return self.is_internal == True and self.is_html == True
 
+    @property
     def is_html(self):
         content_type = self.response_content_type
         return content_type and 'html' in content_type.lower()
 
+    @property
     def is_javascript(self):
         content_type = self.response_content_type
         return content_type and 'javascript' in content_type.lower()
 
+    @property
     def is_xml(self):
         content_type = self.response_content_type
         return content_type and 'xml' in content_type.lower()
 
+    @property
     def is_css(self):
         content_type = self.response_content_type
         return content_type and 'css' in content_type.lower()
@@ -541,7 +554,7 @@ class LinkItem(BaseMessageable):
 
     def parse_response(self, response, set):
 
-        if self.is_html() or self.is_xml():
+        if self.is_html == True or self.is_xml == True:
 
             try:
                 soup = BeautifulSoup(response, 'html5lib')
@@ -569,7 +582,7 @@ class LinkItem(BaseMessageable):
                 self.add_links(get_iframes_on_page(soup), self.iframe_links, set)
                 #self.add_links(get_xhr_links_on_page(soup), self.xhr_links, set)
 
-        if self.is_javascript() or self.is_css() or self.is_xml():
+        if self.is_javascript == True or self.is_css == True or self.is_xml == True:
             
 
             local_file_path = store_file_locally(self.url)

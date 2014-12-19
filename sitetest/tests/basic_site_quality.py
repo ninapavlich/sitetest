@@ -69,7 +69,7 @@ def test_basic_site_quality(site, verbose=False):
             count += 1
             
 
-            if link.is_internal_html():
+            if link.is_internal_html == True:
                 
                 if link.has_sitemap_entry == False and not link.alias_to and not link.skip_test:
                     link.add_info_message("Page is not included in sitemap")
@@ -88,7 +88,7 @@ def test_basic_site_quality(site, verbose=False):
                 print "%s/%s"%(count, total)
             count += 1
             
-            if len(link.referers) == 0 and link.has_sitemap_entry:
+            if len(link.referers) == 1 and link.has_sitemap_entry:
                 link.add_info_message("Page is in the sitemap, but not accessible from elsewhere in the site.")
                 orphan_page += 1
 

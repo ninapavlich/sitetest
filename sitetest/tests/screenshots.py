@@ -22,7 +22,7 @@ def test_screenshots(set, credentials, verbose=False):
 
             link = set.parsed_links[link_url]
             
-            if link.is_internal() and not link.skip_test == True:
+            if link.is_internal == True and not link.skip_test == True:
                 browser_data = {
                     "browsers": [
                         {"os": "Windows", "os_version": "7", "browser_version": "8.0", "browser": "ie"},

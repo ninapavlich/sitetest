@@ -20,7 +20,7 @@ def test_pagespeed(set, credentials, verbose=False):
 
             link = set.parsed_links[link_url]
             
-            if link.is_internal() and not link.skip_test == True:
+            if link.is_internal == True and not link.skip_test == True:
                 
 
                 testing_url = 'https://www.googleapis.com/pagespeedonline/v1/runPagespeed?url=%s&key=%s'%(link.url, API_KEY)

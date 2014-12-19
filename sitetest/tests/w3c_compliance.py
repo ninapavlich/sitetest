@@ -13,7 +13,7 @@ def test_w3c_compliance(set, ignore_validation_errors, verbose=False):
     target_count = 0
     for link_url in set.parsed_links:
         link = set.parsed_links[link_url]
-        if link.is_internal() and not link.is_media:
+        if link.is_internal == True and not link.is_media:
             if link.html:
                 target_count += 1
 
@@ -25,7 +25,7 @@ def test_w3c_compliance(set, ignore_validation_errors, verbose=False):
     for link_url in set.parsed_links:
         link = set.parsed_links[link_url]
         
-        if link.is_internal_html():
+        if link.is_internal_html == True:
 
             
 

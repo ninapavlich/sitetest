@@ -62,7 +62,7 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
             print "%s/%s"%(count, total)
         count += 1
         
-        if link.is_internal() and not link.skip_test == True:
+        if link.is_internal == True and not link.skip_test == True:
             link_html = link.content
             if link_html and '.xml' not in link_url:
                 # try:
