@@ -12,6 +12,7 @@ import cgi
 import re
 import os
 import sys
+import zlib
 from slugify import slugify
 from bs4 import BeautifulSoup
 
@@ -156,9 +157,19 @@ class LinkSet(BaseMessageable):
         self.skip_test_urls = skip_test_urls
         self.skip_urls = skip_urls
         self.max_parse_count = None if not max_parse_count else int(max_parse_count)
-
         super(LinkSet, self).__init__()    
 
+    @property
+    def robots_url(self):
+        return "%srobots.txt"%(self.canonical_domain) if self.canonical_domain.endswith("/") else "%s/robots.txt"%(self.canonical_domain)
+
+    @property
+    def default_sitemap_url(self):
+        return "%ssitemap.xml"%(self.canonical_domain) if self.canonical_domain.endswith("/") else "%s/sitemap.xml"%(self.canonical_domain)
+
+    @property
+    def sitemap_urls(self):
+        return [link for url in self.current_links if self.current_links[url].is_sitemap==True]
         
     def load_link(self, page_link, recursive, expected_code=200):
         if self.max_parse_count and len(self.parsed_links) >= self.max_parse_count:
@@ -177,14 +188,14 @@ class LinkSet(BaseMessageable):
             load_successful, response = page_link.load(self, expected_code)
             
             if not load_successful:
-                message = "Loading error on page <a href='#%s' class='pagelink alert-link'>%s</a> Expected %s Received %s"%(page_link.internal_page_url, page_link.url, 200, page_link.response_code)
+                message = "Loading unsuccessful on page <a href='#%s' class='pagelink alert-link'>%s</a> Expected %s Received %s"%(page_link.internal_page_url, page_link.url, 200, page_link.response_code)
                 self.add_error_message(message)
             
 
             #record that we have parsed it
             if page_link.url not in self.loaded_links:
                 self.loaded_links[page_link.url] = page_link
-            
+
 
             #parse child links of internal pages and css only
             if page_link.likely_parseable_type == True:
@@ -369,6 +380,7 @@ class LinkItem(BaseMessageable):
     skip = False
     has_sitemap_entry = False
     accessible_to_robots = False
+    is_sitemap = False
     
 
 
@@ -435,10 +447,10 @@ class LinkItem(BaseMessageable):
 
     @property
     def content(self):
-        if self.is_html == True:
+        if self.is_html == True or self.is_xml == True:
             return self.html
-        elif self.is_javascript == True or self.is_css == True or self.is_xml == True:
-            return self.source
+        #elif self.is_javascript == True or self.is_css == True or self.is_xml == True:
+        return self.source
 
     @property
     def is_alias(self):
@@ -463,7 +475,9 @@ class LinkItem(BaseMessageable):
 
     @property
     def likely_parseable_type(self):
-        return (self.starting_type == TYPE_INTERNAL and not self.is_media == True) or ('.css' in self.url.lower()) or ('.js' in self.url.lower())
+        return (self.starting_type == TYPE_INTERNAL and not self.is_media == True) \
+            or ('.css' in self.url.lower()) or ('.js' in self.url.lower()) \
+            or ('.gz' in self.url.lower())
 
     @property
     def is_internal(self):
@@ -498,10 +512,11 @@ class LinkItem(BaseMessageable):
 
         request = urllib2.Request(self.url, headers=HEADERS)
         response = None
-                
+        start_time = datetime.datetime.now()
+
         try:
 
-            start_time = datetime.datetime.now()
+            
             response = urllib2.urlopen(request)
             end_time = datetime.datetime.now()
             self.response_code = response.code
@@ -525,6 +540,16 @@ class LinkItem(BaseMessageable):
 
             try:
                 self.response_code = e.code
+
+                end_time = datetime.datetime.now()
+                load_time = end_time - start_time
+                milliseconds = timedelta_milliseconds(load_time)
+                self.response_load_time = milliseconds   
+
+                if self.response_code == 303:
+                    print 'its a 303!'
+                    print(response.read())
+                    print 'what was returned?'
 
             except:
                 self.response_code = "Unknown HTTPError"
@@ -553,6 +578,7 @@ class LinkItem(BaseMessageable):
             return (True, response)
 
     def parse_response(self, response, set):
+        self.source = None
 
         if self.is_html == True or self.is_xml == True:
 
@@ -581,6 +607,21 @@ class LinkItem(BaseMessageable):
                 #TODO: self.add_links(get_video_on_page(soup), self.object_links, set)
                 self.add_links(get_iframes_on_page(soup), self.iframe_links, set)
                 #self.add_links(get_xhr_links_on_page(soup), self.xhr_links, set)
+        elif response:
+            
+            raw_response = response.read()
+
+            #DETECT COMPRESSION
+            try:
+                #Attempt to read as gzipped file
+                decompressed = zlib.decompress(raw_response, 16+zlib.MAX_WBITS)
+                self.compression = 'GZIP'
+                self.source = decompressed
+            except:
+                self.source = raw_response
+                self.compression = 'None'
+                
+
 
         if self.is_javascript == True or self.is_css == True or self.is_xml == True:
             

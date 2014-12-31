@@ -160,7 +160,7 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
 
                             if not word_exists and not word_is_proper_noun and not is_numeric and not is_technological and not is_contraction and not is_prefix and not is_money:
                                 if word not in misspelled_words:
-                                    message = "Word &ldquo;%s&rdquo; misspelled in <a href='#%s' class='alert-link'>%s</a>."%(word, link.internal_page_url, link_url)
+                                    message = "Word &ldquo;%s&rdquo; misspelled."%(word)
                                     link.add_info_message(message)
                                     misspelled_words.append(word)
 
@@ -177,7 +177,7 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
         set.add_warning_message("%s pages were found to have Lorem Ipsum"%(lorem_ipsum_count), lorem_ipsum_count)
 
     if spelling_issue_count > 0:
-        set.add_info_message("%s spelling issues found"%(spelling_issue_count), spelling_issue_count)
+        set.add_info_message("%s words misspelled."%(spelling_issue_count), spelling_issue_count)
 
 
 def check_special_dictionary(word, special_dictionary):

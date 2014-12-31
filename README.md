@@ -18,6 +18,7 @@ brew install enchant
 from sitetest import testSite
 
 canonical_domain = 'https://www.example.com'
+starting_url = 'https://www.example.com'
 test_id = "example-site-test-full"
 full = False
 recursive = True
@@ -69,7 +70,7 @@ options = {
     'output_unloaded_links':True
 }
 
-testSite(credentials, canonical_domain, domain_aliases, test_id, options)
+testSite(credentials, canonical_domain, domain_aliases, starting_url, test_id, options)
 ```
 
 

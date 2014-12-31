@@ -12,6 +12,7 @@ from jinja2 import Template, FileSystemLoader, Environment
 from pyslack import SlackClient
 import webbrowser
 
+from .core.sitemap import SiteMaps
 from .core.models import LinkSet
 from .tests.basic_site_quality import test_basic_site_quality
 from .tests.basic_page_quality import test_basic_page_quality
@@ -22,7 +23,7 @@ from .tests.lint_js import test_lint_js
 from .tests.pagespeed import test_pagespeed
 
             
-def testSite(credentials, canonical_domain, domain_aliases, test_id, options=None):
+def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_id, options=None):
     
     # recursive = False
     
@@ -83,15 +84,23 @@ def testSite(credentials, canonical_domain, domain_aliases, test_id, options=Non
     #Load pages, starting with homepage    
     set = LinkSet(test_media, test_external_links, canonical_domain, domain_aliases, max_parse_count, ignore_query_string_keys, alias_query_strings, skip_test_urls, skip_urls, verbose)
     homepage_link = set.get_or_create_link_object(canonical_domain, None)
-    if homepage_link:
-        set.load_link(homepage_link, recursive, 200)
+    
+    starting_link = set.get_or_create_link_object(starting_url, None)
+    # if starting_link:
+    #     set.load_link(starting_link, recursive, 200)
 
+
+
+    sitemap = SiteMaps(canonical_domain, set, recursive)
+    sitemap.run()
+    print "sitemaps fetch intervals", sitemap.fetched_sitemaps
+    print "fetched urls", len(sitemap.urls)
 
     #Load any additional from sitemap
-    sitemap_url = "%ssitemap.xml"%(canonical_domain) if canonical_domain.endswith("/") else "%s/sitemap.xml"%(canonical_domain)
-    sitemap_link = set.get_or_create_link_object(sitemap_url, None)
-    if sitemap_link:
-        set.load_link(sitemap_link, recursive, 200)
+    
+    # sitemap_link = set.get_or_create_link_object(sitemap_url, None)
+    # if sitemap_link:
+    #     set.load_link(sitemap_link, recursive, 200)
    
 
 
