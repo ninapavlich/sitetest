@@ -27,7 +27,7 @@ def test_lint_js(set, verbose=False):
         count += 1
     
 
-        if link.is_javascript():
+        if link.is_javascript:
             
             link_source = link.content.encode('ascii', 'ignore')
 

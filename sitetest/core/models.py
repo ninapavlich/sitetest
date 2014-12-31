@@ -168,7 +168,7 @@ class LinkSet(BaseMessageable):
         return "%ssitemap.xml"%(self.canonical_domain) if self.canonical_domain.endswith("/") else "%s/sitemap.xml"%(self.canonical_domain)
 
     @property
-    def sitemap_urls(self):
+    def sitemap_links(self):
         return [link for url in self.current_links if self.current_links[url].is_sitemap==True]
         
     def load_link(self, page_link, recursive, expected_code=200):
@@ -212,7 +212,7 @@ class LinkSet(BaseMessageable):
             
 
                 #Let's do it again!
-                if recursive:
+                if recursive==True:
                     for child_link_url in page_link.links:
                         if child_link_url not in self.parsed_links:                                                              
                             self.load_link(page_link.links[child_link_url], recursive, 200)

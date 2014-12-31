@@ -80,21 +80,23 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
         print "SITE TEST :: %s Recursive:%s Media:%s External Links:%s 3rd Party:%s MAX:%s"%(canonical_domain, recursive, test_media, test_external_links, run_third_party_tests, max_parse_count)
 
 
+    
 
     #Load pages, starting with homepage    
     set = LinkSet(test_media, test_external_links, canonical_domain, domain_aliases, max_parse_count, ignore_query_string_keys, alias_query_strings, skip_test_urls, skip_urls, verbose)
     homepage_link = set.get_or_create_link_object(canonical_domain, None)
+
+    if recursive==True:
+        sitemap = SiteMaps(canonical_domain, set, recursive)
+        sitemap.run()
     
     starting_link = set.get_or_create_link_object(starting_url, None)
-    # if starting_link:
-    #     set.load_link(starting_link, recursive, 200)
+    if starting_link:
+        set.load_link(starting_link, recursive, 200)
 
 
 
-    sitemap = SiteMaps(canonical_domain, set, recursive)
-    sitemap.run()
-    print "sitemaps fetch intervals", sitemap.fetched_sitemaps
-    print "fetched urls", len(sitemap.urls)
+    
 
     #Load any additional from sitemap
     
