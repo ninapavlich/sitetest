@@ -6,7 +6,7 @@ import logging
 import traceback 
 
 class SiteMaps(object):
-    def __init__(self, domain, set, recursive, links=1000):
+    def __init__(self, domain, set, recursive):
         self.domain = domain
         self.sitemaps = []
         self.urls = []
@@ -17,6 +17,7 @@ class SiteMaps(object):
     def read_robots(self):
         try:
             robots_link = self.set.get_or_create_link_object(self.set.robots_url, None)
+            robots_link.is_robots = True
         
             self.set.load_link(robots_link, False, 200)
             
@@ -40,7 +41,7 @@ class SiteMaps(object):
             
             sitemap_link = self.set.get_or_create_link_object(sitemap_url, None)
             sitemap_link.is_sitemap = True
-            self.set.load_link(sitemap_link, False, 200)
+            self.set.load_link(sitemap_link, False, 200, True)
             self.process_sitemap(sitemap_link)
 
 
@@ -63,7 +64,9 @@ class SiteMaps(object):
         
         for sitemap in tree.xpath('//sm:sitemap | //sitemap', namespaces=namespaces):
             for loc in sitemap.xpath('sm:loc | loc', namespaces=namespaces):
-                self.sitemaps.append(loc.text.strip())
+                child_sitemap_url = loc.text.strip()
+                child_sitemap_link = self.set.get_or_create_link_object(child_sitemap_url, sitemap_link)                
+                self.sitemaps.append(child_sitemap_url)
         
         for sitemap in tree.xpath('//sm:url | //url', namespaces=namespaces):
             # TODO: add last update date, rank and update frequency

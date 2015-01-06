@@ -175,6 +175,7 @@
 			<!-- Nav tabs -->
 			<ul class="nav nav-tabs" role="tablist">
 			  	<li class="active"><a href="#pages-parsed" role="tab" data-toggle="tab">Parsed Pages</a></li>
+			  	<li><a href="#pages-meta" role="tab" data-toggle="tab">Robots &amp; Sitemaps</a></li>
 			  	<li><a href="#pages-loaded" role="tab" data-toggle="tab">Loaded Pages</a></li>
 			  	{% if output_unloaded_links %}
 			  	<li><a href="#pages-other" role="tab" data-toggle="tab">All Other Pages</a></li>
@@ -191,8 +192,30 @@
 
 					{% for link_url, link in set.parsed_links|dictsort %}
 					{% set loop_index = loop.index %}
+					{% if link.is_sitemap==False %}
+					{% if link.is_robots == False %}
+					{% include 'result_full.html' with context %}
+					{% endif %}
+					{% endif %}
+					{% endfor %}
+				</div>
+				<div class="tab-pane" id="pages-meta">
+					<h2>Robots &amp; Sitemaps</h2>	
+
+					
+					{% set link = set.robots_link %}
+					{% set link_url = set.robots_url %}
+					{% set loop_index = 0 %}
+					{% include 'result_full.html' with context %}
+
+					{% for link in set.sitemap_links %}
+					{% set link_url = link.url %}
+					{% set loop_index = loop.index+1 %}
 					{% include 'result_full.html' with context %}
 					{% endfor %}
+
+					
+
 				</div>
 				<div class="tab-pane" id="pages-loaded">
 					<h2>Loaded Pages</h2>	

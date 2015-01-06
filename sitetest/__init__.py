@@ -92,9 +92,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
     
     starting_link = set.get_or_create_link_object(starting_url, None)
     if starting_link:
-        set.load_link(starting_link, recursive, 200)
-
-
+        set.load_link(starting_link, recursive, 200, True)
 
     
 

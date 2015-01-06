@@ -164,6 +164,10 @@ class LinkSet(BaseMessageable):
         return "%srobots.txt"%(self.canonical_domain) if self.canonical_domain.endswith("/") else "%s/robots.txt"%(self.canonical_domain)
 
     @property
+    def robots_link(self):
+        return self.current_links[self.robots_url]
+
+    @property
     def default_sitemap_url(self):
         return "%ssitemap.xml"%(self.canonical_domain) if self.canonical_domain.endswith("/") else "%s/sitemap.xml"%(self.canonical_domain)
 
@@ -171,9 +175,9 @@ class LinkSet(BaseMessageable):
     def sitemap_links(self):
         return [self.current_links[url] for url in self.current_links if self.current_links[url].is_sitemap==True]
         
-    def load_link(self, page_link, recursive, expected_code=200):
-        if self.max_parse_count and len(self.parsed_links) >= self.max_parse_count:
-            #print "PARSED %s PAGES, turn recursive off"%(self.max_parse_count)
+    def load_link(self, page_link, recursive, expected_code=200, force=False):
+        if self.max_parse_count and len(self.parsed_links) >= self.max_parse_count and force == False:
+            # print "PARSED %s PAGES, turn recursive off"%(self.max_parse_count)
             return
 
         is_loadable = page_link.is_loadable_type(self.include_media, self.include_external_links)
@@ -529,37 +533,45 @@ class LinkItem(BaseMessageable):
             self.ending_url = response.geturl()
             self.ending_type = set.get_link_type(self.ending_url)
 
-            if self.url != self.ending_url:
-                redirect_path = trace_path(self.url, [])
-                self.redirect_path = redirect_path
-
-                
             load_time = end_time - start_time
             milliseconds = timedelta_milliseconds(load_time)
             self.response_load_time = milliseconds        
 
+            if self.url != self.ending_url:
+                redirect_path = trace_path(self.url, [])
+                self.redirect_path = redirect_path
+
         except urllib2.HTTPError, e:
             #checksLogger.error('HTTPError = ' + str(e.code))
 
-            # try:
-            #     self.response_code = e.code
-
-            #     end_time = datetime.datetime.now()
-            #     load_time = end_time - start_time
-            #     milliseconds = timedelta_milliseconds(load_time)
-            #     self.response_load_time = milliseconds   
-
-            #     if self.response_code == 303:
-            #         print 'its a 303!'
-            #         print(response.read())
-            #         print 'what was returned?'
-
-            # except:
-            #     self.response_code = "Unknown HTTPError"
-            
-
             try:
-                self.response_code = 'HTTPError = ' + str(e.code)
+                self.response_code = e.code
+
+                end_time = datetime.datetime.now()
+                load_time = end_time - start_time
+                milliseconds = timedelta_milliseconds(load_time)
+                self.response_load_time = milliseconds   
+                
+                if self.response_code == 303:
+                    try:
+
+                        redirect_path = trace_path(self.url, [])       
+                        self.redirect_path = redirect_path     
+                        if len(redirect_path) > 0:
+                            response_data = redirect_path[-1]
+                            self.response_content_type = response_data['response_content_type']
+                            self.response_code = response_data['response_code']
+                            self.ending_url = response_data['url']
+                            self.ending_type = set.get_link_type(self.ending_url)      
+                            if self.response_code == 200:
+                                request = urllib2.Request(self.ending_url, headers=HEADERS)
+                                response = urllib2.urlopen(request)    
+                                self.has_response = True
+
+                    except Exception:
+                        print 'error getting response headers: %s'%(traceback.format_exc())
+                    
+
             except:
                 self.response_code = "Unknown HTTPError"
 
@@ -596,8 +608,13 @@ class LinkItem(BaseMessageable):
                 decompressed = zlib.decompress(raw_response, 16+zlib.MAX_WBITS)
                 self.compression = 'GZIP'
                 self.source = decompressed.decode('utf-8')
-            except:
-                self.source = raw_response.decode('utf-8')
+            except Exception:
+                                
+                try:
+                    self.source = raw_response.decode('utf-8')
+                except Exception:
+                    self.source = raw_response
+
                 self.compression = 'None'
 
 

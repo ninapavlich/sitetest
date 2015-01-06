@@ -160,7 +160,7 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
 
                             if not word_exists and not word_is_proper_noun and not is_numeric and not is_technological and not is_contraction and not is_prefix and not is_money:
                                 if word not in misspelled_words:
-                                    message = "Word &ldquo;%s&rdquo; misspelled."%(word)
+                                    message = "Word &ldquo;%s&rdquo; misspelled."%(html_escape(word))
                                     link.add_info_message(message)
                                     misspelled_words.append(word)
 
@@ -203,3 +203,15 @@ def visible(element):
         #print "Its a conditional comment!"
         return False
     return True
+
+
+
+def html_escape(text):
+    html_escape_table = {
+        "&": "&amp;",
+        '"': "&quot;",
+        "'": "&apos;",
+        ">": "&gt;",
+        "<": "&lt;",
+    }
+    return "".join(html_escape_table.get(c,c) for c in text)    
