@@ -113,7 +113,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
 
     #2. Page quality test
     try:
-        test_basic_page_quality(set, verbose)
+        test_basic_page_quality(set, recursive, verbose)
     except Exception:        
         print "Error running page quality check: %s"%(traceback.format_exc())
 

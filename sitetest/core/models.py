@@ -36,10 +36,11 @@ MEDIA_SUFFIXES = IMAGE_SUFFIXES + FONT_SUFFIXES + [
     '.gz','.fla','.ogg','.sql'
 ]
 
-HEADERS = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
-   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
+    #'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
+   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', #TODO: image/webp
    'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
-   'Accept-Encoding': 'none',
+   'Accept-Encoding': 'gzip, deflate', #TODO: gzip, deflate, sdch
    'Accept-Language': 'en-US,en;q=0.8',
    'Connection': 'keep-alive'}
 
@@ -529,7 +530,9 @@ class LinkItem(BaseMessageable):
             self.response_code = response.code
             #self.response = response#u"%s"%(response)
             self.has_response = True
-            self.response_content_type = response.info().getheader('Content-Type')
+            response_header = response.info()
+            self.response_content_type = response_header.getheader('Content-Type')
+            self.response_encoding = response_header.getheader('Content-Encoding')
             self.ending_url = response.geturl()
             self.ending_type = set.get_link_type(self.ending_url)
 
@@ -602,20 +605,27 @@ class LinkItem(BaseMessageable):
 
         #DETECT COMPRESSION
         if response:
-            
-            try:
-                #Attempt to read as gzipped file
-                decompressed = zlib.decompress(raw_response, 16+zlib.MAX_WBITS)
-                self.compression = 'GZIP'
-                self.source = decompressed.decode('utf-8')
-            except Exception:
-                                
-                try:
-                    self.source = raw_response.decode('utf-8')
-                except Exception:
-                    self.source = raw_response
+            if self.response_encoding:
 
-                self.compression = 'None'
+                if self.response_encoding == 'gzip':
+
+                    try:
+                        #Attempt to read as gzipped file
+                        decompressed = zlib.decompress(raw_response, 16+zlib.MAX_WBITS)
+                        self.source = decompressed
+                    except Exception:
+                        print raw_response
+                        self.source = raw_response
+
+                elif self.response_encoding == 'deflate':
+
+                    try:
+                        decompressed = zlib.decompressobj(-zlib.MAX_WBITS).decompress(raw_response)
+                        self.source = decompressed
+                    except Exception:
+                        self.source = raw_response
+            else:
+                self.source = raw_response
 
 
         #PARSE HTML/XML
@@ -914,13 +924,16 @@ def trace_path(url, traced, depth=0):
         response = opener.open(request)
         end_time = datetime.datetime.now()
         response_data['response_code'] = response.code
-        response_data['response_content_type'] = response.info().getheader('Content-Type')
+        response_header = response.info()
+        response_data['response_content_type'] = response_header.getheader('Content-Type')
+        response_data['response_encoding'] = response_header.getheader('Content-Encoding')
+        
 
         load_time = end_time - start_time
         milliseconds = timedelta_milliseconds(load_time)
         response_data['response_load_time'] = milliseconds     
 
-        ending_url = response.info().getheader('Location') or url
+        ending_url = response_header.getheader('Location') or url
         has_redirect = url != ending_url
 
         if has_redirect:

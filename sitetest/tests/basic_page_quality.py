@@ -3,7 +3,7 @@ import traceback
 
 
 
-def test_basic_page_quality(set, verbose=False):
+def test_basic_page_quality(set, recursive, verbose=False):
     """
     For each page, make sure there is a unique title and description
     """
@@ -136,13 +136,14 @@ def test_basic_page_quality(set, verbose=False):
 
                         #4 - Test Analytics
                         #TODO: Sometimes this gives a false positive
+                        link_source = link.source
                         universal_analytics_indicator = 'GoogleAnalyticsObject'
                         asynchronous_analytics_indicator = '_gaq'
-                        has_ua = universal_analytics_indicator.lower() in link_html.lower()
-                        has_asynca = asynchronous_analytics_indicator.lower() in link_html.lower()
+                        has_ua = universal_analytics_indicator.lower() in link_source.lower()
+                        has_asynca = asynchronous_analytics_indicator.lower() in link_source.lower()
                         if not has_ua and not has_asynca:
                             analytics_missing_error_count += 1
-                            message = "Page missing google analytics. <br /><small>Try validating page; this error is often a symptom of invalid markup.</small>"
+                            message = "Page missing google analytics."
                             link.add_warning_message(message)
 
 
@@ -163,7 +164,7 @@ def test_basic_page_quality(set, verbose=False):
                             link.add_warning_message(message)
 
                         #7 - Compression
-                        if link.compression == 'None':
+                        if link.response_encoding == None:
                             compression_error_count += 1
                             message = "Content is not compressed"
                             link.add_warning_message(message)
@@ -175,11 +176,12 @@ def test_basic_page_quality(set, verbose=False):
                             link.add_warning_message(message)
 
                         #9 - Sitemap
-                        if link.is_alias == False:
-                            if link.has_sitemap_entry == False:
-                                sitemap_error_count += 1
-                                message = "This page is not in the sitemap."
-                                link.add_warning_message(message)
+                        if recursive:
+                            if link.is_alias == False:
+                                if link.has_sitemap_entry == False:
+                                    sitemap_error_count += 1
+                                    message = "This page is not in the sitemap."
+                                    link.add_warning_message(message)
 
 
                         #10 - Are CSS Files comfbined
