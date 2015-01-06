@@ -3,6 +3,7 @@ import urllib2
 import zlib
 import lxml.etree
 import logging
+import traceback 
 
 class SiteMaps(object):
     def __init__(self, domain, set, recursive, links=1000):
@@ -27,6 +28,7 @@ class SiteMaps(object):
 
 
         except Exception, e:
+            print "Error Reading Robots: %s"%(traceback.format_exc())
             logging.exception(e)
     
     def run(self):
@@ -69,5 +71,6 @@ class SiteMaps(object):
 
                 url = loc.text.strip()
                 self.urls.append(url)
+                # print 'Found url %s'%(url)
                 link = self.set.get_or_create_link_object(url, sitemap_link)
     

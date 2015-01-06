@@ -169,7 +169,7 @@ class LinkSet(BaseMessageable):
 
     @property
     def sitemap_links(self):
-        return [link for url in self.current_links if self.current_links[url].is_sitemap==True]
+        return [self.current_links[url] for url in self.current_links if self.current_links[url].is_sitemap==True]
         
     def load_link(self, page_link, recursive, expected_code=200):
         if self.max_parse_count and len(self.parsed_links) >= self.max_parse_count:
@@ -381,6 +381,7 @@ class LinkItem(BaseMessageable):
     has_sitemap_entry = False
     accessible_to_robots = False
     is_sitemap = False
+    is_robots = False
     
 
 
@@ -578,12 +579,15 @@ class LinkItem(BaseMessageable):
             return (True, response)
 
     def parse_response(self, response, set):
-        self.source = None
+        raw_response = response.read()
+        self.source = raw_response
 
+
+        #PARSE HTML/XML
         if self.is_html == True or self.is_xml == True:
 
             try:
-                soup = BeautifulSoup(response, 'html5lib')
+                soup = BeautifulSoup(raw_response, 'html5lib')
             except Exception:
                 soup = None
                 self.add_error_message("Error parsing HTML on page %s: %s"%(self.url, traceback.format_exc()))
@@ -607,53 +611,53 @@ class LinkItem(BaseMessageable):
                 #TODO: self.add_links(get_video_on_page(soup), self.object_links, set)
                 self.add_links(get_iframes_on_page(soup), self.iframe_links, set)
                 #self.add_links(get_xhr_links_on_page(soup), self.xhr_links, set)
-        elif response:
+        
+        #DETECT COMPRESSION
+        if response:
             
-            raw_response = response.read()
-
-            #DETECT COMPRESSION
             try:
                 #Attempt to read as gzipped file
                 decompressed = zlib.decompress(raw_response, 16+zlib.MAX_WBITS)
                 self.compression = 'GZIP'
-                self.source = decompressed
+                self.source = decompressed.decode('utf-8')
             except:
-                self.source = raw_response
+                self.source = raw_response.decode('utf-8')
                 self.compression = 'None'
                 
 
 
-        if self.is_javascript == True or self.is_css == True or self.is_xml == True:
+        # if self.is_javascript == True or self.is_css == True or self.is_xml == True:
             
 
-            local_file_path = store_file_locally(self.url)
+        #     local_file_path = store_file_locally(self.url)
             
-            try:
-                #Attempt to read as gzipped file
-                f = gzip.open(local_file_path, 'rb')
-                source = f.read()
-                f.close()
-                self.compression = 'GZIP'
+        #     try:
+        #         #Attempt to read as gzipped file
+        #         f = gzip.open(local_file_path, 'rb')
+        #         source = f.read()
+        #         f.close()
+        #         self.compression = 'GZIP'
 
-            except:
-                try:
-                    #Attempt to read as uncompressed file
-                    f = open(local_file_path, 'rb')
-                    source = f.read()
-                    f.close()
+        #     except:
+        #         try:
+        #             #Attempt to read as uncompressed file
+        #             f = open(local_file_path, 'rb')
+        #             source = f.read()
+        #             f.close()
 
-                    self.compression = 'None'
+        #             self.compression = 'None'
 
-                except:
-                    source = None
-                    self.add_error_message("Unable to read file")
+        #         except:
+        #             source = None
+        #             self.add_error_message("Unable to read file")
 
-            #DELETE local file
-            os.unlink(local_file_path)
+        #     #DELETE local file
+        #     os.unlink(local_file_path)
 
-            if source:
-                self.source = source.decode('utf-8')
+        #     if source:
+        #         self.source = source.decode('utf-8')
 
+        #Create enumerated source
         if self.content:
             enumerated_source_list = self.content.split(u"\n")
             counter = 0

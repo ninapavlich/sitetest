@@ -49,17 +49,17 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
         }
 
 
-    recursive = True if 'recursive' not in options else options['recursive']
+    recursive = True if 'recursive' not in options else truthy(options['recursive'])
 
-    test_media = True if 'test_media' not in options else options['test_media']
+    test_media = True if 'test_media' not in options else truthy(options['test_media'])
 
-    test_external_links = True if 'test_external_links' not in options else options['test_external_links']
+    test_external_links = True if 'test_external_links' not in options else truthy(options['test_external_links'])
 
-    run_third_party_tests = True if 'run_third_party_tests' not in options else options['run_third_party_tests']
+    run_third_party_tests = True if 'run_third_party_tests' not in options else truthy(options['run_third_party_tests'])
 
-    verbose = True if 'verbose' not in options else options['verbose']
+    verbose = True if 'verbose' not in options else truthy(options['verbose'])
 
-    output_unloaded_links = True if 'output_unloaded_links' not in options else options['output_unloaded_links']    
+    output_unloaded_links = True if 'output_unloaded_links' not in options else truthy(options['output_unloaded_links'])
     
     special_dictionary = [] if 'special_dictionary' not in options else options['special_dictionary']
 
@@ -86,7 +86,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
     set = LinkSet(test_media, test_external_links, canonical_domain, domain_aliases, max_parse_count, ignore_query_string_keys, alias_query_strings, skip_test_urls, skip_urls, verbose)
     homepage_link = set.get_or_create_link_object(canonical_domain, None)
 
-    if recursive==True:
+    if recursive == True:
         sitemap = SiteMaps(canonical_domain, set, recursive)
         sitemap.run()
     
@@ -190,7 +190,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
     results['report_url'] = report_url
     open_results(report_url)
 
-    notify_results(results, credentials)
+    #notify_results(results, credentials)
 
     return results
 
@@ -334,3 +334,10 @@ def stripHtmlTags(htmlTxt):
         return None
     else:
         return ''.join(BeautifulSoup(htmlTxt).findAll(text=True)) 
+
+def truthy(value):
+    if value == 'True':
+        return True
+    elif value == 'False':
+        return False
+    return value

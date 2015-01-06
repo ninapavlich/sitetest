@@ -21,28 +21,7 @@
     <li><strong>Page description:</strong> {{link.description}}</li>
     {% endif %}
 
-    {% if link.content and link.is_internal_html == True and link.is_alias==False %}
-    {% if link.has_sitemap_entry == True %}
-    <li class="green"><span class="fa fa-check"></span> This page is in the sitemap.</li>
-    {% else %}
-    <li class="yellow"><span class="fa fa-times"></span> This page is not in the sitemap.</li>
-    {% endif %}
     
-    {% if link.is_internal == True and link.accessible_to_robots == True %}
-    <li class="green"><span class="fa fa-check"></span> This page is accessible to robots.</li>
-    {% else %}
-    <li class="yellow"><span class="fa fa-times"></span> This page is not accessible to robots.</li>
-    {% endif %}
-    {% endif %}
-
-    
-    {% if link.compression %}
-    {% if link.compression == 'None' %}
-    <li class="yellow"><span class="fa fa-times"></span> This content is not compressed.</li>
-    {% else %}
-    <li class="green"><span class="fa fa-check"></span> This content is compressed with {{link.compression}}.</li>
-    {% endif %}
-    {% endif %}
 
     {% for message in link.messages.success %}
 	<li class="alert alert-success" role="alert">{{message.message}}</li>		        				

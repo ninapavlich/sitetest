@@ -20,6 +20,10 @@ def test_basic_page_quality(set, verbose=False):
     analytics_missing_error_count = 0
     ssl_error_count = 0
     h1_error_count = 0
+
+    compression_error_count = 0
+    robots_error_count = 0
+    sitemap_error_count = 0
     
 
     total = len(set.parsed_links)
@@ -157,6 +161,28 @@ def test_basic_page_quality(set, verbose=False):
                             h1_error_count += 1
                             message = "Page doesn't have exactly one H1, it has %s"%(h1_count)
                             link.add_warning_message(message)
+
+                        #7 - Compression
+                        if link.compression == 'None':
+                            compression_error_count += 1
+                            message = "Content is not compressed"
+                            link.add_warning_message(message)
+
+                        #8 - Robots
+                        if link.accessible_to_robots == False:
+                            robots_error_count += 1
+                            message = "This page is not accessible to robots.txt"
+                            link.add_warning_message(message)
+
+                        #9 - Sitemap
+                        if link.is_alias == False:
+                            if link.has_sitemap_entry == False:
+                                sitemap_error_count += 1
+                                message = "This page is not in the sitemap."
+                                link.add_success_message(message)
+
+
+
         
                 except Exception:        
                     print "Parsing page quality: %s"%(traceback.format_exc())
@@ -178,4 +204,13 @@ def test_basic_page_quality(set, verbose=False):
 
     if h1_error_count > 0:
         set.add_warning_message("%s pages didn't have exactly one H1 tag"%(h1_error_count), h1_error_count)             
+
+    if compression_error_count > 0:
+        set.add_warning_message("%s pages are not compressed"%(compression_error_count), compression_error_count)             
+
+    if robots_error_count > 0:
+        set.add_warning_message("%s pages are not accessible to robots.txt"%(robots_error_count), robots_error_count)             
+
+    if sitemap_error_count > 0:
+        set.add_warning_message("%s pages are not in the sitemap"%(sitemap_error_count), sitemap_error_count)             
 

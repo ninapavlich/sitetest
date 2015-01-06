@@ -22,6 +22,7 @@ def test_basic_site_quality(site, verbose=False):
         
     #1 - Test robots.txt
     robots_link = site.get_or_create_link_object(site.robots_url)
+    robots_link.robots_url = False
     site.load_link(robots_link, False, 200)
     
     
@@ -45,7 +46,7 @@ def test_basic_site_quality(site, verbose=False):
     #if sitemap_link.response_code == 200:
     if len(sitemap_links) > 0:
 
-        for sitemap_link in sitemap_link:
+        for sitemap_link in sitemap_links:
             for link_url in sitemap_link.hyper_links:
                 link_item = sitemap_link.hyper_links[link_url]
                 link_item.has_sitemap_entry = True
