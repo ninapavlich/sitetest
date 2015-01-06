@@ -406,6 +406,7 @@ class LinkItem(BaseMessageable):
         name, extension = os.path.splitext(parsed.path)
         self.starting_type = self.ending_type = set.get_link_type(url)
         self.path = parsed.path
+        self.domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed)
         self.is_media = (extension.lower() in MEDIA_SUFFIXES)
         self.is_font = (extension.lower() in FONT_SUFFIXES)
         self.is_image = (extension.lower() in IMAGE_SUFFIXES)
@@ -642,6 +643,9 @@ class LinkItem(BaseMessageable):
                 counter += 1
             self.enumerated_source = enumerated_source
 
+        # if 'css' in self.url:
+        #     print "CSS %s is_css? %s: %s"%(self.url, self.is_css, self.content)
+        
 
 
     def add_links(self, input_links, list, set):
@@ -832,14 +836,15 @@ def get_images_from_css(set, link):
         set.load_link(css_link, False, 200)
 
         if css_link.response_code == 200:
-            all_urls = re.findall('url\(([^)]+)\)',css_link.content)
-            for url in all_urls:
-                full_url = urlparse.urljoin(css_link.url, url.strip("'").strip('"'))
-                parsed = urlparse.urlparse(full_url)
-                name, extension = os.path.splitext(parsed.path)
-                is_font = (extension.lower() in FONT_SUFFIXES)
-                if is_font:
-                    output.append(full_url)
+            if css_link.content:
+                all_urls = re.findall('url\(([^)]+)\)',css_link.content)
+                for url in all_urls:
+                    full_url = urlparse.urljoin(css_link.url, url.strip("'").strip('"'))
+                    parsed = urlparse.urlparse(full_url)
+                    name, extension = os.path.splitext(parsed.path)
+                    is_font = (extension.lower() in FONT_SUFFIXES)
+                    if is_font:
+                        output.append(full_url)
     return output
 
 def get_fonts_on_page(set, link):
@@ -850,14 +855,15 @@ def get_fonts_on_page(set, link):
         set.load_link(css_link, False, 200)
 
         if css_link.response_code == 200:
-            all_urls = re.findall('url\(([^)]+)\)',css_link.content)
-            for url in all_urls:
-                full_url = urlparse.urljoin(css_link.url, url.strip("'").strip('"'))
-                parsed = urlparse.urlparse(full_url)
-                name, extension = os.path.splitext(parsed.path)
-                is_font = (extension.lower() in FONT_SUFFIXES)
-                if is_font:
-                    output.append(full_url)
+            if css_link.content:
+                all_urls = re.findall('url\(([^)]+)\)',css_link.content)
+                for url in all_urls:
+                    full_url = urlparse.urljoin(css_link.url, url.strip("'").strip('"'))
+                    parsed = urlparse.urlparse(full_url)
+                    name, extension = os.path.splitext(parsed.path)
+                    is_font = (extension.lower() in FONT_SUFFIXES)
+                    if is_font:
+                        output.append(full_url)
 
     
     return output

@@ -179,8 +179,36 @@ def test_basic_page_quality(set, verbose=False):
                             if link.has_sitemap_entry == False:
                                 sitemap_error_count += 1
                                 message = "This page is not in the sitemap."
-                                link.add_success_message(message)
+                                link.add_warning_message(message)
 
+
+                        #10 - Are CSS Files comfbined
+                        css_link_domains = {}
+                        for css_link_url in link.css_links:
+                            css_link = link.css_links[css_link_url]
+                            if css_link.domain not in css_link_domains:
+                                css_link_domains[css_link.domain] = 0
+                            css_link_domains[css_link.domain] += 1
+
+                        for css_domain in css_link_domains:
+                            domain_count = css_link_domains[css_domain]
+                            if domain_count > 1:
+                                message = "%s css files from the same domain %s. These CSS files should be combined if possible."%(domain_count, css_domain)
+                                link.add_warning_message(message)
+
+                        #10 - Are JS Files comfbined
+                        js_link_domains = {}
+                        for js_link_url in link.script_links:
+                            js_link = link.script_links[js_link_url]
+                            if js_link.domain not in js_link_domains:
+                                js_link_domains[js_link.domain] = 0
+                            js_link_domains[js_link.domain] += 1
+
+                        for js_domain in js_link_domains:
+                            domain_count = js_link_domains[js_domain]
+                            if domain_count > 1:
+                                message = "%s script files from the same domain %s. These script files should be combined if possible."%(domain_count, js_domain)
+                                link.add_warning_message(message)
 
 
         
