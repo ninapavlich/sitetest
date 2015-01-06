@@ -177,8 +177,9 @@ class LinkSet(BaseMessageable):
         return [self.current_links[url] for url in self.current_links if self.current_links[url].is_sitemap==True]
         
     def load_link(self, page_link, recursive, expected_code=200, force=False):
+
         if self.max_parse_count and len(self.parsed_links) >= self.max_parse_count and force == False:
-            # print "PARSED %s PAGES, turn recursive off"%(self.max_parse_count)
+            #print "PARSED %s PAGES, turn recursive off"%(self.max_parse_count)
             return
 
         is_loadable = page_link.is_loadable_type(self.include_media, self.include_external_links)
@@ -216,11 +217,11 @@ class LinkSet(BaseMessageable):
                     self.parsed_links[page_link.url] = page_link
             
 
-                #Let's do it again!
-                if recursive==True:
-                    for child_link_url in page_link.links:
-                        if child_link_url not in self.parsed_links:                                                              
-                            self.load_link(page_link.links[child_link_url], recursive, 200)
+        #Let's do it again!
+        if recursive==True:
+            for child_link_url in page_link.links:
+                if child_link_url not in self.parsed_links:                                                              
+                    self.load_link(page_link.links[child_link_url], recursive, 200)
        
 
 
@@ -632,7 +633,7 @@ class LinkItem(BaseMessageable):
         if self.is_html == True or self.is_xml == True:
 
             try:
-                soup = BeautifulSoup(raw_response, 'html5lib')
+                soup = BeautifulSoup(self.source, 'html5lib')
             except Exception:
                 soup = None
                 self.add_error_message("Error parsing HTML on page %s: %s"%(self.url, traceback.format_exc()))
@@ -661,14 +662,17 @@ class LinkItem(BaseMessageable):
 
         #Create enumerated source
         if self.content:
-            enumerated_source_list = self.content.split(u"\n")
-            counter = 0
-            enumerated_source = u''
-            for line in enumerated_source_list:
-                new_line = (u"%s: %s"%(counter, line))
-                enumerated_source += (u"%s\n"%(new_line))
-                counter += 1
-            self.enumerated_source = enumerated_source
+            try:
+                enumerated_source_list = self.content.split(u"\n")
+                counter = 0
+                enumerated_source = u''
+                for line in enumerated_source_list:
+                    new_line = (u"%s: %s"%(counter, line))
+                    enumerated_source += (u"%s\n"%(new_line))
+                    counter += 1
+                self.enumerated_source = enumerated_source
+            except Exception:
+                self.enumerated_source = "Error enumerating source: %s"%(traceback.format_exc())  
 
         # if 'css' in self.url:
         #     print "CSS %s is_css? %s: %s"%(self.url, self.is_css, self.content)
