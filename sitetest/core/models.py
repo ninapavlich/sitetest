@@ -409,6 +409,7 @@ class LinkItem(BaseMessageable):
         self.is_media = (extension.lower() in MEDIA_SUFFIXES)
         self.is_font = (extension.lower() in FONT_SUFFIXES)
         self.is_image = (extension.lower() in IMAGE_SUFFIXES)
+        self.source = None
 
 
         super(LinkItem, self).__init__()
@@ -539,23 +540,27 @@ class LinkItem(BaseMessageable):
         except urllib2.HTTPError, e:
             #checksLogger.error('HTTPError = ' + str(e.code))
 
+            # try:
+            #     self.response_code = e.code
+
+            #     end_time = datetime.datetime.now()
+            #     load_time = end_time - start_time
+            #     milliseconds = timedelta_milliseconds(load_time)
+            #     self.response_load_time = milliseconds   
+
+            #     if self.response_code == 303:
+            #         print 'its a 303!'
+            #         print(response.read())
+            #         print 'what was returned?'
+
+            # except:
+            #     self.response_code = "Unknown HTTPError"
+            
+
             try:
-                self.response_code = e.code
-
-                end_time = datetime.datetime.now()
-                load_time = end_time - start_time
-                milliseconds = timedelta_milliseconds(load_time)
-                self.response_load_time = milliseconds   
-
-                if self.response_code == 303:
-                    print 'its a 303!'
-                    print(response.read())
-                    print 'what was returned?'
-
+                self.response_code = 'HTTPError = ' + str(e.code)
             except:
                 self.response_code = "Unknown HTTPError"
-
-                
 
         except urllib2.URLError, e:
             #checksLogger.error('URLError = ' + str(e.reason))
@@ -579,8 +584,20 @@ class LinkItem(BaseMessageable):
             return (True, response)
 
     def parse_response(self, response, set):
-        raw_response = response.read()
+        raw_response = None if response==None else response.read()
         self.source = raw_response
+
+        #DETECT COMPRESSION
+        if response:
+            
+            try:
+                #Attempt to read as gzipped file
+                decompressed = zlib.decompress(raw_response, 16+zlib.MAX_WBITS)
+                self.compression = 'GZIP'
+                self.source = decompressed.decode('utf-8')
+            except:
+                self.source = raw_response.decode('utf-8')
+                self.compression = 'None'
 
 
         #PARSE HTML/XML
@@ -612,50 +629,7 @@ class LinkItem(BaseMessageable):
                 self.add_links(get_iframes_on_page(soup), self.iframe_links, set)
                 #self.add_links(get_xhr_links_on_page(soup), self.xhr_links, set)
         
-        #DETECT COMPRESSION
-        if response:
-            
-            try:
-                #Attempt to read as gzipped file
-                decompressed = zlib.decompress(raw_response, 16+zlib.MAX_WBITS)
-                self.compression = 'GZIP'
-                self.source = decompressed.decode('utf-8')
-            except:
-                self.source = raw_response.decode('utf-8')
-                self.compression = 'None'
-                
-
-
-        # if self.is_javascript == True or self.is_css == True or self.is_xml == True:
-            
-
-        #     local_file_path = store_file_locally(self.url)
-            
-        #     try:
-        #         #Attempt to read as gzipped file
-        #         f = gzip.open(local_file_path, 'rb')
-        #         source = f.read()
-        #         f.close()
-        #         self.compression = 'GZIP'
-
-        #     except:
-        #         try:
-        #             #Attempt to read as uncompressed file
-        #             f = open(local_file_path, 'rb')
-        #             source = f.read()
-        #             f.close()
-
-        #             self.compression = 'None'
-
-        #         except:
-        #             source = None
-        #             self.add_error_message("Unable to read file")
-
-        #     #DELETE local file
-        #     os.unlink(local_file_path)
-
-        #     if source:
-        #         self.source = source.decode('utf-8')
+        
 
         #Create enumerated source
         if self.content:
@@ -892,12 +866,20 @@ def timedelta_milliseconds(td):
     return td.days*86400000 + td.seconds*1000 + td.microseconds/1000    
 
 # Recursively follow redirects until there isn't a location header
+class NoRedirection(urllib2.HTTPErrorProcessor):
+
+    def http_response(self, request, response):
+        return response
+
+    https_response = http_response
+
 def trace_path(url, traced, depth=0):
 
-    if depth > 12:
-
+    MAX_REDIRECTS = 12
+    if depth > MAX_REDIRECTS:
         return traced
 
+    opener = urllib2.build_opener(NoRedirection)
     request = urllib2.Request(url, headers=HEADERS)
     response = None
     response_data = {'url':url,'response_code':None,'response_content_type':None,'redirect':None,'response_load_time':None}
@@ -906,7 +888,7 @@ def trace_path(url, traced, depth=0):
     try:
 
         start_time = datetime.datetime.now()
-        response = urllib2.urlopen(request)
+        response = opener.open(request)
         end_time = datetime.datetime.now()
         response_data['response_code'] = response.code
         response_data['response_content_type'] = response.info().getheader('Content-Type')
@@ -915,12 +897,11 @@ def trace_path(url, traced, depth=0):
         milliseconds = timedelta_milliseconds(load_time)
         response_data['response_load_time'] = milliseconds     
 
-        ending_url = response.geturl()
+        ending_url = response.info().getheader('Location') or url
         has_redirect = url != ending_url
 
         if has_redirect:
-            response_data['redirect'] = ending_url
-               
+            response_data['redirect'] = ending_url               
 
     except urllib2.HTTPError, e:
         #checksLogger.error('HTTPError = ' + str(e.code))
@@ -943,8 +924,7 @@ def trace_path(url, traced, depth=0):
     #         link['messages']['error'].append(message)
 
     except Exception:
-        response_data['response_code'] = "Unknown Exception: %s"%(traceback.format_exc())
-        
+        response_data['response_code'] = "Unknown Exception: %s"%(traceback.format_exc())        
     
     traced.append(response_data)
 
