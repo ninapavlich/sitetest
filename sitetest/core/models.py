@@ -132,6 +132,7 @@ class LinkSet(BaseMessageable):
     parsable_links = {}
     loadable_links = {}
     test_results = None
+    
 
     def __init__(self, include_media, include_external_links, canonical_domain, domain_aliases, max_parse_count=None, ignore_query_string_keys=None, alias_query_strings=None, skip_test_urls=None, skip_urls=None, verbose=False):
 

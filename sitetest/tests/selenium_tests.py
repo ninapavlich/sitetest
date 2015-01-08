@@ -13,7 +13,7 @@ def test_selenium(site, automated_test_dir, verbose=False):
     site.test_results = unittest.TextTestRunner(verbosity=1).run(all_tests)
 
     if len(site.test_results.errors) > 0:
-        site.add_error_message('%s Errors found when running tests'%(len(site.test_results.errors)), len(site.test_results.errors))
+        site.add_warning_message('%s Errors found when running tests'%(len(site.test_results.errors)), len(site.test_results.errors))
     if len(site.test_results.failures) > 0:
         site.add_error_message('%s Failures found when running tests'%(len(site.test_results.failures)), len(site.test_results.failures))
                 

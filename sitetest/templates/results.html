@@ -264,7 +264,7 @@
                     
 					<ul>
 					    {% for error in set.test_results.errors %}
-					    <li class="alert alert-danger" role="alert"><strong>{{error.0}}</strong> {{error.1|safe}}</li>                                
+					    <li class="alert alert-warning" role="alert"><strong>{{error.0}}</strong> {{error.1|safe}}</li>                                
 					    {% endfor %}
 					</ul>
 
@@ -273,7 +273,7 @@
 					<ul>
 					    {% for skip in set.test_results.skipped %}
 
-					    <li class="alert alert-danger" role="alert"><strong>{{skip.0}}</strong> {{skip.1|safe}}</li>                                
+					    <li class="alert alert-warning" role="alert"><strong>{{skip.0}}</strong> {{skip.1|safe}}</li>                                
 					    {% endfor %}
 					</ul>
 
