@@ -177,8 +177,13 @@
 			  	<li class="active"><a href="#pages-parsed" role="tab" data-toggle="tab">Parsed Pages</a></li>
 			  	<li><a href="#pages-meta" role="tab" data-toggle="tab">Robots &amp; Sitemaps</a></li>
 			  	<li><a href="#pages-loaded" role="tab" data-toggle="tab">Loaded Pages</a></li>
+			  	
 			  	{% if output_unloaded_links %}
 			  	<li><a href="#pages-other" role="tab" data-toggle="tab">All Other Pages</a></li>
+			  	{% endif %}
+
+			  	{% if set.test_results %}
+			  	<li><a href="#pages-tests" role="tab" data-toggle="tab">Test Results</a></li>
 			  	{% endif %}
 			</ul>
 
@@ -240,6 +245,40 @@
 					{% endfor %}	
 				</div>	
 				{% endif %}	
+
+				{% if set.test_results %}
+				<div class="tab-pane" id="pages-tests">
+					<h2>Test Results</h2>	
+
+					<p>Ran {{set.test_results.testsRun}} test(s).</p>
+
+					<h3>Failures ({{set.test_results.failures|length}})</h3>
+                    
+					<ul>
+					    {% for failure in set.test_results.failures %}
+					    <li class="alert alert-danger" role="alert"><strong>{{failure.0}}</strong> {{failure.1|safe}}</li>                                
+					    {% endfor %}
+					</ul>
+
+					<h3>Errors ({{set.test_results.errors|length}})</h3>
+                    
+					<ul>
+					    {% for error in set.test_results.errors %}
+					    <li class="alert alert-danger" role="alert"><strong>{{error.0}}</strong> {{error.1|safe}}</li>                                
+					    {% endfor %}
+					</ul>
+
+					<h3>Skipped ({{set.test_results.skipped|length}})</h3>
+                    
+					<ul>
+					    {% for skip in set.test_results.skipped %}
+
+					    <li class="alert alert-danger" role="alert"><strong>{{skip.0}}</strong> {{skip.1|safe}}</li>                                
+					    {% endfor %}
+					</ul>
+
+				</div>
+			  	{% endif %}
 			</div>
 
 		</div>

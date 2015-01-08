@@ -28,8 +28,10 @@ def test_lint_js(set, verbose=False):
     
 
         if link.is_javascript:
+
+            print 'test js %s'%(link_url)
             
-            link_source = link.content.encode('ascii', 'ignore')
+            link_source = link.content.decode('utf-8').encode('ascii', 'ignore')
 
 
             if link_source:

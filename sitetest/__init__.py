@@ -21,6 +21,8 @@ from .tests.w3c_compliance import test_w3c_compliance
 from .tests.screenshots import test_screenshots
 from .tests.lint_js import test_lint_js
 from .tests.pagespeed import test_pagespeed
+from .tests.selenium_tests import test_selenium
+
 
             
 def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_id, options=None):
@@ -45,7 +47,8 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
             'run_third_party_tests':False,
             'verbose':True,
             'output_unloaded_links':True,
-            'max_parse_count':None
+            'max_parse_count':None,
+            'automated_tests_dir':None
         }
 
 
@@ -75,6 +78,8 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
 
     max_parse_count = None if 'max_parse_count' not in options else options['max_parse_count']
 
+    automated_tests_dir = None if 'automated_tests_dir' not in options else options['automated_tests_dir']
+
 
     if verbose:
         print "SITE TEST :: %s Recursive:%s Media:%s External Links:%s 3rd Party:%s MAX:%s"%(canonical_domain, recursive, test_media, test_external_links, run_third_party_tests, max_parse_count)
@@ -103,15 +108,15 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
     #     set.load_link(sitemap_link, recursive, 200)
    
 
-
+    """
     #if recursive:
-    #1. Site quality test
+    #Site quality test
     try:
         test_basic_site_quality(set, verbose)
     except:
         print "Error running site quality check: %s"%(traceback.format_exc())
 
-    #2. Page quality test
+    #Page quality test
     try:
         test_basic_page_quality(set, recursive, verbose)
     except Exception:        
@@ -120,41 +125,44 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
 
 
 
-    #3. Spell Check test
+    #Spell Check test
     try:
         print 'running spellcheck...'
         test_basic_spell_check(set, special_dictionary, verbose)
     except Exception:        
         print "Error running spellcheck: %s"%(traceback.format_exc())
 
-    #4. Lint JS
+    #Lint JS
     try:
         test_lint_js(set, verbose)
     except Exception:        
         print "Error linting JS: %s"%(traceback.format_exc())
+    """
 
-
-    
-
+    if automated_tests_dir:
+        try:
+            test_selenium(set, automated_tests_dir, verbose)
+        except Exception:        
+            print "Error running Selenium tests: %s"%(traceback.format_exc())
 
 
 
     if run_third_party_tests==True:
 
-        #5. Page Speed
+        #Page Speed
         try:
             test_pagespeed(set, credentials, verbose)
         except Exception:        
            print "Error testing site loading optimization: %s"%(traceback.format_exc())
 
-        #6. W3C Compliance test
+        #W3C Compliance test
         try:
             test_w3c_compliance(set, ignore_validation_errors, verbose)
         except Exception:        
             print "Error validating with w3c: %s"%(traceback.format_exc())
 
         try:
-            #7. Browser Screenshots
+            #Browser Screenshots
             test_screenshots(set, credentials, verbose)
         except Exception:        
             print "Error generating screenshots: %s"%(traceback.format_exc())
