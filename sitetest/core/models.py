@@ -419,6 +419,7 @@ class LinkItem(BaseMessageable):
         self.is_font = (extension.lower() in FONT_SUFFIXES)
         self.is_image = (extension.lower() in IMAGE_SUFFIXES)
         self.source = None
+        self.html = None
 
 
         super(LinkItem, self).__init__()
