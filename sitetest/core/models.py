@@ -218,9 +218,8 @@ class LinkSet(BaseMessageable):
                 if page_link.url not in self.parsed_links:
                     self.parsed_links[page_link.url] = page_link
             
-
         #Let's do it again!
-        if recursive==True:
+        if recursive==True and page_link.is_parseable_type:
             for child_link_url in page_link.links:
                 if child_link_url not in self.parsed_links:                                                              
                     self.load_link(page_link.links[child_link_url], recursive, 200)
@@ -230,7 +229,7 @@ class LinkSet(BaseMessageable):
 
     def get_or_create_link_object(self, url, referer=None):
         incoming_url = url
-        referer_url = None if not referer else referer.url
+        referer_url = None if not referer else referer.ending_url
 
         url = self.get_normalized_href(url, referer_url)
         slashed_url = u"%s/"%url
@@ -258,7 +257,7 @@ class LinkSet(BaseMessageable):
 
             #print ">>> Create Link %s (<<< %s)"%(link.__unicode__(), referer_url)
 
-        if referer and referer.url != url:
+        if referer and referer.url != url and referer.ending_url != url:
             link.add_referer(referer)
 
         if self.alias_query_strings:
