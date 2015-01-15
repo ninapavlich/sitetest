@@ -1,7 +1,6 @@
 <ul>
-  	{% if link.response_load_time %}
-    <li>This page took <strong>{{link.response_load_time}}ms</strong> to load.</li>
-    {% endif %}
+
+    <strong>{{link.response_code}}</strong> {{link.url}} [{{link.response_content_type}}] - <em>{{link.response_load_time}} ms</em>
 
     {% if link.loading_score %}
     <li>This page scored <strong class="score-{{link.loading_score_group}}">{{link.loading_score.score}}</strong> on google page speed tests.</li>
@@ -49,3 +48,4 @@
     {% endfor %}
 </ul>
 {% endif %}
+

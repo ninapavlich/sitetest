@@ -482,17 +482,28 @@ class LinkItem(BaseMessageable):
 
     @property
     def is_parseable_type(self):
-        return self.has_response and (self.is_internal == True or self.is_css == True or self.is_javascript == True)
+        return self.has_response and \
+            (self.is_internal == True or \
+            (self.is_css == True and self.parent_is_internal) or\
+            (self.is_javascript == True and self.parent_is_internal))
 
     @property
     def likely_parseable_type(self):
+        looks_like_media = ('.css' in self.url.lower()) or ('.js' in self.url.lower()) or ('.gz' in self.url.lower())
         return (self.starting_type == TYPE_INTERNAL and not self.is_media == True) \
-            or ('.css' in self.url.lower()) or ('.js' in self.url.lower()) \
-            or ('.gz' in self.url.lower())
+            or (looks_like_media and self.parent_is_internal)
 
     @property
     def is_internal(self):
         return self.ending_type == TYPE_INTERNAL and self.starting_type == TYPE_INTERNAL
+
+    @property
+    def parent_is_internal(self):
+        for referer_url in self.referers:
+            referer = self.referers[referer_url]
+            if referer.is_internal:
+                return True
+        return False
 
     @property
     def is_internal_html(self):
