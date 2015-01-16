@@ -99,16 +99,8 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
     if starting_link:
         set.load_link(starting_link, recursive, 200, True)
 
-    
 
-    #Load any additional from sitemap
     
-    # sitemap_link = set.get_or_create_link_object(sitemap_url, None)
-    # if sitemap_link:
-    #     set.load_link(sitemap_link, recursive, 200)
-   
-
-    """
     #if recursive:
     #Site quality test
     try:
@@ -123,8 +115,6 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
         print "Error running page quality check: %s"%(traceback.format_exc())
 
 
-
-
     #Spell Check test
     try:
         print 'running spellcheck...'
@@ -137,7 +127,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
         test_lint_js(set, verbose)
     except Exception:        
         print "Error linting JS: %s"%(traceback.format_exc())
-    """
+    
 
     if automated_tests_dir:
         try:

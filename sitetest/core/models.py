@@ -419,6 +419,7 @@ class LinkItem(BaseMessageable):
         self.is_image = (extension.lower() in IMAGE_SUFFIXES)
         self.source = None
         self.html = None
+        self.title = url
 
 
         super(LinkItem, self).__init__()
