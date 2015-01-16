@@ -560,6 +560,7 @@ class LinkItem(BaseMessageable):
                 self.redirect_path = redirect_path
 
         except urllib2.HTTPError, e:
+            print 'HTTPError Error %s'%(e.code)
             #checksLogger.error('HTTPError = ' + str(e.code))
 
             try:
@@ -570,7 +571,7 @@ class LinkItem(BaseMessageable):
                 milliseconds = timedelta_milliseconds(load_time)
                 self.response_load_time = milliseconds   
                 
-                if self.response_code == 303:
+                if is_redirect_code(self.response_code):
                     try:
 
                         redirect_path = trace_path(self.url, [])       
@@ -585,6 +586,9 @@ class LinkItem(BaseMessageable):
                                 request = urllib2.Request(self.ending_url, headers=HEADERS)
                                 response = urllib2.urlopen(request)    
                                 self.has_response = True
+
+                            if response_data['error'] != None:
+                                self.add_error_message(response_data['error'])
 
                     except Exception:
                         print 'error getting response headers: %s'%(traceback.format_exc())
@@ -644,7 +648,7 @@ class LinkItem(BaseMessageable):
 
 
         #PARSE HTML/XML
-        if self.is_html == True or self.is_xml == True:
+        if self.has_response==True and (self.is_html == True or self.is_xml == True):
 
             try:
                 soup = BeautifulSoup(self.source, 'html5lib')
@@ -930,12 +934,21 @@ def trace_path(url, traced, depth=0):
     if depth > MAX_REDIRECTS:
         return traced
 
+    #If url is anywhere in the path
+    for trace_history in traced:
+        if trace_history['url'] == url:
+            print "WARNING: URL already traced. Redirect loop detected."
+            traced[-1]['error'] = "Redirect loop detected to %s"%(url)
+            return traced
+
+    
+
     opener = urllib2.build_opener(NoRedirection)
     request = urllib2.Request(url, headers=HEADERS)
     response = None
     response_data = {'url':url,'response_code':None,'response_content_type':None,'redirect':None,'response_load_time':None}
     has_redirect = False
-
+    #print '[%s] Trace path %s - %s'%(depth, url, traced)
     try:
 
         start_time = datetime.datetime.now()
@@ -945,7 +958,7 @@ def trace_path(url, traced, depth=0):
         response_header = response.info()
         response_data['response_content_type'] = response_header.getheader('Content-Type')
         response_data['response_encoding'] = response_header.getheader('Content-Encoding')
-        
+        response_data['error'] = None
 
         load_time = end_time - start_time
         milliseconds = timedelta_milliseconds(load_time)
@@ -983,10 +996,18 @@ def trace_path(url, traced, depth=0):
     traced.append(response_data)
 
     if has_redirect:
-        traced = trace_path(ending_url, traced)
+        traced = trace_path(ending_url, traced, depth+1)
         
 
     return traced
+
+def is_redirect_code(code):
+    code_int = int(code)
+    if code == 301 or \
+        code == 302 or \
+        code == 303:
+        return True
+    return False
 
 def url_fix(s, charset='utf-8'):
     """Sometimes you get an URL by a user that just isn't a real
