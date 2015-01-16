@@ -49,7 +49,6 @@ def test_basic_page_quality(set, recursive, verbose=False):
                     except:
                         page_title = ''
                     link.title = page_title.strip()
-                    print 'set title to %s'%(page_title)
 
                     is_redirected_page = link.url != link.ending_url
                     is_alias_page = link.alias_to != None

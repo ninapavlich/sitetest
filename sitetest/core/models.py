@@ -309,7 +309,13 @@ class LinkSet(BaseMessageable):
 
 
     def get_normalized_href(self, url, normalized_parent_url=None):
+        debug = False
         
+
+        if debug:
+            print '---> get_normalized_href for %s from %s'%(url, normalized_parent_url)
+        
+
         normalized = url
         if normalized.startswith('//'):
             if self.canonical_domain.startswith('https'):
@@ -319,6 +325,8 @@ class LinkSet(BaseMessageable):
 
         #Remove invalid bits
         normalized = url_fix(normalized)
+        if debug:
+            print "---> fixed: %s"%(normalized)
 
         #If this is the homepage
         if normalized.strip('/') == self.canonical_domain.strip('/'):
@@ -328,9 +336,14 @@ class LinkSet(BaseMessageable):
 
         #remove anything after the hashtag:
         normalized = normalized.split('#')[0]
+        if debug:
+            print "---> dehashed: %s"%(normalized)
 
         #for internal urls, make main domain present
-        link_type = self.get_link_type(url)
+        link_type = self.get_link_type(normalized)
+        if debug:
+            print "---> link type is %s"%(link_type)
+
         if link_type == TYPE_INTERNAL:            
 
             if self.canonical_domain not in normalized:
@@ -361,6 +374,9 @@ class LinkSet(BaseMessageable):
                     
             #Next remove unwanted query strings:
             normalized = clean_query_string(normalized, self.ignore_query_string_keys)
+
+        if debug:
+            print '---> normalized ====> %s'%(normalized)
 
         return normalized
 
