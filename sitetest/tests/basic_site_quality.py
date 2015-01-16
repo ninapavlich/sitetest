@@ -104,8 +104,9 @@ def test_basic_site_quality(site, verbose=False):
     if robots_link.response_code == 200:
         for link_url in site.parsed_links:
             link = site.parsed_links[link_url]
-            accessible_to_robots = rp.can_fetch("*", link.url)
-            link.accessible_to_robots = accessible_to_robots
-            if not accessible_to_robots:
-                link.add_info_message("Page is accessible, but not to robots.")
+            if link.is_internal_html:
+                accessible_to_robots = rp.can_fetch("*", link.url)
+                link.accessible_to_robots = accessible_to_robots
+                if not accessible_to_robots:
+                    link.add_info_message("Page is accessible, but not to robots.")
             

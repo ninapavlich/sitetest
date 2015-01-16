@@ -35,7 +35,6 @@ def test_basic_page_quality(set, recursive, verbose=False):
 
         link = set.parsed_links[link_url]
         
-
         if link.is_internal_html == True:
 
             link_html = link.html
@@ -114,6 +113,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
                         ]
 
                         #3 - Test Meta tags
+                        missing_met_tags = []
                         for tag in meta_tags:
                             prop_type = tag[0]
                             property_name = tag[1]
@@ -126,11 +126,14 @@ def test_basic_page_quality(set, recursive, verbose=False):
                                     value = property_item[property_content_name].strip()
                                 except:
                                     value = None
-                            
                             if not value:
-                                social_tag_error_count += 1
-                                message = "Meta tag %s:%s is missing from page"%(prop_type, property_name)
-                                link.add_warning_message(message)
+                                missing_met_tags.append("%s:%s"%(prop_type, property_name))
+
+                        if len(missing_met_tags) > 0:                        
+                            social_tag_error_count += 1
+                            tags = ', '.join(missing_met_tags)
+                            message = "Meta tag(s) missing from page: %s"%(tags)
+                            link.add_info_message(message)
 
                         
 
@@ -218,29 +221,29 @@ def test_basic_page_quality(set, recursive, verbose=False):
                     print "Parsing page quality: %s"%(traceback.format_exc())
 
     if analytics_missing_error_count > 0:
-        set.add_warning_message("%s pages were found to be missing google analytics"%(analytics_missing_error_count), analytics_missing_error_count)
+        set.add_warning_message("%s page(s) were found to be missing google analytics"%(analytics_missing_error_count), analytics_missing_error_count)
 
     if unique_title_error_count > 0:
-        set.add_warning_message("%s pages were found to have non-unique page titles"%(unique_title_error_count), unique_title_error_count)
+        set.add_warning_message("%s page(s) were found to have non-unique page titles"%(unique_title_error_count), unique_title_error_count)
 
     if unique_description_error_count > 0:
-        set.add_warning_message("%s pages were found to have non-unique page descriptions"%(unique_description_error_count), unique_description_error_count) 
+        set.add_warning_message("%s page(s) were found to have non-unique page descriptions"%(unique_description_error_count), unique_description_error_count) 
 
     if social_tag_error_count > 0:
-        set.add_warning_message("%s social meta tags are missing"%(social_tag_error_count), social_tag_error_count)    
+        set.add_info_message("%s page(s) were found to have missing social meta tags"%(social_tag_error_count), social_tag_error_count)    
 
     if ssl_error_count > 0:
         set.add_warning_message("%s HTTP active mixed resource were found on HTTPS pages"%(ssl_error_count), ssl_error_count)             
 
     if h1_error_count > 0:
-        set.add_warning_message("%s pages didn't have exactly one H1 tag"%(h1_error_count), h1_error_count)             
+        set.add_warning_message("%s page(s) didn't have exactly one H1 tag"%(h1_error_count), h1_error_count)             
 
     if compression_error_count > 0:
-        set.add_warning_message("%s pages are not compressed"%(compression_error_count), compression_error_count)             
+        set.add_warning_message("%s page(s) are not compressed"%(compression_error_count), compression_error_count)             
 
     if robots_error_count > 0:
-        set.add_warning_message("%s pages are not accessible to robots.txt"%(robots_error_count), robots_error_count)             
+        set.add_warning_message("%s page(s) are not accessible to robots.txt"%(robots_error_count), robots_error_count)             
 
     if sitemap_error_count > 0:
-        set.add_warning_message("%s pages are not in the sitemap"%(sitemap_error_count), sitemap_error_count)             
+        set.add_warning_message("%s page(s) are not in the sitemap"%(sitemap_error_count), sitemap_error_count)             
 

@@ -5,7 +5,7 @@ import datetime
 import gzip
 import httplib
 import html5lib
-import urllib2
+import urllib2, cookielib
 import urllib
 import urlparse
 import cgi
@@ -15,6 +15,11 @@ import sys
 import zlib
 from slugify import slugify
 from bs4 import BeautifulSoup
+
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 
 TYPE_OTHER = 'other'
@@ -436,6 +441,7 @@ class LinkItem(BaseMessageable):
         self.source = None
         self.html = None
         self.title = url
+        self.redirect_path = None
 
 
         super(LinkItem, self).__init__()
@@ -549,90 +555,46 @@ class LinkItem(BaseMessageable):
     def load(self, set, expected_code=200):
 
 
-        request = urllib2.Request(self.url, headers=HEADERS)
         response = None
         start_time = datetime.datetime.now()
+        self.redirect_path = trace_path(self.url, [])
 
-        try:
+
+        if len(self.redirect_path) > 0:
+            last_response_item = self.redirect_path[-1]
+
+            self.response_content_type = last_response_item['response_content_type']
+
+            self.response_code = last_response_item['response_code']
+            self.response_encoding = last_response_item['response_encoding']
+            self.ending_url = last_response_item['url']
+            self.ending_type = set.get_link_type(self.ending_url)   
+
+            load_time = datetime.datetime.now() - start_time
+            milliseconds = timedelta_milliseconds(load_time)
+            self.response_load_time = milliseconds    
+
+            if self.response_code == 200:
+                response = last_response_item['response']
+                self.has_response = True
+            else:
+                self.has_response = False
+        
+            #Get any errors from the redirect path
+            for response_data in self.redirect_path:
+                if response_data['error'] != None:
+                    self.add_error_message(response_data['error'])
+                if response_data['warning'] != None:
+                    self.add_warning_message(response_data['warning'])
 
             
-            response = urllib2.urlopen(request)
-            end_time = datetime.datetime.now()
-            self.response_code = response.code
-            #self.response = response#u"%s"%(response)
-            self.has_response = True
-            response_header = response.info()
-            self.response_content_type = response_header.getheader('Content-Type')
-            self.response_encoding = response_header.getheader('Content-Encoding')
-            self.ending_url = response.geturl()
-            self.ending_type = set.get_link_type(self.ending_url)
-
-            load_time = end_time - start_time
-            milliseconds = timedelta_milliseconds(load_time)
-            self.response_load_time = milliseconds        
-
-            if self.url != self.ending_url:
-                redirect_path = trace_path(self.url, [])
-                self.redirect_path = redirect_path
-
-        except urllib2.HTTPError, e:
-            print 'HTTPError Error %s'%(e.code)
-            #checksLogger.error('HTTPError = ' + str(e.code))
-
-            try:
-                self.response_code = e.code
-
-                end_time = datetime.datetime.now()
-                load_time = end_time - start_time
-                milliseconds = timedelta_milliseconds(load_time)
-                self.response_load_time = milliseconds   
-                
-                if is_redirect_code(self.response_code):
-                    try:
-
-                        redirect_path = trace_path(self.url, [])       
-                        self.redirect_path = redirect_path     
-                        if len(redirect_path) > 0:
-                            response_data = redirect_path[-1]
-                            self.response_content_type = response_data['response_content_type']
-                            self.response_code = response_data['response_code']
-                            self.ending_url = response_data['url']
-                            self.ending_type = set.get_link_type(self.ending_url)      
-                            if self.response_code == 200:
-                                request = urllib2.Request(self.ending_url, headers=HEADERS)
-                                response = urllib2.urlopen(request)    
-                                self.has_response = True
-
-                            if response_data['error'] != None:
-                                self.add_error_message(response_data['error'])
-
-                    except Exception:
-                        print 'error getting response headers: %s'%(traceback.format_exc())
-                    
-
-            except:
-                self.response_code = "Unknown HTTPError"
-
-        except urllib2.URLError, e:
-            #checksLogger.error('URLError = ' + str(e.reason))
-
-            self.response_code = "Unknown URLError: %s"%(e.reason)
-
-
-        except httplib.BadStatusLine as e:
-            self.response_code = "Bad Status Error. (Presumably, the server closed the connection before sending a valid response)"
-
-        except Exception:
-                
-            self.response_code = "Unknown Exception: %s"%(traceback.format_exc())
-
-
         if expected_code != self.response_code:
             message = "Loading error on page <a href='#%s' class='alert-link'>%s</a> Expected %s Received %s"%(self.internal_page_url, self.url, expected_code, self.response_code)
             self.add_error_message(message)
             return (False, response)
         else:
             return (True, response)
+        
 
     def parse_response(self, response, set):
         raw_response = None if response==None else response.read()
@@ -944,78 +906,118 @@ class NoRedirection(urllib2.HTTPErrorProcessor):
 
     https_response = http_response
 
-def trace_path(url, traced, depth=0):
+def trace_path(url, traced, enable_cookies = False, depth=0, cj=None):
 
-    MAX_REDIRECTS = 12
+    #Safely catch
+    MAX_REDIRECTS = 15
     if depth > MAX_REDIRECTS:
+        traced[-1]['error'] = "Max redirects (%s) reached"%(MAX_REDIRECTS)
         return traced
 
-    #If url is anywhere in the path
+    #Check for redirect loop
     for trace_history in traced:
-        if trace_history['url'] == url:
-            print "WARNING: URL already traced. Redirect loop detected."
-            traced[-1]['error'] = "Redirect loop detected to %s"%(url)
-            return traced
+        #If we are using cookies, then a redirect would consist of the same url and the same cookies
+        #If cookies are not enabled, then a redirect consists merely of the same url
+        is_same_url = trace_history['url'] == url
+        is_same_cookies = True if enable_cookies == False else trace_history['picked_cookies'] == pickle.dumps(cj._cookies)
+        
+        if is_same_url and is_same_cookies:
+            if enable_cookies == False:
+                #Re-try with cookies enabled                
+                first_url = traced[0]['url']
+                traced_with_cookies = trace_path(first_url, [], True)
+                traced_with_cookies[0]['warning'] = "Cookies required to correctly navigate to: %s"%(first_url)
+                return traced_with_cookies
+
+            else:
+                traced[-1]['error'] = "Redirect loop detected to %s"%(url)
+                return traced
 
     
+    if enable_cookies:
+        if not cj:
+            cj = cookielib.CookieJar()
 
-    opener = urllib2.build_opener(NoRedirection)
+    if enable_cookies:
+        opener = urllib2.build_opener(NoRedirection, urllib2.HTTPCookieProcessor(cj))
+    else:
+        opener = urllib2.build_opener(NoRedirection)
+
     request = urllib2.Request(url, headers=HEADERS)
     response = None
-    response_data = {'url':url,'response_code':None,'response_content_type':None,'redirect':None,'response_load_time':None}
+    response_data = {
+        'url':url,
+        'ending_url':None,
+        'response_code':None,
+        'response_content_type':None,
+        'response_encoding':None,
+        'redirect':None,
+        'response_load_time':None,
+        'error':None,
+        'warning':None,
+        'response':None
+    }
     has_redirect = False
-    #print '[%s] Trace path %s - %s'%(depth, url, traced)
+    start_time = datetime.datetime.now()
+    #print '---> [%s] Trace path %s'%(depth, url)
     try:
-
-        start_time = datetime.datetime.now()
+        
         response = opener.open(request)
-        end_time = datetime.datetime.now()
-        response_data['response_code'] = response.code
         response_header = response.info()
-        response_data['response_content_type'] = response_header.getheader('Content-Type')
-        response_data['response_encoding'] = response_header.getheader('Content-Encoding')
-        response_data['error'] = None
 
-        load_time = end_time - start_time
-        milliseconds = timedelta_milliseconds(load_time)
-        response_data['response_load_time'] = milliseconds     
-
-        ending_url = response_header.getheader('Location') or url
-        has_redirect = url != ending_url
-
-        if has_redirect:
-            response_data['redirect'] = ending_url               
+        parse_trace_response(response_data, response.code, response_header, start_time)       
+        response_data['response'] = response
 
     except urllib2.HTTPError, e:
-        #checksLogger.error('HTTPError = ' + str(e.code))
-
+        
+        print '---> urllib2.HTTPError %s - %s'%(e.code, e.headers)
         try:
-            response_data['response_code'] = e.code    
+            
+            parse_trace_response(response_data, e.code, e.headers, start_time)
+
         except:
-            response_data['response_code'] = "Unknown HTTPError"
+            response_data['response_code'] = "Unknown HTTPError"            
 
     except urllib2.URLError, e:
         #checksLogger.error('URLError = ' + str(e.reason))
         response_data['response_code'] = "Unknown URLError: %s"%(e.reason)
-       
-    # except httplib.HTTPException, e:
-    #     #checksLogger.error('HTTPException')
 
-    #     if expect_success:
-    #         message = "Loading error on page <a href='#%s' class='alert-link'>%s</a> ERROR: %s"%(link['internal_page_url'], link_url, e)
-    #         messages['error'].append(message)
-    #         link['messages']['error'].append(message)
+    except httplib.BadStatusLine as e:
+        response_data['response_code'] = "Bad Status Error. (Presumably, the server closed the connection before sending a valid response)"
 
     except Exception:
-        response_data['response_code'] = "Unknown Exception: %s"%(traceback.format_exc())        
-    
+        response_data['response_code'] = "Unknown Exception: %s"%(traceback.format_exc())    
+
+    if enable_cookies:
+        response_data['picked_cookies'] = pickle.dumps(cj._cookies)        
+
     traced.append(response_data)
 
+    has_redirect = response_data['redirect']!=None        
     if has_redirect:
-        traced = trace_path(ending_url, traced, depth+1)
-        
+        traced = trace_path(response_data['ending_url'], traced, enable_cookies, depth+1, cj)
 
     return traced
+
+def parse_trace_response(response_data, code, response_header, start_time):
+
+    end_time = datetime.datetime.now()
+    response_data['response_code'] = code    
+    response_data['response_content_type'] = response_header.getheader('Content-Type')
+    response_data['response_encoding'] = response_header.getheader('Content-Encoding')
+    response_data['error'] = None
+     
+    response_data['cookies'] = response_header.getheader("Set-Cookie")  
+
+    load_time = end_time - start_time
+    milliseconds = timedelta_milliseconds(load_time)
+    response_data['response_load_time'] = milliseconds     
+
+    response_data['ending_url'] = response_header.getheader('Location') or response_data['url']
+    has_redirect = response_data['url'] != response_data['ending_url']
+
+    if has_redirect:
+        response_data['redirect'] = response_data['ending_url']
 
 def is_redirect_code(code):
     code_int = int(code)
