@@ -122,11 +122,13 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
     except Exception:        
         print "Error running spellcheck: %s"%(traceback.format_exc())
 
+    """
     #Lint JS
     try:
         test_lint_js(set, verbose)
     except Exception:        
         print "Error linting JS: %s"%(traceback.format_exc())
+    """
     
 
     if automated_tests_dir:
@@ -297,33 +299,35 @@ def open_results(path):
     webbrowser.open(url,new=new)
 
 def notify_results(results, credentials):
-    
-    if 'slack' in credentials and 'SLACK_TOKEN' in credentials['slack']:
-        SLACK_TOKEN = credentials['slack']['SLACK_TOKEN']
-        SLACK_CHANNEL = credentials['slack']['SLACK_CHANNEL']
-        SLACK_USERNAME = credentials['slack']['SLACK_USERNAME']
+    try:
+        if 'slack' in credentials and 'SLACK_TOKEN' in credentials['slack']:
+            SLACK_TOKEN = credentials['slack']['SLACK_TOKEN']
+            SLACK_CHANNEL = credentials['slack']['SLACK_CHANNEL']
+            SLACK_USERNAME = credentials['slack']['SLACK_USERNAME']
 
-        client = SlackClient(SLACK_TOKEN)
+            client = SlackClient(SLACK_TOKEN)
 
-        
-        message_output = "Score %s for Test of \"%s\"\n\n"%(results['set'].get_score(), results['site'].title)
+            
+            message_output = "Score %s for Test of \"%s\"\n\n"%(results['set'].get_score(), results['site'].title)
 
-        message_output += "Full Report: %s\n\n"%(results['report_url'])        
+            message_output += "Full Report: %s\n\n"%(results['report_url'])        
 
-        # for message in results['messages']['success']:
-        #     message_output += (message+'\n\n')
-        # for message in results['messages']['error']:
-        #     message_output += (message+'\n\n')
-        # for message in results['messages']['warning']:
-        #     message_output += (message+'\n\n')
-        # for message in results['messages']['info']:
-        #     message_output += (message+'\n\n')
+            # for message in results['messages']['success']:
+            #     message_output += (message+'\n\n')
+            # for message in results['messages']['error']:
+            #     message_output += (message+'\n\n')
+            # for message in results['messages']['warning']:
+            #     message_output += (message+'\n\n')
+            # for message in results['messages']['info']:
+            #     message_output += (message+'\n\n')
 
-        
-        stripped = stripHtmlTags(message_output)
-        client.chat_post_message(SLACK_CHANNEL, stripped, username=SLACK_USERNAME) 
-    else:
-        print "Warning: Slack API credentials not supplied." 
+            
+            stripped = stripHtmlTags(message_output)
+            client.chat_post_message(SLACK_CHANNEL, stripped, username=SLACK_USERNAME) 
+        else:
+            print "Warning: Slack API credentials not supplied." 
+    except Exception:
+        print "Error sending notification to Slack: %s"%(traceback.format_exc())
 
 def stripHtmlTags(htmlTxt):
     if htmlTxt is None:

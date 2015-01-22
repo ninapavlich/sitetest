@@ -3,6 +3,7 @@ import jsbeautifier
 import os
 import pyjslint
 import urllib2
+import traceback 
 from itertools import izip
 
 def test_lint_js(set, verbose=False):
@@ -28,15 +29,17 @@ def test_lint_js(set, verbose=False):
     
 
         if link.is_javascript:
-
-            print 'test js %s'%(link_url)
             
             link_source = link.content.decode('utf-8').encode('ascii', 'ignore')
 
 
             if link_source:
 
-                beautified_link_source = jsbeautifier.beautify(link_source)
+                try:
+                    beautified_link_source = jsbeautifier.beautify(link_source)
+                except Exception:        
+                    print "Error beautifying JS: %s"%(traceback.format_exc())
+                    beautified_link_source = link_source
 
                 raw_js_errors = pyjslint.check_JSLint(beautified_link_source)
                 #js_errors = [str(error) for error in raw_js_errors]

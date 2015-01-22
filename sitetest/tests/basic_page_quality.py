@@ -49,7 +49,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
                         page_title = ''
                     link.title = page_title.strip()
 
-                    is_redirected_page = link.url != link.ending_url
+                    is_redirected_page = link.is_redirect_page
                     is_alias_page = link.alias_to != None
                     is_skip_test = link.skip_test == True
                     is_https = 'https' in link.url
@@ -60,10 +60,10 @@ def test_basic_page_quality(set, recursive, verbose=False):
                             message = "Page title is missing from <a href='#%s' class='alert-link'>%s</a>."%(link.internal_page_url, link_url)
                             link.add_warning_message(message)
 
-                        elif page_title not in unique_titles:
+                        elif (page_title not in unique_titles) and (is_redirected_page == False) and (is_alias_page == False):
                             unique_titles[page_title] = link.path
                         else:
-                            if link.path.strip('/') != unique_titles[page_title].strip('/') and not is_redirected_page and not is_alias_page:
+                            if link.path.strip('/') != unique_titles[page_title].strip('/') and (is_redirected_page == False) and (is_alias_page == False):
                                 message = "Page title &ldquo;%s&rdquo; in <a href='#%s' class='alert-link'>%s</a> is not unique."%(page_title, link.internal_page_url, link_url)
                                 link.add_warning_message(message)
                                 unique_title_error_count += 1

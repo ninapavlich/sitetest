@@ -195,7 +195,7 @@ class LinkSet(BaseMessageable):
         if is_loadable==True and not_already_loaded==True:
 
             if self.verbose:
-                # trace_memory_usage()
+                trace_memory_usage()
                 print ">>> Load Link %s (parsed: %s/%s, loaded: %s/%s, total: %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.loaded_links), len(self.loadable_links),  len(self.current_links))
 
             load_successful, response = page_link.load(self, expected_code)
@@ -442,6 +442,7 @@ class LinkItem(BaseMessageable):
         self.html = None
         self.title = url
         self.redirect_path = None
+        self.dequeried_url = clear_query_string(self.url)
 
 
         super(LinkItem, self).__init__()
@@ -530,7 +531,7 @@ class LinkItem(BaseMessageable):
 
     @property
     def is_internal_html(self):
-        return self.is_internal == True and self.is_html == True
+        return self.is_internal == True and self.is_html == True and self.is_200
 
     @property
     def is_html(self):
@@ -552,6 +553,16 @@ class LinkItem(BaseMessageable):
         content_type = self.response_content_type
         return content_type and 'css' in content_type.lower()
 
+    @property
+    def is_200(self):
+        return (self.response_code == 200)
+
+    @property
+    def is_redirect_page(self):
+        return (self.url != self.ending_url)
+
+    
+
     def load(self, set, expected_code=200):
 
 
@@ -559,6 +570,7 @@ class LinkItem(BaseMessageable):
         start_time = datetime.datetime.now()
         self.redirect_path = trace_path(self.url, [])
 
+        
 
         if len(self.redirect_path) > 0:
             last_response_item = self.redirect_path[-1]
@@ -575,7 +587,9 @@ class LinkItem(BaseMessageable):
             self.response_load_time = milliseconds    
 
             if self.response_code == 200:
+                #Retrieve last response object and clear it from the object
                 response = last_response_item['response']
+                last_response_item['response'] = None
                 self.has_response = True
             else:
                 self.has_response = False
@@ -975,7 +989,10 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None):
             
             parse_trace_response(response_data, e.code, e.headers, start_time)
 
-        except:
+        except Exception:
+            
+            print "Error parsing trace: %s"%(traceback.format_exc())
+
             response_data['response_code'] = "Unknown HTTPError"            
 
     except urllib2.URLError, e:
@@ -986,6 +1003,9 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None):
         response_data['response_code'] = "Bad Status Error. (Presumably, the server closed the connection before sending a valid response)"
 
     except Exception:
+        
+        print "Unkown Exception: %s"%(traceback.format_exc())
+
         response_data['response_code'] = "Unknown Exception: %s"%(traceback.format_exc())    
 
     if enable_cookies:
@@ -995,6 +1015,8 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None):
 
     has_redirect = response_data['redirect']!=None        
     if has_redirect:
+        #Delete last response object
+        response_data['response'] = None
         traced = trace_path(response_data['ending_url'], traced, enable_cookies, depth+1, cj)
 
     return traced
