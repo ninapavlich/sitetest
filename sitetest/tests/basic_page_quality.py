@@ -24,6 +24,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
     compression_error_count = 0
     robots_error_count = 0
     sitemap_error_count = 0
+    orphan_page_error_count = 0
     
 
     total = len(set.parsed_links)
@@ -186,6 +187,10 @@ def test_basic_page_quality(set, recursive, verbose=False):
                                     message = "This page is not in the sitemap."
                                     link.add_warning_message(message)
 
+                                if len(link.referers) == 1 and link.has_sitemap_entry == True:
+                                    link.add_info_message("Page is in the sitemap, but not accessible from elsewhere in the site.")
+                                    orphan_page_error_count += 1
+
 
                         #10 - Are CSS Files comfbined
                         css_link_domains = {}
@@ -245,5 +250,8 @@ def test_basic_page_quality(set, recursive, verbose=False):
         set.add_warning_message("%s page(s) are not accessible to robots.txt"%(robots_error_count), robots_error_count)             
 
     if sitemap_error_count > 0:
-        set.add_warning_message("%s page(s) are not in the sitemap"%(sitemap_error_count), sitemap_error_count)             
+        set.add_warning_message("%s page(s) are not in the sitemap"%(sitemap_error_count), sitemap_error_count)            
+
+    if orphan_page_error_count > 0: 
+        set.add_warning_message("%s page(s) in the sitemap, but not accessible from elsewhere in the site."%(orphan_page_error_count), orphan_page_error_count)            
 

@@ -42,7 +42,6 @@ def test_basic_site_quality(site, verbose=False):
     
 
     #5 - Verify that sitemap matches up with the actual pages
-    #TODO -- work with compound sitemaps
     #if sitemap_link.response_code == 200:
     if len(sitemap_links) > 0:
 
@@ -50,51 +49,6 @@ def test_basic_site_quality(site, verbose=False):
             for link_url in sitemap_link.hyper_links:
                 link_item = sitemap_link.hyper_links[link_url]
                 link_item.has_sitemap_entry = True
-
-
-        if verbose:
-            print 'Verifying pages are included in sitemap...'
-        total = len(site.loaded_links)
-        count = 0
-        
-        #For any internal page that doesn't have a sitemap entry, add a notice
-        page_missing_sitemap = 0
-        for link_url in site.loaded_links:
-            link = site.loaded_links[link_url]
-
-            if verbose:
-                print "%s/%s"%(count, total)
-            count += 1
-            
-
-            if link.is_internal_html == True:
-                
-                if link.has_sitemap_entry == False and not link.alias_to and not link.skip_test:
-                    link.add_info_message("Page is not included in sitemap")
-                    page_missing_sitemap += 1
-
-        if verbose:
-            print 'Verifying sitemap pages are not orphans...'
-        total = len(site.parsed_links)
-        count = 0
-
-        orphan_page = 0
-        for link_url in site.parsed_links:
-            link = site.parsed_links[link_url]
-
-            if verbose:
-                print "%s/%s"%(count, total)
-            count += 1
-            
-            if len(link.referers) == 1 and link.has_sitemap_entry:
-                link.add_info_message("Page is in the sitemap, but not accessible from elsewhere in the site.")
-                orphan_page += 1
-
-        if page_missing_sitemap > 0:
-            site.add_warning_message("%s pages were not included in sitemap"%(page_missing_sitemap))
-
-        if orphan_page > 0:
-            site.add_info_message("%s pages were found in the sitemap, but not accessible from elsewhere in the site."%(page_missing_sitemap))
 
         
     #6 - Verify that no public pages are blocked by robots.txt
