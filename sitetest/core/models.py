@@ -370,10 +370,19 @@ class LinkSet(BaseMessageable):
 
                 #if not, it must be relative to the parent
                 elif normalized_parent_url:
+
                     if dequeried_parent_url.endswith('/'):
                         normalized = "%s%s"%(dequeried_parent_url, normalized)
                     else:
-                        normalized = "%s/%s"%(dequeried_parent_url, normalized)
+
+                        parent_file_name = dequeried_parent_url.split('/')[-1]
+                        contains_file_name = '.' in parent_file_name
+
+                        if contains_file_name:
+                            parent_parent_url = "/".join(dequeried_parent_url.split('/')[:-1])
+                            normalized = "%s/%s"%(parent_parent_url, normalized)
+                        else:
+                            normalized = "%s/%s"%(dequeried_parent_url, normalized)
 
                     #print "relative from parent, replaced %s with %s"%(url, normalized)
                     
