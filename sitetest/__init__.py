@@ -106,24 +106,24 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
 
     
     #if recursive:
-    #Site quality test
-    # try:
-    #     test_basic_site_quality(set, verbose)
-    # except:
-    #     print "Error running site quality check: %s"%(traceback.format_exc())
+    # Site quality test
+    try:
+        test_basic_site_quality(set, verbose)
+    except:
+        print "Error running site quality check: %s"%(traceback.format_exc())
 
-    # #Page quality test
-    # try:
-    #     test_basic_page_quality(set, recursive, verbose)
-    # except Exception:        
-    #     print "Error running page quality check: %s"%(traceback.format_exc())
+    #Page quality test
+    try:
+        test_basic_page_quality(set, recursive, verbose)
+    except Exception:        
+        print "Error running page quality check: %s"%(traceback.format_exc())
 
 
-    # #Spell Check test
-    # try:
-    #     test_basic_spell_check(set, special_dictionary, verbose)
-    # except Exception:        
-    #     print "Error running spellcheck: %s"%(traceback.format_exc())
+    #Spell Check test
+    try:
+        test_basic_spell_check(set, special_dictionary, verbose)
+    except Exception:        
+        print "Error running spellcheck: %s"%(traceback.format_exc())
 
     """
     #Lint JS
@@ -134,27 +134,27 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
     """
     
 
-    # if automated_tests_dir:
-    #     try:
-    #         test_selenium(set, automated_tests_dir, verbose)
-    #     except Exception:        
-    #         print "Error running Selenium tests: %s"%(traceback.format_exc())
+    if automated_tests_dir:
+        try:
+            test_selenium(set, automated_tests_dir, verbose)
+        except Exception:        
+            print "Error running Selenium tests: %s"%(traceback.format_exc())
 
 
 
-    # if run_third_party_tests==True:
+    if run_third_party_tests==True:
 
-    #     #Page Speed
-    #     try:
-    #         test_pagespeed(set, credentials, 100, verbose)
-    #     except Exception:        
-    #        print "Error testing site loading optimization: %s"%(traceback.format_exc())
+        #Page Speed
+        try:
+            test_pagespeed(set, credentials, 100, verbose)
+        except Exception:        
+           print "Error testing site loading optimization: %s"%(traceback.format_exc())
 
-    #     #W3C Compliance test
-    #     try:
-    #         test_w3c_compliance(set, ignore_validation_errors, 20, verbose)
-    #     except Exception:        
-    #         print "Error validating with w3c: %s"%(traceback.format_exc())
+        # W3C Compliance test
+        try:
+            test_w3c_compliance(set, ignore_validation_errors, 20, verbose)
+        except Exception:        
+            print "Error validating with w3c: %s"%(traceback.format_exc())
 
         # try:
         #     #Browser Screenshots
@@ -185,7 +185,6 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
         'max_parse_count':max_parse_count
     }
 
-    return 
     html = render_results(results)
 
     try:

@@ -27,11 +27,9 @@ def test_pagespeed(set, credentials, max_test_count=100, verbose=False):
                 
                 if tested_count < max_test_count:
                     tested_count += 1
-                    testing_url = 'https://www.googleapis.com/pagespeedonline/v1/runPagespeed?url=%s&key=%s'%(link.url, API_KEY)                   
-                    
-                    #print testing_url
+                    testing_url = 'https://www.googleapis.com/pagespeedonline/v1/runPagespeed?url=%s&key=%s'%(link.url, API_KEY)
 
-                    request = urllib2.Request(testing_url, headers=HEADERS)
+                    request = urllib2.Request(testing_url)
                     response = urllib2.urlopen(request)
                     
                     try:

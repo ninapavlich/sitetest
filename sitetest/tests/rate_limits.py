@@ -16,8 +16,9 @@ def test_rate_limits(site, total_count=500, verbose=False):
     if verbose:
         print '\n\nRunning rate limit tests...\n'
 
-    total_count = 100
-    canonical_domain = site.canonical_domain
+    url = site.canonical_domain
+    #TODO --- allow urls to test to be configurable
+
     success_count = 0
   
     counter = {
@@ -28,7 +29,7 @@ def test_rate_limits(site, total_count=500, verbose=False):
     }
     
     start = time.time()
-    urls = [site.canonical_domain for x in range(total_count)]
+    urls = [url for x in range(total_count)]
     
     def fetch_url(url, counter):
         
@@ -55,7 +56,7 @@ def test_rate_limits(site, total_count=500, verbose=False):
 
         counter['current_count'] += 1
         if verbose:
-            print "Attempt %s/%s: %s\n"%(counter['current_count'], counter['total_count'], code)
+            print "Attempt %s/%s: %s"%(counter['current_count'], counter['total_count'], code)
        
 
     threads = [threading.Thread(target=fetch_url, args=(url,counter)) for url in urls]
@@ -67,9 +68,10 @@ def test_rate_limits(site, total_count=500, verbose=False):
     elapsed = (time.time() - start)
     average = elapsed / total_count
     loads_per_second_allowed = counter['success_count'] / elapsed
-    message = "%s loads attempted over %s seconds. %s were successful, which is \
-            a rate of about %s allowed connections per second"%(total_count, \
-            elapsed, counter['success_count'], loads_per_second_allowed)
+    success_rate = (float(counter['success_count']) / float(total_count)) * float(100)
+    success_rate_formatted = "{0:.0f}%".format(success_rate)
+    message = "%s loads were attempted on %s. %s were successful."%(total_count, \
+            url, counter['success_count'])
         
     if verbose:
         print message
