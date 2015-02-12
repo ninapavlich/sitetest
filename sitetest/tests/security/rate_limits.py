@@ -6,7 +6,7 @@ import httplib
 import threading
 import time
 
-from ..core.models import HEADERS
+from ...core.models import HEADERS
 
 def test_rate_limits(site, total_count=500, verbose=False):
     """
