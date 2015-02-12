@@ -6,7 +6,7 @@ import importlib
 def test_selenium(site, automated_test_dir, verbose=False):
     
     if verbose:
-        print "Testing from dir %s"%(automated_test_dir)
+        print "\n\nTesting from dir %s\n"%(automated_test_dir)
     classes = []
 
     all_tests = unittest.TestLoader().discover(automated_test_dir, pattern='*.py')
@@ -17,4 +17,4 @@ def test_selenium(site, automated_test_dir, verbose=False):
     if len(site.test_results.failures) > 0:
         site.add_error_message('%s Failures found when running tests'%(len(site.test_results.failures)), len(site.test_results.failures))
                 
-    print classes
+    # print classes

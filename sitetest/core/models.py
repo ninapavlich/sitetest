@@ -141,6 +141,9 @@ class LinkSet(BaseMessageable):
 
     def __init__(self, include_media, include_external_links, canonical_domain, domain_aliases, max_parse_count=None, ignore_query_string_keys=None, alias_query_strings=None, skip_test_urls=None, skip_urls=None, verbose=False):
 
+        if verbose:
+            print '\n\nLoading link set...\n'
+
         self.verbose = verbose
         self.messages = MessageSet(verbose)
 
@@ -195,13 +198,14 @@ class LinkSet(BaseMessageable):
         if is_loadable==True and not_already_loaded==True:
 
             if self.verbose:
-                trace_memory_usage()
-                print ">>> Load Link %s (parsed: %s/%s, loaded: %s/%s, total: %s)"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.loaded_links), len(self.loadable_links),  len(self.current_links))
+                #trace_memory_usage()
+                print "\r>>> Load Link %s (parsed: %s/%s, loaded: %s/%s, total: %s)\r\r"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.loaded_links), len(self.loadable_links),  len(self.current_links))
+                
 
             load_successful, response = page_link.load(self, expected_code)
             
             if not load_successful:
-                message = "Loading unsuccessful on page <a href='#%s' class='pagelink alert-link'>%s</a> Expected %s Received %s"%(page_link.internal_page_url, page_link.url, 200, page_link.response_code)
+                message = "\rLoading unsuccessful on page <a href='#%s' class='pagelink alert-link'>%s</a> Expected %s Received %s"%(page_link.internal_page_url, page_link.url, 200, page_link.response_code)
                 self.add_error_message(message)
             
 

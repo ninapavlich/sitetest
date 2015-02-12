@@ -1,6 +1,7 @@
 import gzip
 import jsbeautifier
 import os
+import sys
 import pyjslint
 import urllib2
 import traceback 
@@ -12,7 +13,7 @@ def test_lint_js(set, verbose=False):
     """
 
     if verbose:
-        print 'Running JS Lint test...'
+        print '\n\nRunning JS Lint test...\n'
 
 
     total_js_error_count = 0

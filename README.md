@@ -60,6 +60,7 @@ options = {
     'test_media':True,
     'test_external_links':True,
     'run_third_party_tests':False,
+    'run_security_tests':True,
     'verbose':True,
     'special_dictionary':['yolo',],
     'ignore_query_string_keys':['next'],
@@ -90,6 +91,9 @@ links return 404s.
 **if run_third_party_tests == True,** the test will validate W3C Compliance for 
 each URL, run Google PageSpeed tests for each URL, and Generate browser 
 screenshots (someday).
+
+**if run_security_tests == True,** the test will test rate limits and someday 
+other tests too.
 
 **If verbose == True,** you will see log output of the urls as they're parsed 
 and the overall test status

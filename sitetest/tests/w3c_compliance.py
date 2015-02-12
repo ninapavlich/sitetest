@@ -1,13 +1,15 @@
+import sys
 from w3c_validator.validator import Validator
 
-def test_w3c_compliance(set, ignore_validation_errors, verbose=False):
+def test_w3c_compliance(set, ignore_validation_errors, max_test_count=20, verbose=False):
     """
     TODO: Test w3c compliance
     Documentation: http://validator.w3.org/docs/api.html
     """
 
+
     if verbose:
-        print "Testing W3C Compliance, ignoring the following errors %s"%(ignore_validation_errors)
+        print "\n\nTesting W3C Compliance, ignoring the following errors %s\n"%(ignore_validation_errors)
 
     #Calculate total number of links to validate
     target_count = 0
@@ -33,55 +35,56 @@ def test_w3c_compliance(set, ignore_validation_errors, verbose=False):
             link_url = link.url
             if link_html:
                 
-                validated_count += 1
-                if verbose:
-                    print ">>>> Validating %s of %s"%(validated_count, target_count)
+                if validated_count < max_test_count:
+                    validated_count += 1
+                    if verbose:
+                        print "%s/%s"%(count, total)
 
-                validator = get_test(link_html)
-                #print "validator? %s"%(validator)
-                if validator.status != 'Timeout':
-                    
-                    
+                    validator = get_test(link_html)
+                    #print "validator? %s"%(validator)
+                    if validator.status != 'Timeout':
+                        
+                        
 
-                    actual_errors = []
-                    actual_warnings = []
+                        actual_errors = []
+                        actual_warnings = []
 
-                    #Skip validation errors to ignore
-                    for error in validator.errors:
-                        #print 'test %s for %s: %s'%(error['message'], ignore_validation_errors, (error['message'] in ignore_validation_errors))
-                        if error['message'] not in ignore_validation_errors:
-                            actual_errors.append(error)
-
-                    
-
-                    #Skip validation warnings to ignore
-                    for error in validator.warnings:
-                        if error['message'] not in ignore_validation_errors:
-                            actual_warnings.append(error)
+                        #Skip validation errors to ignore
+                        for error in validator.errors:
+                            #print 'test %s for %s: %s'%(error['message'], ignore_validation_errors, (error['message'] in ignore_validation_errors))
+                            if error['message'] not in ignore_validation_errors:
+                                actual_errors.append(error)
 
                         
 
-                    link.validation = {
-                        'warnings':actual_warnings,
-                        'errors':actual_errors
-                    }
+                        #Skip validation warnings to ignore
+                        for error in validator.warnings:
+                            if error['message'] not in ignore_validation_errors:
+                                actual_warnings.append(error)
 
-                    warnings_found_count += len(actual_warnings)
-                    errors_found_count += len(actual_errors)
+                            
 
-                    if len(actual_errors) > 0:
-                        message = "Found %s validation errors on page %s."%(len(actual_errors), link_url)
+                        link.validation = {
+                            'warnings':actual_warnings,
+                            'errors':actual_errors
+                        }
+
+                        warnings_found_count += len(actual_warnings)
+                        errors_found_count += len(actual_errors)
+
+                        if len(actual_errors) > 0:
+                            message = "Found %s validation errors on page %s."%(len(actual_errors), link_url)
+                            link.add_warning_message(message)
+
+                        if len(actual_warnings) > 0:
+                            message = "Found %s validation warnings on page %s."%(len(actual_warnings), link_url)
+                            link.add_info_message(message)
+
+                        
+                    else:
+                        timeout_found_count += 1
+                        message = "Validation was unable to run on this page because it timed out. Please manually check the W3C Validation link in the 'Tools' tab."
                         link.add_warning_message(message)
-
-                    if len(actual_warnings) > 0:
-                        message = "Found %s validation warnings on page %s."%(len(actual_warnings), link_url)
-                        link.add_info_message(message)
-
-                    
-                else:
-                    timeout_found_count += 1
-                    message = "Validation was unable to run on this page because it timed out. Please manually check the W3C Validation link in the 'Tools' tab."
-                    link.add_warning_message(message)
 
 
     if warnings_found_count > 0:

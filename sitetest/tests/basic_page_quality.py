@@ -1,5 +1,6 @@
-from bs4 import BeautifulSoup, SoupStrainer
 import traceback  
+import sys
+from bs4 import BeautifulSoup, SoupStrainer
 
 
 
@@ -9,7 +10,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
     """
 
     if verbose:
-        print 'Running page quality tests...'
+        print '\n\nRunning page quality tests...\n'
     
     unique_titles = {}
     unique_descriptions = {}
@@ -31,7 +32,8 @@ def test_basic_page_quality(set, recursive, verbose=False):
     count = 0
     for link_url in set.parsed_links:
         if verbose:
-            print "%s/%s"%(count, total)
+            print '%d/%d' % (count, total)
+            
         count += 1
 
         link = set.parsed_links[link_url]

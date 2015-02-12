@@ -7,7 +7,7 @@ def test_basic_site_quality(site, verbose=False):
     """
 
     if verbose:
-        print 'Running site quality tests...'
+        print '\n\nRunning site quality tests...'
 
     canonical_domain = site.canonical_domain
 

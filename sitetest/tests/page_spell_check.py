@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import sys
 import re
 from bs4 import BeautifulSoup, SoupStrainer, Comment
 import enchant
@@ -44,7 +44,7 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
     """
 
     if verbose:
-        print "Spell check site using special_dictionary: %s"%(special_dictionary)
+        print "\n\nSpell check site using special_dictionary: %s\n"%(special_dictionary)
 
     lorem_ipsum_count = 0
     spelling_issue_count = 0
