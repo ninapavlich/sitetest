@@ -320,7 +320,6 @@ class LinkSet(BaseMessageable):
     def get_normalized_href(self, url, normalized_parent_url=None):
         debug = False
         
-
         if debug:
             print '---> get_normalized_href for %s from %s'%(url, normalized_parent_url)
         
@@ -396,6 +395,29 @@ class LinkSet(BaseMessageable):
         if debug:
             print '---> normalized ====> %s'%(normalized)
 
+        if '..' in normalized:
+            pre_condensed = normalized
+
+            #Condense the url
+            url_pieces = normalized.split('/')
+            domain = url_pieces[0]
+
+            parents = []
+            for url_dir in url_pieces[1:]:
+                if url_dir == '.':
+                    continue
+                    #Do nothing
+                elif url_dir == '..':
+                    parents = parents[:-1]
+                else:
+                    parents.append(url_dir)
+
+            consensed_path = "/".join(parents)
+            normalized = "%s/%s"%(domain, consensed_path)
+
+            if debug:
+                print '%s ---> condensed ====> %s'%(pre_condensed, normalized)
+
         return normalized
 
 
@@ -466,6 +488,8 @@ class LinkItem(BaseMessageable):
         type = (u"%s-%s")%(self.starting_type, self.ending_type) if self.starting_type != self.ending_type else self.starting_type
 
         return (u"%s [%s]")%(url, type)
+
+
 
 
 

@@ -145,9 +145,11 @@ def test_basic_page_quality(set, recursive, verbose=False):
                         link_source = link.source
                         universal_analytics_indicator = 'GoogleAnalyticsObject'
                         asynchronous_analytics_indicator = '_gaq'
+                        js_indicator = 'google-analytics'
                         has_ua = universal_analytics_indicator.lower() in link_source.lower()
                         has_asynca = asynchronous_analytics_indicator.lower() in link_source.lower()
-                        if not has_ua and not has_asynca:
+                        has_js = js_indicator.lower() in link_source.lower()
+                        if not has_ua and not has_asynca and not has_js:
                             analytics_missing_error_count += 1
                             message = "Page missing google analytics."
                             link.add_warning_message(message)
