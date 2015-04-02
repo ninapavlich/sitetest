@@ -1,6 +1,20 @@
 <ul>
 
-    <strong>{{link.response_code}}</strong> {{link.url}} [{{link.response_content_type}}] - <em>{{link.response_load_time}} ms</em>
+
+
+    <li class="screenshots">
+        {% for key, value in link.screenshots.iteritems() %}
+        <a href="{{value}}" target="_blank">
+            <figure>
+                <img alt="{{key}} screenshot for {{link.title}}" src="{{value}}" class="screenshot" />
+                <figcaption>{{key}}</figcaption>
+            </figure>
+        </a>
+        {% endfor %}
+    </li>
+    
+
+    <li><strong>{{link.response_code}}</strong> {{link.url}} [{{link.response_content_type}}] - <em>{{link.response_load_time}} ms</em></li>
 
     {% if link.loading_score %}
     <li>This page scored <strong class="score-{{link.loading_score_group}}">{{link.loading_score.score}}</strong> on google page speed tests.</li>

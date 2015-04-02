@@ -62,7 +62,7 @@ def test_load(site, url, user_agent, expected_code):
     if code != expected_code:
         
         message = "Page %s incorrectly handled user agent %s. Expected %s received %s"%\
-        (link.url, user_agent_key, expected_code, code)
+        (link.url, user_agent, expected_code, code)
 
         if link:
             link.add_error_message(message)

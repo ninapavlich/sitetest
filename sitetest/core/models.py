@@ -41,7 +41,8 @@ MEDIA_SUFFIXES = IMAGE_SUFFIXES + FONT_SUFFIXES + [
     '.gz','.fla','.ogg','.sql'
 ]
 
-HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36 Sitetest',
+USER_AGENT_STRING = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36 Sitetest'
+HEADERS = {'User-Agent': USER_AGENT_STRING,
     #'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', #TODO: image/webp
    'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
@@ -199,6 +200,7 @@ class LinkSet(BaseMessageable):
 
             if self.verbose:
                 #trace_memory_usage()
+                #referer_list = [link for link in page_link.referers]
                 print "\r>>> Load Link %s (parsed: %s/%s, loaded: %s/%s, total: %s)\r\r"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.loaded_links), len(self.loadable_links),  len(self.current_links))
                 
 
@@ -463,6 +465,7 @@ class LinkItem(BaseMessageable):
         self.font_links = {}
         self.script_links = {}
         self.iframe_links = {}
+        self.screenshots = {}
         # self.xhr_links = {}
         self.url = self.ending_url = url
         parsed = urlparse.urlparse(url)
@@ -545,8 +548,8 @@ class LinkItem(BaseMessageable):
     def is_parseable_type(self):
         return self.has_response and \
             (self.is_internal == True or \
-            (self.is_css == True and self.parent_is_internal) or\
-            (self.is_javascript == True and self.parent_is_internal))
+            (self.is_css == True and self.is_internal) or\
+            (self.is_javascript == True and self.is_internal))
 
     @property
     def likely_parseable_type(self):
@@ -955,7 +958,7 @@ class NoRedirection(urllib2.HTTPErrorProcessor):
     def http_response(self, request, response):
         return response
 
-    https_response = http_response
+    https_response = http_response   
 
 def trace_path(url, traced, enable_cookies = False, depth=0, cj=None):
 
@@ -1012,11 +1015,26 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None):
     start_time = datetime.datetime.now()
     #print '---> [%s] Trace path %s'%(depth, url)
     try:
-        
-        response = opener.open(request)
+
+        try:
+            response = opener.open(request)
+        except ValueError:
+            print "Value Error: %s"%(traceback.format_exc())
+
+            # request = urllib2.Request(url)
+            # request.add_header('User-agent',USER_AGENT_STRING)
+            # response = urllib2.urlopen(request)
+
+
         response_header = response.info()
 
-        parse_trace_response(response_data, response.code, response_header, start_time)       
+        try:
+            code = response.code
+        except Exception:            
+            print "Error parsing code: %s"%(traceback.format_exc())
+            code = 'Unknown'
+
+        parse_trace_response(response_data,  code, response_header, start_time)       
         response_data['response'] = response
 
     except urllib2.HTTPError, e:
@@ -1039,11 +1057,12 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None):
     except httplib.BadStatusLine as e:
         response_data['response_code'] = "Bad Status Error. (Presumably, the server closed the connection before sending a valid response)"
 
+
     except Exception:
         
         print "Unkown Exception: %s"%(traceback.format_exc())
-
         response_data['response_code'] = "Unknown Exception: %s"%(traceback.format_exc())    
+
 
     if enable_cookies:
         response_data['picked_cookies'] = pickle.dumps(cj._cookies)        

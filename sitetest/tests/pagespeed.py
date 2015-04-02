@@ -3,7 +3,7 @@ import urllib2
 import json
 from ..core.models import HEADERS
 
-def test_pagespeed(set, credentials, max_test_count=100, verbose=False):
+def test_pagespeed(set, credentials, max_test_count=1000, verbose=False):
     
     if 'google' in credentials and 'API_KEY' in credentials['google']:
 

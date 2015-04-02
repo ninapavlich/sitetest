@@ -51,7 +51,11 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
             'verbose':True,
             'output_unloaded_links':True,
             'max_parse_count':None,
-            'automated_tests_dir':None
+            'automated_tests_dir':None,
+            'screenshots':{
+                'default':[1200, 800],
+                'mobile':[375, 667]
+            }
         }
 
 
@@ -135,11 +139,11 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
     """
     
 
-    if automated_tests_dir:
-        try:
-            test_selenium(set, automated_tests_dir, verbose)
-        except Exception:        
-            print "Error running Selenium tests: %s"%(traceback.format_exc())
+    # if automated_tests_dir:
+    #     try:
+    #         test_selenium(set, automated_tests_dir, verbose)
+    #     except Exception:        
+    #         print "Error running Selenium tests: %s"%(traceback.format_exc())
 
 
 
@@ -147,7 +151,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
 
         #Page Speed
         try:
-            test_pagespeed(set, credentials, 100, verbose)
+            test_pagespeed(set, credentials, 1000, verbose)
         except Exception:        
            print "Error testing site loading optimization: %s"%(traceback.format_exc())
 
@@ -157,27 +161,29 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
         except Exception:        
             print "Error validating with w3c: %s"%(traceback.format_exc())
 
-        # try:
-        #     #Browser Screenshots
-        #     test_screenshots(set, credentials, 20, verbose)
-        # except Exception:        
-        #     print "Error generating screenshots: %s"%(traceback.format_exc())
+    try:
+        #Browser Screenshots
+        test_screenshots(set, credentials, options, test_id, 20, verbose)
+    except Exception:        
+        print "Error generating screenshots: %s"%(traceback.format_exc())
 
-    if run_security_tests==True:
-        try:
-            test_rate_limits(set, 500, verbose)
-        except:
-            print "Error testing rate limits: %s"%(traceback.format_exc())
 
-        try:
-            ua_test_list = {
-                'A1 Website Download/5.1.0 (+http://www.microsystools.com/products/website-download/) miggibot':{
-                    'expected_code':403
-                }
-            }
-            test_ua_blocks(set, ua_test_list, verbose)
-        except:
-            print "Error testing ua blocks: %s"%(traceback.format_exc())            
+
+    # if run_security_tests==True:
+    #     try:
+    #         test_rate_limits(set, 500, verbose)
+    #     except:
+    #         print "Error testing rate limits: %s"%(traceback.format_exc())
+
+    #     try:
+    #         ua_test_list = {
+    #             'A1 Website Download/5.1.0 (+http://www.microsystools.com/products/website-download/) miggibot':{
+    #                 'expected_code':403
+    #             }
+    #         }
+    #         test_ua_blocks(set, ua_test_list, verbose)
+    #     except:
+    #         print "Error testing ua blocks: %s"%(traceback.format_exc())            
     
         
 

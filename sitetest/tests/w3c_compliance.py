@@ -38,7 +38,7 @@ def test_w3c_compliance(set, ignore_validation_errors, max_test_count=20, verbos
                 if validated_count < max_test_count:
                     validated_count += 1
                     if verbose:
-                        print "%s/%s"%(count, total)
+                        print "%s/%s"%(validated_count, max_test_count)
 
                     validator = get_test(link_html)
                     #print "validator? %s"%(validator)
