@@ -19,10 +19,8 @@ from sitetest import testSite
 
 canonical_domain = 'https://www.example.com'
 starting_url = 'https://www.example.com'
-test_id = "example-site-test-full"
-full = False
+test_id = "example-site-test-recursive"
 recursive = True
-verbose = True
 
 
 credentials = {
@@ -42,10 +40,6 @@ credentials = {
         "CLIENT_ID": "XXXXXXXXXXXXXXXXXXXXXXXXXXX",
         "EMAIL_ADDRESS": "XXXXXXXXXXXXXXXXXXXXXXXXXXX",
         "PUBLIC_KEY_FINGERPRINTS":"XXXXXXXXXXXXXXXXXXXXXXXXXXX"
-    },
-    "browserstack":{
-        "USERNAME":"XXXXXXXXX",
-        "PASSWORD":"XXXXXXXXX"
     }
 }
 
@@ -59,8 +53,17 @@ options = {
     'recursive':True,
     'test_media':True,
     'test_external_links':True,
-    'run_third_party_tests':False,
+    'run_third_party_tests':True,
     'run_security_tests':True,
+    'ua_test_list' = {
+        'A1 Website Download/5.1.0 (+http://www.microsystools.com/products/website-download/) miggibot':{
+            'expected_code':403,
+            'test_urls':[
+                'http://www.example.com/alpha/',
+                'http://www.example.com/beta/'
+            ]
+        }
+    },
     'verbose':True,
     'special_dictionary':['yolo',],
     'ignore_query_string_keys':['next'],
@@ -68,7 +71,14 @@ options = {
     'ignore_validation_errors':[],
     'skip_urls':['blog'],
     'skip_test_urls':['comments/reply','comments/flag' ],
-    'output_unloaded_links':True
+    'output_unloaded_links':True,
+    'screenshots':{
+        'default':[1200, 800],
+        'mobile':[375, 667]
+    },
+    'use_basic_auth':True,
+    'basic_auth_username':'admin',
+    'basic_auth_password':'p@ssw0rd!'
 }
 
 testSite(credentials, canonical_domain, domain_aliases, starting_url, test_id, options)
@@ -89,17 +99,30 @@ docs, zips, etc) return 404s.
 links return 404s.
 
 **if run_third_party_tests == True,** the test will validate W3C Compliance for 
-each URL, run Google PageSpeed tests for each URL, and Generate browser 
-screenshots (someday).
+up to 20 urls (the W3C has relatively strict limits for API usage), run Google 
+PageSpeed tests for up to 1000 urls.
 
 **if run_security_tests == True,** the test will test rate limits and someday 
 other tests too.
+
+**if ua_test_list** is set, this will verify that the specified User Agents 
+receive the expected code. This test will be run on the test_urls list if 
+specified, or the canonical domain if not specified.
 
 **If verbose == True,** you will see log output of the urls as they're parsed 
 and the overall test status
 
 **If output_unloaded_links == True,** a list of all links will be included in
-the report, including links that weren't loaded.
+the report, including links that weren't loaded. If you have a lot of external
+links, this can be set to False to make the report file slightly smaller.
+
+**If screenshots** are defined, then screenshots will be generated at the
+sizes specified. These will be uploaded a subdirectory within the test file.
+The screenshots are generated using the Firefox driver for Selenium.
+
+**Use use_basic_auth == True,** and specify basic_auth_username and
+basic_auth_password if the URLs being tested are password protected with basic
+auth.
 
 **canonical_domain** is the domain that we're testing. If you're running a 
 non-recursive test on a single url, then canonical_domain should be the single
@@ -169,7 +192,7 @@ skip_test_urls = ['comments/reply','comments/flag' ]
 
 ```
 
-**credentials** allow you to integrate with third party tools for tests and notification. Result notifications are sent to slack. Test results are uploaded to Amazon S3. Google Pagespeed is run on each URL for "Full" tests; only the API_KEY is needed for that. Browserstack screenshots are not fully implemented due to the high cost of API access.
+**credentials** allow you to integrate with third party tools for tests and notification. Result notifications are sent to slack. Test results are uploaded to Amazon S3. Google Pagespeed is run on each URL for "Full" tests; only the API_KEY is needed for that.
 ```python
 credentials = {
     "slack":{

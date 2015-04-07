@@ -293,6 +293,8 @@ class LinkSet(BaseMessageable):
     def get_link_type(self, url):
         #Internal, External, Mailto, Other
 
+        print 'get_link_type: %s'%(url)
+
         if 'mailto:' in url.lower():
             return TYPE_MAILTO
         elif (':' in url.lower()) and (not 'http' in url.lower()):
@@ -621,7 +623,10 @@ class LinkItem(BaseMessageable):
 
             self.response_code = last_response_item['response_code']
             self.response_encoding = last_response_item['response_encoding']
-            self.ending_url = last_response_item['url']
+            self.ending_url = get_ending_url(last_response_item['url'], last_response_item['ending_url'])
+
+
+
             self.ending_type = set.get_link_type(self.ending_url)   
 
             load_time = datetime.datetime.now() - start_time
@@ -1061,15 +1066,15 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None, auth=None,
 
         try:
             response = opener.open(request)
+
+            response_header = response.info()
+
         except ValueError:
             print "Value Error: %s"%(traceback.format_exc())
 
-            # request = urllib2.Request(url)
-            # request.add_header('User-agent',USER_AGENT_STRING)
-            # response = urllib2.urlopen(request)
-
-
-        response_header = response.info()
+            request = urllib2.Request(url)
+            response = urllib2.urlopen(request)
+        
 
         try:
             code = response.code
@@ -1139,6 +1144,24 @@ def parse_trace_response(response_data, code, response_header, start_time):
 
     if has_redirect:
         response_data['redirect'] = response_data['ending_url']
+
+def get_ending_url(starting_url, ending_url=None):
+
+    if not ending_url:
+        return starting_url
+
+    if 'http' in ending_url.lower():
+        return ending_url
+
+    print ">>>> QQQQ IT LOOKS LIKE the redirect was missing the domain."
+    #We may be receiving a relative redirect, such as "/path/redirect" without a domain
+    parsed_uri = urlparse( starting_url )
+    starting_domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+
+    if ending_url.startswith('/'):
+        return starting_domain+ending_url[1:]
+    else:
+        return starting_domain+ending_url
 
 def is_redirect_code(code):
     code_int = int(code)

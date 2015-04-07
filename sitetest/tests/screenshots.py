@@ -16,7 +16,7 @@ def test_screenshots(set, credentials, options, test_id, max_test_count=20, verb
 
 	use_browserstack = False #True if('browserstack' in credentials and 'USERNAME' in credentials['browserstack']) else False
 
-	print 'use_browserstack? %s'%(use_browserstack)
+	# print 'use_browserstack? %s'%(use_browserstack)
 
 	test_dir = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
 

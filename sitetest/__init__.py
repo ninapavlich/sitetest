@@ -91,9 +91,12 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
 
     automated_tests_dir = None if 'automated_tests_dir' not in options else options['automated_tests_dir']
 
+    generate_screenshots = False if 'screenshots' not in options else True
+
+    ua_test = False if 'ua_test_list' not in options else True
 
     if verbose:
-        print "SITE TEST :: %s Recursive:%s Media:%s External Links:%s 3rd Party:%s MAX:%s"%(canonical_domain, recursive, test_media, test_external_links, run_third_party_tests, max_parse_count)
+        print "SITE TEST :: %s Recursive:%s Media:%s External Links:%s 3rd Party:%s Screenshots: %s MAX:%s"%(canonical_domain, recursive, test_media, test_external_links, run_third_party_tests, generate_screenshots, max_parse_count)
 
 
 
@@ -140,6 +143,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
     """
     
 
+    # Automated Selenium Tests
     if automated_tests_dir:
         try:
             test_selenium(set, automated_tests_dir, verbose)
@@ -161,12 +165,13 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
         except Exception:        
             print "Error validating with w3c: %s"%(traceback.format_exc())
 
+
+    # Browser Screenshots
+    if generate_screenshots==True:
         try:
-            # Browser Screenshots
             test_screenshots(set, credentials, options, test_id, max_parse_count, verbose)
         except Exception:        
             print "Error generating screenshots: %s"%(traceback.format_exc())
-
 
 
     if run_security_tests==True:
@@ -175,13 +180,9 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
         except:
             print "Error testing rate limits: %s"%(traceback.format_exc())
 
+    if ua_test:
         try:
-            ua_test_list = {
-                'A1 Website Download/5.1.0 (+http://www.microsystools.com/products/website-download/) miggibot':{
-                    'expected_code':403
-                }
-            }
-            test_ua_blocks(set, ua_test_list, verbose)
+            test_ua_blocks(set, options, verbose)
         except:
             print "Error testing ua blocks: %s"%(traceback.format_exc())            
     
