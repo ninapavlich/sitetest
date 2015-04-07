@@ -131,9 +131,9 @@ url that you're testing, e.g. 'https://www.example.com/subfolder/testme/'
 canonical_domain = 'https://www.example.com'
 ```
 
-**domain_aliases** are domains that should be considered equivalent to the canonical
- domain. If a domain alias is found, it will be replaced with the canonical 
- domain for testing
+**domain_aliases** are domains that should be considered equivalent to the 
+canonical domain. If a domain alias is found, it will be replaced with the 
+canonical domain for testing
 ```python
 domain_aliases = [
 	'http://www.example.com',
@@ -141,8 +141,8 @@ domain_aliases = [
 	'http://example.com'
 ]
 ```
-**test_id** is a unique identifier for this test. Tests will be uploaded to AWS at 
-this url: 
+**test_id** is a unique identifier for this test. Tests will be uploaded to AWS 
+at this url: 
 	
 	"http://s3.amazonaws.com/AWS_STORAGE_BUCKET_NAME
 	/AWS_RESULTS_PATH/test_id/time-and-date-of-test.html"
@@ -175,47 +175,27 @@ alias_query_strings = ['page',]
 
 **ignore_validation_errors** is a list of validation messages from w3c to ignore
 ```python
-ignore_validation_errors = ['Bad value X-UA-Compatible for attribute http-equiv on element meta.', ]
+ignore_validation_errors = ['Bad value X-UA-Compatible for attribute http-equiv 
+on element meta.', ]
 
 ```
 
 
-skip_urls is a list of url fragments that, if matched using regex, will not be loaded or tested.
+skip_urls is a list of url fragments that, if matched using regex, will not be 
+loaded or tested.
 ```python
 skip_urls = ['blog' ]
 
 ```
 
-skip_test_urls is a list of url fragments that, if matched using regex, it will be loaded but not undergo any further testing.
+skip_test_urls is a list of url fragments that, if matched using regex, it will 
+be loaded but not undergo any further testing.
 ```python
 skip_test_urls = ['comments/reply','comments/flag' ]
 
 ```
 
-**credentials** allow you to integrate with third party tools for tests and notification. Result notifications are sent to slack. Test results are uploaded to Amazon S3. Google Pagespeed is run on each URL for "Full" tests; only the API_KEY is needed for that.
-```python
-credentials = {
-    "slack":{
-        "SLACK_TOKEN" : "XXXX-XXXXXXXXX-XXXXXXXXX-XXXXXXXXX-XXXXXX",
-        "SLACK_CHANNEL" : "#channel",
-        "SLACK_USERNAME" : "slackbot"
-    },
-    "aws":{
-        "AWS_ACCESS_KEY_ID" : "XXXXXXXXX",
-        "AWS_SECRET_ACCESS_KEY" : "XXXXXXXXXXXXXXXXXXXXXXXXXXX",
-        "AWS_STORAGE_BUCKET_NAME" : "bucket-name",
-        "AWS_RESULTS_PATH" : "test_results"
-    },
-    "google":{
-        "PRIVATE_KEY_PASSWORD": "XXXXXXXXX",
-        "CLIENT_ID": "XXXXXXXXXXXXXXXXXXXXXXXXXXX",
-        "EMAIL_ADDRESS": "XXXXXXXXXXXXXXXXXXXXXXXXXXX",
-        "PUBLIC_KEY_FINGERPRINTS":"XXXXXXXXXXXXXXXXXXXXXXXXXXX",
-        "API_KEY":"XXXXXXXXXXXXXXXXXXXXXXXXXXX"
-    },
-    "browserstack":{
-        "USERNAME":"XXXXXXXXX",
-        "PASSWORD":"XXXXXXXXX"
-    }
-}
-```
+**credentials** allow you to integrate with third party tools for tests and 
+notification. Result notifications are sent to slack. Test results are uploaded 
+to Amazon S3. Google Pagespeed is run on each URL for "Full" tests; only the 
+API_KEY is needed for that.

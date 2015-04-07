@@ -293,8 +293,6 @@ class LinkSet(BaseMessageable):
     def get_link_type(self, url):
         #Internal, External, Mailto, Other
 
-        print 'get_link_type: %s'%(url)
-
         if 'mailto:' in url.lower():
             return TYPE_MAILTO
         elif (':' in url.lower()) and (not 'http' in url.lower()):
@@ -1121,7 +1119,9 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None, auth=None,
     if has_redirect:
         #Delete last response object
         response_data['response'] = None
-        traced = trace_path(response_data['ending_url'], traced, enable_cookies, depth+1, cj, username, password)
+
+        redirect_url = get_ending_url(response_data['url'], response_data['ending_url'])
+        traced = trace_path(redirect_url, traced, enable_cookies, depth+1, cj, username, password)
 
     return traced
 
@@ -1155,7 +1155,7 @@ def get_ending_url(starting_url, ending_url=None):
 
     print ">>>> QQQQ IT LOOKS LIKE the redirect was missing the domain."
     #We may be receiving a relative redirect, such as "/path/redirect" without a domain
-    parsed_uri = urlparse( starting_url )
+    parsed_uri = urlparse.urlparse( starting_url )
     starting_domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
 
     if ending_url.startswith('/'):

@@ -57,9 +57,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
                 'mobile':[375, 667]
             }
         }
-    else:
-        print options
-
+    
 
     recursive = True if 'recursive' not in options else truthy(options['recursive'])
 
