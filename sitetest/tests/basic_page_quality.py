@@ -66,6 +66,10 @@ def test_basic_page_quality(set, recursive, verbose=False):
                         elif (page_title not in unique_titles) and (is_redirected_page == False) and (is_alias_page == False):
                             unique_titles[page_title] = link.path
                         else:
+
+                            if page_title not in unique_titles:
+                                unique_titles[page_title] = link.path
+
                             if link.path.strip('/') != unique_titles[page_title].strip('/') and (is_redirected_page == False) and (is_alias_page == False):
                                 message = "Page title &ldquo;%s&rdquo; in <a href='#%s' class='alert-link'>%s</a> is not unique."%(page_title, link.internal_page_url, link_url)
                                 link.add_warning_message(message)

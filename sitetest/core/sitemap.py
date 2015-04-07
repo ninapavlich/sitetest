@@ -21,11 +21,12 @@ class SiteMaps(object):
         
             self.set.load_link(robots_link, False, 200)
             
-            for line in robots_link.content.split('\n'):
-                line = line.strip()
+            if robots_link.content:
+                for line in robots_link.content.split('\n'):
+                    line = line.strip()
 
-                if line.lower().startswith('sitemap:'):
-                    self.sitemaps.append(line[len('Sitemap:'):].strip())
+                    if line.lower().startswith('sitemap:'):
+                        self.sitemaps.append(line[len('Sitemap:'):].strip())
 
 
         except Exception, e:

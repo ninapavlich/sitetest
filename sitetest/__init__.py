@@ -46,7 +46,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
             'recursive':True,
             'test_media':True,
             'test_external_links':True,
-            'run_third_party_tests':False,
+            'run_third_party_tests':True,
             'run_security_tests':False,
             'verbose':True,
             'output_unloaded_links':True,
@@ -57,6 +57,8 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
                 'mobile':[375, 667]
             }
         }
+    else:
+        print options
 
 
     recursive = True if 'recursive' not in options else truthy(options['recursive'])
@@ -65,7 +67,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
 
     test_external_links = True if 'test_external_links' not in options else truthy(options['test_external_links'])
 
-    run_third_party_tests = False if 'run_third_party_tests' not in options else truthy(options['run_third_party_tests'])
+    run_third_party_tests = True if 'run_third_party_tests' not in options else truthy(options['run_third_party_tests'])
 
     run_security_tests = False if 'run_security_tests' not in options else truthy(options['run_security_tests'])
 
@@ -94,10 +96,9 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
         print "SITE TEST :: %s Recursive:%s Media:%s External Links:%s 3rd Party:%s MAX:%s"%(canonical_domain, recursive, test_media, test_external_links, run_third_party_tests, max_parse_count)
 
 
-    
 
     #Load pages, starting with homepage    
-    set = LinkSet(test_media, test_external_links, canonical_domain, domain_aliases, max_parse_count, ignore_query_string_keys, alias_query_strings, skip_test_urls, skip_urls, verbose)
+    set = LinkSet(options, canonical_domain, domain_aliases, verbose)
     homepage_link = set.get_or_create_link_object(canonical_domain, None)
 
     if recursive == True:
@@ -124,14 +125,14 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
         print "Error running page quality check: %s"%(traceback.format_exc())
 
 
-    #Spell Check test
-    # try:
-    #     test_basic_spell_check(set, special_dictionary, verbose)
-    # except Exception:        
-    #     print "Error running spellcheck: %s"%(traceback.format_exc())
+    # Spell Check test
+    try:
+        test_basic_spell_check(set, special_dictionary, verbose)
+    except Exception:        
+        print "Error running spellcheck: %s"%(traceback.format_exc())
 
     """
-    #Lint JS
+    # Lint JS
     try:
         test_lint_js(set, verbose)
     except Exception:        
@@ -139,17 +140,18 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
     """
     
 
-    # if automated_tests_dir:
-    #     try:
-    #         test_selenium(set, automated_tests_dir, verbose)
-    #     except Exception:        
-    #         print "Error running Selenium tests: %s"%(traceback.format_exc())
+    if automated_tests_dir:
+        try:
+            test_selenium(set, automated_tests_dir, verbose)
+        except Exception:        
+            print "Error running Selenium tests: %s"%(traceback.format_exc())
 
 
+    return
 
     if run_third_party_tests==True:
 
-        #Page Speed
+        # Page Speed
         try:
             test_pagespeed(set, credentials, 1000, verbose)
         except Exception:        
@@ -162,7 +164,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
             print "Error validating with w3c: %s"%(traceback.format_exc())
 
         try:
-            #Browser Screenshots
+            # Browser Screenshots
             test_screenshots(set, credentials, options, test_id, max_parse_count, verbose)
         except Exception:        
             print "Error generating screenshots: %s"%(traceback.format_exc())
@@ -216,7 +218,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
     results['report_url'] = report_url
     open_results(report_url)
 
-    notify_results(results, credentials)
+    # notify_results(results, credentials)
 
     return results
 

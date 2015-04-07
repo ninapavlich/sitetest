@@ -41,6 +41,8 @@ MEDIA_SUFFIXES = IMAGE_SUFFIXES + FONT_SUFFIXES + [
     '.gz','.fla','.ogg','.sql'
 ]
 
+REDIRECT_CODES = [301, 302, 303]
+
 USER_AGENT_STRING = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36 Sitetest'
 HEADERS = {'User-Agent': USER_AGENT_STRING,
     #'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
@@ -140,7 +142,11 @@ class LinkSet(BaseMessageable):
     test_results = None
     
 
-    def __init__(self, include_media, include_external_links, canonical_domain, domain_aliases, max_parse_count=None, ignore_query_string_keys=None, alias_query_strings=None, skip_test_urls=None, skip_urls=None, verbose=False):
+    def __init__(self, options, canonical_domain, domain_aliases, verbose=False):
+
+        
+
+       
 
         if verbose:
             print '\n\nLoading link set...\n'
@@ -148,27 +154,21 @@ class LinkSet(BaseMessageable):
         self.verbose = verbose
         self.messages = MessageSet(verbose)
 
-        if ignore_query_string_keys is None:
-            ignore_query_string_keys = []
-
-        if alias_query_strings is None:
-            alias_query_strings = []
-        
-        if skip_test_urls is None:
-            skip_test_urls = []
-
-        if skip_test_urls is None:
-            skip_test_urls = []
-
-        self.include_media = include_media
-        self.include_external_links = include_external_links
+        self.include_media = True if 'test_media' not in options else truthy(options['test_media'])
+        self.include_external_links = True if 'test_external_links' not in options else truthy(options['test_external_links'])
         self.canonical_domain = canonical_domain
         self.domain_aliases = domain_aliases
-        self.ignore_query_string_keys = ignore_query_string_keys
-        self.alias_query_strings = alias_query_strings
-        self.skip_test_urls = skip_test_urls
-        self.skip_urls = skip_urls
-        self.max_parse_count = None if not max_parse_count else int(max_parse_count)
+        self.ignore_query_string_keys = [] if 'ignore_query_string_keys' not in options else options['ignore_query_string_keys']
+        self.alias_query_strings = [] if 'alias_query_strings' not in options else options['alias_query_strings']
+        self.skip_test_urls = [] if 'skip_test_urls' not in options else options['skip_test_urls']
+        self.skip_urls = [] if 'skip_urls' not in options else options['skip_urls']
+        self.max_parse_count = None if 'max_parse_count' not in options else options['max_parse_count']
+
+        self.use_basic_auth = False if 'use_basic_auth' not in options else truthy(options['use_basic_auth'])
+        self.basic_auth_username = '' if self.use_basic_auth==False else options['basic_auth_username']
+        self.basic_auth_password = '' if self.use_basic_auth==False else options['basic_auth_password']
+
+        print "%s - %s - %s"%(self.use_basic_auth, self.basic_auth_username, self.basic_auth_password)
         super(LinkSet, self).__init__()    
 
     @property
@@ -482,6 +482,10 @@ class LinkItem(BaseMessageable):
         self.redirect_path = None
         self.dequeried_url = clear_query_string(self.url)
 
+        self.use_basic_auth = set.use_basic_auth
+        self.basic_auth_username = set.basic_auth_username
+        self.basic_auth_password = set.basic_auth_password
+
 
         super(LinkItem, self).__init__()
 
@@ -608,10 +612,12 @@ class LinkItem(BaseMessageable):
 
         response = None
         start_time = datetime.datetime.now()
-        self.redirect_path = trace_path(self.url, [])
-
         
-
+        if self.use_basic_auth == True:
+            self.redirect_path = trace_path(self.url, [], False, 0, None, 'basic', self.basic_auth_username, self.basic_auth_password)
+        else:
+            self.redirect_path = trace_path(self.url, [])
+        
         if len(self.redirect_path) > 0:
             last_response_item = self.redirect_path[-1]
 
@@ -955,12 +961,28 @@ def timedelta_milliseconds(td):
 # Recursively follow redirects until there isn't a location header
 class NoRedirection(urllib2.HTTPErrorProcessor):
 
+
+
+    # def http_response(self, request, response):
+    #     return response
+
+    # https_response = http_response 
+
     def http_response(self, request, response):
+        code, msg, hdrs = response.code, response.msg, response.info()
+
+        # only add this line to stop redirection.
+        if int(code) in REDIRECT_CODES: 
+            return response
+
+        if not (200 <= code < 300):
+            response = self.parent.error('http', request, response, code, msg, hdrs)
+
         return response
 
-    https_response = http_response   
+    https_response = http_response  
 
-def trace_path(url, traced, enable_cookies = False, depth=0, cj=None):
+def trace_path(url, traced, enable_cookies = False, depth=0, cj=None, auth=None, username=None, password=None):
 
     #Safely catch
     MAX_REDIRECTS = 15
@@ -979,7 +1001,7 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None):
             if enable_cookies == False:
                 #Re-try with cookies enabled                
                 first_url = traced[0]['url']
-                traced_with_cookies = trace_path(first_url, [], True)
+                traced_with_cookies = trace_path(first_url, [], True, 0, None, auth, username, password)
                 traced_with_cookies[0]['warning'] = "Cookies required to correctly navigate to: %s"%(first_url)
                 return traced_with_cookies
 
@@ -992,12 +1014,37 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None):
         if not cj:
             cj = cookielib.CookieJar()
 
+
+   
+    
+    use_password = False
+    if auth=='basic':
+        use_password = True
+        password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
+        password_manager.add_password(None, url, username, password)
+        password_handler = urllib2.HTTPBasicAuthHandler(password_manager)
+        
+
     if enable_cookies:
-        opener = urllib2.build_opener(NoRedirection, urllib2.HTTPCookieProcessor(cj))
+        if use_password:
+            opener = urllib2.build_opener(NoRedirection, urllib2.HTTPCookieProcessor(cj), password_handler)
+        else:
+            opener = urllib2.build_opener(NoRedirection, urllib2.HTTPCookieProcessor(cj))
     else:
-        opener = urllib2.build_opener(NoRedirection)
+    
+        if use_password:
+            
+            opener = urllib2.build_opener(NoRedirection, password_handler)
+        else:
+            opener = urllib2.build_opener(NoRedirection)
+
+
 
     request = urllib2.Request(url, headers=HEADERS)
+
+
+
+    
     response = None
     response_data = {
         'url':url,
@@ -1073,7 +1120,7 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None):
     if has_redirect:
         #Delete last response object
         response_data['response'] = None
-        traced = trace_path(response_data['ending_url'], traced, enable_cookies, depth+1, cj)
+        traced = trace_path(response_data['ending_url'], traced, enable_cookies, depth+1, cj, username, password)
 
     return traced
 
@@ -1099,9 +1146,7 @@ def parse_trace_response(response_data, code, response_header, start_time):
 
 def is_redirect_code(code):
     code_int = int(code)
-    if code == 301 or \
-        code == 302 or \
-        code == 303:
+    if code_int in REDIRECT_CODES:
         return True
     return False
 
@@ -1168,3 +1213,10 @@ def memory_usage_resource():
         rusage_denom = rusage_denom * rusage_denom
     mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / rusage_denom
     return mem    
+
+def truthy(value):
+    if value == 'True':
+        return True
+    elif value == 'False':
+        return False
+    return value
