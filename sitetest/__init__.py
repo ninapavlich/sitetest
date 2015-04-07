@@ -147,8 +147,6 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
             print "Error running Selenium tests: %s"%(traceback.format_exc())
 
 
-    return
-
     if run_third_party_tests==True:
 
         # Page Speed
@@ -218,7 +216,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
     results['report_url'] = report_url
     open_results(report_url)
 
-    # notify_results(results, credentials)
+    notify_results(results, credentials)
 
     return results
 

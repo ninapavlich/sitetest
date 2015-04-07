@@ -144,10 +144,7 @@ class LinkSet(BaseMessageable):
 
     def __init__(self, options, canonical_domain, domain_aliases, verbose=False):
 
-        
-
-       
-
+    
         if verbose:
             print '\n\nLoading link set...\n'
 
@@ -168,7 +165,6 @@ class LinkSet(BaseMessageable):
         self.basic_auth_username = '' if self.use_basic_auth==False else options['basic_auth_username']
         self.basic_auth_password = '' if self.use_basic_auth==False else options['basic_auth_password']
 
-        print "%s - %s - %s"%(self.use_basic_auth, self.basic_auth_username, self.basic_auth_password)
         super(LinkSet, self).__init__()    
 
     @property
@@ -1086,7 +1082,7 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None, auth=None,
 
     except urllib2.HTTPError, e:
         
-        print '---> urllib2.HTTPError %s - %s'%(e.code, e.headers)
+        # print '---> urllib2.HTTPError %s - %s'%(e.code, e.headers)
         try:
             
             parse_trace_response(response_data, e.code, e.headers, start_time)
