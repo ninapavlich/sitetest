@@ -55,8 +55,8 @@ def test_rate_limits(site, total_count=500, verbose=False):
             counter['error_count'] += 1            
 
         counter['current_count'] += 1
-        if verbose:
-            print "Attempt %s/%s: %s"%(counter['current_count'], counter['total_count'], code)
+        # if verbose:
+        #     print "Attempt %s/%s: %s"%(counter['current_count'], counter['total_count'], code)
        
 
     threads = [threading.Thread(target=fetch_url, args=(url,counter)) for url in urls]

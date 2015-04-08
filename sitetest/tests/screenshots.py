@@ -3,8 +3,10 @@ import os
 import sys
 import urllib2
 import urllib
+import urlparse
 import json
 import base64
+import time
 from boto.s3.key import Key
 import boto.s3
 
@@ -16,18 +18,29 @@ def test_screenshots(set, credentials, options, test_id, max_test_count=20, verb
 
 	use_browserstack = False #True if('browserstack' in credentials and 'USERNAME' in credentials['browserstack']) else False
 
-	# print 'use_browserstack? %s'%(use_browserstack)
+	if max_test_count== None:
+		max_test_count = 20
 
 	test_dir = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
 
-	
+	use_basic_auth = False if 'use_basic_auth' not in options else truthy(options['use_basic_auth'])
+	basic_auth_username = '' if use_basic_auth==False else options['basic_auth_username']
+	basic_auth_password = '' if use_basic_auth==False else options['basic_auth_password']
 	
 	if use_browserstack:
 		username = credentials['browserstack']['USERNAME']
 		password = credentials['browserstack']['PASSWORD']
 		user_data = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
-	else:
-		browser = webdriver.Firefox()
+	else:		
+
+		if use_basic_auth:
+			profile = webdriver.FirefoxProfile()
+			profile.set_preference('network.http.phishy-userpass-length', 255)
+			browser = webdriver.Firefox(firefox_profile=profile)
+		else:
+			browser = webdriver.Firefox()
+
+
 
 	total = len(set.parsed_links)
 	count = 0
@@ -39,14 +52,13 @@ def test_screenshots(set, credentials, options, test_id, max_test_count=20, verb
 
 		link = set.parsed_links[link_url]
 
-		
-		if link.is_internal == True and link.is_html == True and not link.skip_test == True:
+		test_page = link.is_internal == True and link.is_html == True and not link.skip_test == True
+		if test_page:
 
 			if tested_count < max_test_count:
 				tested_count += 1
 
-
-				if use_browserstack:
+				if use_browserstack==True:
 
 					browser_data = {
 						"browsers": [
@@ -70,7 +82,16 @@ def test_screenshots(set, credentials, options, test_id, max_test_count=20, verb
 
 
 					#!/usr/bin/env python
-					browser.get(link.url)
+					
+					if use_basic_auth:
+
+						parsed = urlparse.urlparse(link.url)
+						updated_location = "%s:%s@%s"%(basic_auth_username, basic_auth_password, parsed.netloc)
+						parsed = parsed._replace(netloc=updated_location)
+						updated = urlparse.urlunparse(parsed)
+						browser.get(updated)
+					else:
+						browser.get(link.url)
 
 					if 'screenshots' in options:
 
@@ -81,6 +102,8 @@ def test_screenshots(set, credentials, options, test_id, max_test_count=20, verb
 							height = screenshot[1]
 							browser.set_window_size(width, height)
 
+							#delay, allow to render
+							time.sleep(1)
 
 							
 
@@ -95,7 +118,6 @@ def test_screenshots(set, credentials, options, test_id, max_test_count=20, verb
 							image_url = copy_to_amazon(filename, folder, test_id, credentials, verbose)
 
 							link.screenshots[key] = image_url
-
 						
 
 	browser.quit()
@@ -135,11 +157,18 @@ def copy_to_amazon(file_name, folder, test_id, credentials, verbose):
 
 		url = "http://s3.amazonaws.com/%s/%s/%s/%s" % (AWS_STORAGE_BUCKET_NAME, AWS_RESULTS_PATH, folder, base_name)
 
-		if verbose:
-			print 'Uploaded to %s' % (url)
+		# if verbose:
+		# 	print 'Uploaded to %s' % (url)
 
 		return url
 
 	else:
 		print "Warning: AWS API credentials not supplied." 
 		return None
+
+def truthy(value):
+	if value == 'True':
+		return True
+	elif value == 'False':
+		return False
+	return value		

@@ -167,7 +167,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
     # Browser Screenshots
     if generate_screenshots==True:
         try:
-            test_screenshots(set, credentials, options, test_id, max_parse_count, verbose)
+            test_screenshots(set, credentials, options, test_id, 1000, verbose)
         except Exception:        
             print "Error generating screenshots: %s"%(traceback.format_exc())
 
