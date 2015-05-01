@@ -3,7 +3,7 @@ import urllib2
 import json
 from ..core.models import HEADERS
 
-def test_pagespeed(set, credentials, max_test_count=1000, verbose=False):
+def test_pagespeed(set, credentials, options, max_test_count=1000, verbose=False):
     
     if 'google' in credentials and 'API_KEY' in credentials['google']:
 
@@ -11,6 +11,10 @@ def test_pagespeed(set, credentials, max_test_count=1000, verbose=False):
             print '\n\nRunning site speed and optimization tests...\n'
         
         API_KEY = credentials['google']['API_KEY']
+
+        use_basic_auth = False if 'use_basic_auth' not in options else truthy(options['use_basic_auth'])
+        basic_auth_username = '' if use_basic_auth==False else options['basic_auth_username']
+        basic_auth_password = '' if use_basic_auth==False else options['basic_auth_password']
 
         total = len(set.parsed_links)
         count = 0
@@ -23,11 +27,21 @@ def test_pagespeed(set, credentials, max_test_count=1000, verbose=False):
 
             link = set.parsed_links[link_url]
             
-            if link.is_internal == True and not link.skip_test == True:
+            if link.is_internal_html==True and not link.skip_test == True:
                 
                 if tested_count < max_test_count:
                     tested_count += 1
-                    testing_url = 'https://www.googleapis.com/pagespeedonline/v1/runPagespeed?url=%s&key=%s'%(link.url, API_KEY)
+
+                    if use_basic_auth:
+                        parsed = urlparse.urlparse(link.url)
+                        updated_location = "%s:%s@%s"%(basic_auth_username, basic_auth_password, parsed.netloc)
+                        parsed = parsed._replace(netloc=updated_location)
+                        updated = urlparse.urlunparse(parsed)
+                        url = updated
+                    else:
+                        url = link.url
+
+                    testing_url = 'https://www.googleapis.com/pagespeedonline/v1/runPagespeed?url=%s&key=%s'%(url, API_KEY)
 
                     request = urllib2.Request(testing_url)
                     response = urllib2.urlopen(request)
@@ -59,3 +73,10 @@ def test_pagespeed(set, credentials, max_test_count=1000, verbose=False):
 
     else:
         print "Warning: Google API credentials not supplied."
+
+def truthy(value):
+    if value == 'True':
+        return True
+    elif value == 'False':
+        return False
+    return value                

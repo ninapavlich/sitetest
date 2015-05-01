@@ -52,8 +52,8 @@ def test_screenshots(set, credentials, options, test_id, max_test_count=20, verb
 
 		link = set.parsed_links[link_url]
 
-		test_page = link.is_internal == True and link.is_html == True and not link.skip_test == True
-		if test_page:
+		
+		if link.is_internal_html==True and not link.skip_test == True:
 
 			if tested_count < max_test_count:
 				tested_count += 1
@@ -84,14 +84,15 @@ def test_screenshots(set, credentials, options, test_id, max_test_count=20, verb
 					#!/usr/bin/env python
 					
 					if use_basic_auth:
-
 						parsed = urlparse.urlparse(link.url)
 						updated_location = "%s:%s@%s"%(basic_auth_username, basic_auth_password, parsed.netloc)
 						parsed = parsed._replace(netloc=updated_location)
 						updated = urlparse.urlunparse(parsed)
-						browser.get(updated)
+						url = updated
 					else:
-						browser.get(link.url)
+						url = link.url
+
+					browser.get(url)
 
 					if 'screenshots' in options:
 

@@ -38,7 +38,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
 
         link = set.parsed_links[link_url]
         
-        if link.is_internal_html == True:
+        if link.is_internal_html==True and not link.skip_test == True:
 
             link_html = link.html
             if link_html:

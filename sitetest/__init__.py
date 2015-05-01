@@ -153,7 +153,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
 
         # Page Speed
         try:
-            test_pagespeed(set, credentials, 1000, verbose)
+            test_pagespeed(set, credentials, options, 1000, verbose)
         except Exception:        
            print "Error testing site loading optimization: %s"%(traceback.format_exc())
 
@@ -167,7 +167,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
     # Browser Screenshots
     if generate_screenshots==True:
         try:
-            test_screenshots(set, credentials, options, test_id, 1000, verbose)
+            test_screenshots(set, credentials, options, test_id, 100, verbose)
         except Exception:        
             print "Error generating screenshots: %s"%(traceback.format_exc())
 

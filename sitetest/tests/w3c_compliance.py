@@ -27,7 +27,7 @@ def test_w3c_compliance(set, ignore_validation_errors, max_test_count=20, verbos
     for link_url in set.parsed_links:
         link = set.parsed_links[link_url]
         
-        if link.is_internal_html == True:
+        if link.is_internal_html==True and not link.skip_test == True:
 
             
 
