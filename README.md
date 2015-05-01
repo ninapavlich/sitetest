@@ -10,7 +10,7 @@ to an AWS bucket as static HTML and notifications are sent to a Slack channel.
 brew install enchant
 ```
 
-**Example Report:** http://s3.amazonaws.com/cgp-dev/test_results/ccl-django-dev-03/2015-01-16_12-20.html
+**Example Report:** http://s3.amazonaws.com/cgp-dev/test_results/fw-django-prod-01/2015-04-10_15-01.html
 
 ##Example Usage:
 ```python
