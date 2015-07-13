@@ -165,6 +165,7 @@ class LinkSet(BaseMessageable):
         self.basic_auth_username = '' if self.use_basic_auth==False else options['basic_auth_username']
         self.basic_auth_password = '' if self.use_basic_auth==False else options['basic_auth_password']
 
+
         super(LinkSet, self).__init__()    
 
     @property
@@ -1153,7 +1154,7 @@ def get_ending_url(starting_url, ending_url=None):
     if 'http' in ending_url.lower():
         return ending_url
 
-    print ">>>> QQQQ IT LOOKS LIKE the redirect was missing the domain."
+    # print "IT LOOKS LIKE the redirect from %s to %s was missing the domain."%(starting_url, ending_url)
     #We may be receiving a relative redirect, such as "/path/redirect" without a domain
     parsed_uri = urlparse.urlparse( starting_url )
     starting_domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
