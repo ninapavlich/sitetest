@@ -211,7 +211,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_c
     results['report_url'] = report_url
     open_results(report_url)
 
-    # notify_results(results, credentials)
+    notify_results(results, credentials)
 
     return results
 
