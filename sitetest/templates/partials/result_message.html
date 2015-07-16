@@ -2,13 +2,13 @@
 <div class="panel panel-default result-message">
     <div class="panel-heading">
 
-        <span class="label label-{{message_category.level}}">
-          {% filter upper %}{{message_category.level}}{% endfilter %}
-        </span>
+        <span class="label label-{{message_category.level}}">{% filter upper %}{{message_category.level}}{% endfilter %} ({{message_category.messages|length}})</span>
 
         &nbsp;
 
-        <a data-parent="#accordion" data-toggle="collapse" href="#load-test-result-error-{{message_category.key}}"><span class='link-container'>{{message_category.message}} ({{message_category.messages|length}})</span></a>
+        <a data-parent="#accordion" data-toggle="collapse" href="#load-test-result-error-{{message_category.key}}"><span class='link-container'>{{message_category.message}}</span></a>
+
+        {{message_category.info|safe}}
 
     </div>
 

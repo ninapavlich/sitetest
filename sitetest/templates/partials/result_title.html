@@ -1,4 +1,4 @@
-<h4 class="panel-title clearfix" id="{{link.internal_page_url}}">
+<h4 class="panel-title clearfix" id="{{link.page_hash}}">
 	<span class="pull-left">
 
 		{% if link.response_code %} 
@@ -13,7 +13,7 @@
         <span class="label label-default">N/A</span> 
         {% endif %}
         &nbsp;
-    	<a data-parent="#accordion" data-toggle="collapse" href="#load-test-result-body-{{link.internal_page_url}}">{% if link.is_redirect_page %}<span class="label label-default">Redirected</span> {% endif %}{% if link.title %}{{link.title}}<br /><br />{% endif %}
+    	<a data-parent="#accordion" data-toggle="collapse" href="#{{link.page_results_hash}}">{% if link.is_redirect_page %}<span class="label label-default">Redirected</span> {% endif %}{% if link.title %}{{link.title}}<br /><br />{% endif %}
     	<span class='link-container'>{{link.url|truncate(100, True)}}{% if link.url != link.ending_url %} > {{link.ending_url|truncate(100, True)}} {% endif %}</span></a>
 
         

@@ -57,13 +57,15 @@ class MessageCategory(object):
 
     key = None
     message = None
+    info = None
     level = None
     messages = []
 
-    def __init__(self, key, message, level):
+    def __init__(self, key, message, level, info=''):
         self.key = key
         self.message = message
         self.level = level
+        self.info = info
         self.messages = []
 
     def add_message(self, link, message):
@@ -175,11 +177,14 @@ class LinkSet(BaseMessageable):
     
     
 
-    def __init__(self, options, canonical_domain, domain_aliases, verbose=False):
+    def __init__(self, options, canonical_domain, domain_aliases, test_category_id, test_batch_id, verbose=False):
 
     
         if verbose:
             print '\n\nLoading link set...\n'
+
+        self.test_category_id = test_category_id
+        self.test_batch_id = test_batch_id
 
         self.verbose = verbose
         self.messages = MessageSet(verbose)
@@ -201,15 +206,15 @@ class LinkSet(BaseMessageable):
         self.basic_auth_username = '' if self.use_basic_auth==False else options['basic_auth_username']
         self.basic_auth_password = '' if self.use_basic_auth==False else options['basic_auth_password']
 
-        self.loading_error = self.get_or_create_message_category('loading-error', "Loading Error", 'danger')
-        self.parsing_error = self.get_or_create_message_category('parsing-error', "Parsing Error", 'danger')
+        self.loading_error = self.get_or_create_message_category('loading-error', "Loading error", 'danger')
+        self.parsing_error = self.get_or_create_message_category('parsing-error', "Parsing error", 'danger')
 
         super(LinkSet, self).__init__()    
 
-    def get_or_create_message_category(self, key, message, level):
+    def get_or_create_message_category(self, key, message, level, info=''):
 
         if key not in self.message_category_hash:
-            category = MessageCategory(key, message, level)
+            category = MessageCategory(key, message, level, info)
             self.message_categories.append(category)
             self.message_category_hash[key] = category
 
@@ -261,10 +266,6 @@ class LinkSet(BaseMessageable):
                 
 
             load_successful, response = page_link.load(self, expected_code)
-            
-            if not load_successful:
-                message = "\rLoading unsuccessful on page <a href='#%s' class='pagelink alert-link'>%s</a> Expected %s Received %s"%(page_link.internal_page_url, page_link.url, 200, page_link.response_code)
-                self.add_error_message(message, self.loading_error)
             
 
             #record that we have parsed it
@@ -559,11 +560,29 @@ class LinkItem(BaseMessageable):
 
 
 
-
+    @property
+    def page_url(self):
+        
+        if self.url in self.set.parsed_links:
+            path = "parsed.html"
+        elif self.url in self.set.loaded_links:
+            path = "loaded.html"
+        else:
+            path = "other.html"
+        return path
 
     @property
-    def internal_page_url(self):
-        return slugify("load-test-result-%s"%(self.url))
+    def page_hash(self):
+        return slugify("result-%s"%(self.page_slug))
+
+    @property
+    def page_results_hash(self):
+        return slugify("result-body-%s"%(self.page_slug))
+
+    @property
+    def page_slug(self):
+        return slugify(self.url)        
+            
 
     @property
     def encoded_url(self):
@@ -713,7 +732,7 @@ class LinkItem(BaseMessageable):
 
             
         if expected_code != self.response_code:
-            message = "Loading error on page <a href='#%s' class='alert-link'>%s</a> Expected %s Received %s"%(self.internal_page_url, self.url, expected_code, self.response_code)
+            message = "Loading error on page %s Expected %s Received %s"%(self.title, expected_code, self.response_code)
             self.add_error_message(message, self.set.loading_error)
             return (False, response)
         else:
@@ -756,7 +775,7 @@ class LinkItem(BaseMessageable):
                 soup = BeautifulSoup(self.source, 'html5lib')
             except Exception:
                 soup = None
-                self.add_error_message("Error parsing HTML on page %s: %s"%(self.url, traceback.format_exc()), self.set.parsing_error)
+                self.add_error_message("Error parsing HTML on page &ldquo;%s&rdquo; %s"%(self.url, traceback.format_exc()), self.set.parsing_error)
 
         
             if soup:

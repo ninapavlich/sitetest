@@ -2,6 +2,7 @@ import os
 import sys
 import datetime
 import traceback        
+import shutil
 
 from boto.s3.key import Key
 import boto.s3
@@ -27,7 +28,7 @@ from .tests.security.ua_blocks import test_ua_blocks
 
 
             
-def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_id, options=None):
+def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_category_id, options=None):
     
     # recursive = False
     
@@ -93,13 +94,15 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
 
     ua_test = False if 'ua_test_list' not in options else True
 
+    batch_id = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
+
     if verbose:
-        print "SITE TEST :: %s Recursive:%s Media:%s External Links:%s 3rd Party:%s Screenshots: %s MAX:%s"%(canonical_domain, recursive, test_media, test_external_links, run_third_party_tests, generate_screenshots, max_parse_count)
+        print "SITE TEST [%s %s] :: %s Recursive:%s Media:%s External Links:%s 3rd Party:%s Screenshots: %s MAX:%s"%(test_category_id, batch_id, canonical_domain, recursive, test_media, test_external_links, run_third_party_tests, generate_screenshots, max_parse_count)
 
 
 
     #Load pages, starting with homepage    
-    set = LinkSet(options, canonical_domain, domain_aliases, verbose)
+    set = LinkSet(options, canonical_domain, domain_aliases, test_category_id, batch_id, verbose)
     homepage_link = set.get_or_create_link_object(canonical_domain, None)
 
     if recursive == True:
@@ -167,7 +170,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
     # Browser Screenshots
     if generate_screenshots==True:
         try:
-            test_screenshots(set, credentials, options, test_id, 100, verbose)
+            test_screenshots(set, credentials, options, test_category_id, batch_id, 100, verbose)
         except Exception:        
             print "Error generating screenshots: %s"%(traceback.format_exc())
 
@@ -203,27 +206,39 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_i
         'max_parse_count':max_parse_count
     }
 
-    html = render_results(results)
+    report_url = render_and_save_results(results, test_category_id, batch_id, credentials, verbose)
+
+    results['report_url'] = report_url
+    open_results(report_url)
+
+    # notify_results(results, credentials)
+
+    return results
+
+
+def render_and_save_results(results, test_category_id, batch_id, credentials, verbose):
+    
+    error_tab_url   = render_tab(results, 'errors.html', 'results_errors.html', test_category_id, batch_id, credentials, verbose)
+    parsed_tab_url  = render_tab(results, 'parsed.html', 'results_parsed.html', test_category_id, batch_id, credentials, verbose)
+    maps_tab_url    = render_tab(results, 'maps.html', 'results_maps.html', test_category_id, batch_id, credentials, verbose)
+    loaded_tab_url  = render_tab(results, 'loaded.html', 'results_loaded.html', test_category_id, batch_id, credentials, verbose)
+    other_tab_url   = render_tab(results, 'other.html', 'results_other.html', test_category_id, batch_id, credentials, verbose)
+    tests_tab_url   = render_tab(results, 'tests.html', 'results_tests.html', test_category_id, batch_id, credentials, verbose)
+
+    return error_tab_url
+
+def render_tab(results, filename, template_file, test_category_id, batch_id, credentials, verbose):   
+
+    html = render_results(results, template_file)
 
     try:
         html_minified = htmlmin.minify(html, True, True)
     except Exception:
         print "Error minifying html: %s"%(traceback.format_exc())
         html_minified = html
-        
-    report_url = save_results(html_minified, test_id, credentials, verbose)
-    results['report_url'] = report_url
-    open_results(report_url)
-
-    notify_results(results, credentials)
-
-    return results
-
-
-def render_and_save_results(results, template_name, output_path):
-    #TODO
-    pass
-
+    
+    report_url = save_results(html_minified, filename, test_category_id, batch_id, credentials, verbose) 
+    return report_url
 
 def render_results(results, template_file = 'results.html'):
     
@@ -235,36 +250,56 @@ def render_results(results, template_file = 'results.html'):
     return rendered
 
 
-def save_results(html, test_id, credentials, verbose):
+def save_results(html, filename, test_category_id, batch_id, credentials, verbose):
 
     results_dir = os.path.join(os.path.dirname(__file__), 'test_results')
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
 
-    filename = "%s.html"%(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M"))
-    results_file = os.path.join(results_dir, filename)
+    test_category_dir = os.path.join(results_dir, test_category_id)
+    if not os.path.exists(test_category_dir):
+        os.makedirs(test_category_dir)
 
-    save_results_local(html, results_file, test_id, verbose)
+    batch_dir = os.path.join(test_category_dir, batch_id)
+    if not os.path.exists(batch_dir):
+        os.makedirs(batch_dir)
+
+    
+    results_file = os.path.join(batch_dir, filename)
+
+    save_results_local(html, results_file, verbose)
     try:
-        report_url = save_results_aws(results_file, test_id, credentials, verbose)
+        report_url = save_results_aws(results_file, test_category_id, batch_id, credentials, verbose)
     except Exception:        
         print "Error posting results to AWS: %s"%(traceback.format_exc())
         report_url = None
 
     if report_url:
         delete_results_local(results_file, verbose)
+        delete_results_local(batch_dir, verbose)
+        delete_results_local(test_category_dir, verbose)
     else:
         report_url = "file://%s"%results_file       
-        
+    
+
 
     return report_url
 
 def delete_results_local(output_path, verbose):
-    os.remove(output_path)
 
-def save_results_local(html, output_path, test_id, verbose):
-    
-    
+    try:
+        #First try removing as if it was a file
+        os.remove(output_path)
+    except Exception:   
+        try:
+            #Next try removing as if it was a directory
+            shutil.rmtree(output_path)
+        except Exception:        
+
+            print "Error deleting: %s - %s"%(output_path, traceback.format_exc())        
+
+
+def save_results_local(html, output_path, verbose):        
 
     # process Unicode text
     with codecs.open(output_path,'w',encoding='utf8') as file:
@@ -275,7 +310,7 @@ def save_results_local(html, output_path, test_id, verbose):
     # file.write(html)
     file.close()
 
-def save_results_aws(file_name, test_id, credentials, verbose):
+def save_results_aws(filename, test_category_id, batch_id, credentials, verbose):
     
 
     if 'aws' in credentials and 'AWS_ACCESS_KEY_ID' in credentials['aws']:
@@ -284,7 +319,7 @@ def save_results_aws(file_name, test_id, credentials, verbose):
         AWS_STORAGE_BUCKET_NAME = credentials['aws']['AWS_STORAGE_BUCKET_NAME']
         AWS_RESULTS_PATH = credentials['aws']['AWS_RESULTS_PATH']
 
-        base_name = os.path.basename(file_name)
+        base_name = os.path.basename(filename)
         bucket_name = AWS_STORAGE_BUCKET_NAME    
 
         conn = boto.connect_s3(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
@@ -293,7 +328,7 @@ def save_results_aws(file_name, test_id, credentials, verbose):
         current_dir = os.path.dirname(__file__)
 
         if verbose:
-            print 'Uploading %s to Amazon S3 from %s' % (base_name, file_name)
+            print '\r  -- Uploading %s to Amazon S3 from %s\r' % (base_name, filename)
 
             def percent_cb(complete, total):
                 sys.stdout.write('.')
@@ -301,11 +336,11 @@ def save_results_aws(file_name, test_id, credentials, verbose):
 
         
         k = Key(bucket)
-        k.key = u"%s/%s/%s"%(AWS_RESULTS_PATH, test_id, base_name)
-        k.set_contents_from_filename(file_name, cb=percent_cb, num_cb=10)
+        k.key = u"%s/%s/%s/%s"%(AWS_RESULTS_PATH, test_category_id, batch_id, base_name)
+        k.set_contents_from_filename(filename, cb=percent_cb, num_cb=10)
         k.set_acl('public-read')
 
-        url = "http://s3.amazonaws.com/%s/%s/%s/%s" % (AWS_STORAGE_BUCKET_NAME, AWS_RESULTS_PATH, test_id, base_name)
+        url = "http://s3.amazonaws.com/%s/%s/%s/%s/%s" % (AWS_STORAGE_BUCKET_NAME, AWS_RESULTS_PATH, test_category_id, batch_id, base_name)
         return url
 
     else:

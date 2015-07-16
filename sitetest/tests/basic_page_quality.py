@@ -28,21 +28,21 @@ def test_basic_page_quality(set, recursive, verbose=False):
     orphan_page_error_count = 0
 
 
-    page_title_missing_error = set.get_or_create_message_category('page-title-missing-error', "Page Title Missing", 'warning')
-    page_title_unique_error = set.get_or_create_message_category('page-title-unique-error', "Page Title Not Unique", 'warning')
-    page_description_missing_error = set.get_or_create_message_category('page-description-missing-error', "Page Description Missing", 'warning')
-    page_description_unique_error = set.get_or_create_message_category('page-description-unique-error', "Page Description Not Unique", 'warning')
-    missing_analytics = set.get_or_create_message_category('missing-analytics-error', "Page Missing Google Analytics", 'warning')
+    page_title_missing_error = set.get_or_create_message_category('page-title-missing-error', "Page title missing", 'warning')
+    page_title_unique_error = set.get_or_create_message_category('page-title-unique-error', "Page title not unique", 'warning')
+    page_description_missing_error = set.get_or_create_message_category('page-description-missing-error', "Page description missing", 'warning')
+    page_description_unique_error = set.get_or_create_message_category('page-description-unique-error', "Page description not unique", 'warning')
+    missing_analytics = set.get_or_create_message_category('missing-analytics-error', "Page missing Google Analytics", 'warning')
     mixed_resources = set.get_or_create_message_category('mixed-resources-error', "HTTP active mixed resource on HTTPS page", 'warning')
     h1_error = set.get_or_create_message_category('h1-error', "Page doesn't have exactly one H1", 'warning')
     compressed_error = set.get_or_create_message_category('compressed-error', "Page is not compressed", 'warning')
-    robots_error = set.get_or_create_message_category('robots-error', "Page is not accessible based on Robots.txt", 'warning')
-    sitemap_error = set.get_or_create_message_category('sitemap-error', "Page not in Sitemap", 'warning')
-    multiple_stylesheets = set.get_or_create_message_category('multiple-stylesheets-error', "Multiple stylesheets from the same domain, which should be combined if possible.", 'warning')
-    multiple_scripts = set.get_or_create_message_category('multiple-scripts-error', "Multiple scripts from the same domain, which should be combined if possible.", 'warning')
-    sitemap_orphan_error = set.get_or_create_message_category('sitemap-orphan-error', "Orphant pages in the sitemap, but not accessible from elsewhere in the site.", 'warning')
+    robots_error = set.get_or_create_message_category('robots-error', "Page is not accessible based on robots.txt", 'warning')
+    sitemap_error = set.get_or_create_message_category('sitemap-error', "Page not in sitemap", 'warning')
+    multiple_stylesheets = set.get_or_create_message_category('multiple-stylesheets-error', "Multiple stylesheets from the same domain. These should be combined if possible", 'warning')
+    multiple_scripts = set.get_or_create_message_category('multiple-scripts-error', "Multiple scripts from the same domain. These should be combined if possible", 'warning')
+    sitemap_orphan_error = set.get_or_create_message_category('sitemap-orphan-error', "Orphan pages in the sitemap, but not accessible from elsewhere in the site", 'warning')
 
-    missing_meta_tags = set.get_or_create_message_category('missing-meta-tags', "Missing social media meta tags.", 'info')
+    missing_meta_tags = set.get_or_create_message_category('missing-meta-tags', "Missing social media meta tags", 'info')
 
     
     
@@ -79,9 +79,12 @@ def test_basic_page_quality(set, recursive, verbose=False):
 
                     if not is_skip_test:
 
+                        
                         if page_title == '':
-                            message = "Page title is missing from <a href='#%s' class='alert-link'>%s</a>."%(link.internal_page_url, link_url)
+                            message = "Page title is missing from %s"%(link_url)
                             link.add_warning_message(message, self.page_title_missing_error)
+                            link.title = link_url
+
 
                         elif (page_title not in unique_titles) and (is_redirected_page == False) and (is_alias_page == False):
                             unique_titles[page_title] = link.path
@@ -91,7 +94,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
                                 unique_titles[page_title] = link.path
 
                             if link.path.strip('/') != unique_titles[page_title].strip('/') and (is_redirected_page == False) and (is_alias_page == False):
-                                message = "Page title &ldquo;%s&rdquo; in <a href='#%s' class='alert-link'>%s</a> is not unique."%(page_title, link.internal_page_url, link_url)
+                                message = "Page title &ldquo;%s&rdquo; is not unique."%(page_title)
                                 link.add_warning_message(message, page_title_unique_error)
                                 unique_title_error_count += 1
                             
@@ -112,12 +115,12 @@ def test_basic_page_quality(set, recursive, verbose=False):
                                 unique_descriptions[page_description] = link.path
                             else:               
                                 if link.path.strip('/') != unique_descriptions[page_description].strip('/') and not is_redirected_page and not is_alias_page:
-                                    message = "Page description in <a href='#%s' class='alert-link'>%s</a> is not unique."%(link.internal_page_url, link_url)
+                                    message = "Page description in &ldquo;%s&rdquo; (%s) is not unique."%(link.title, page_description)
                                     link.add_warning_message(message, page_description_unique_error)
                                     unique_description_error_count += 1
 
                         else:                       
-                            message = "Page description is missing from <a href='#%s' class='alert-link'>%s</a>."%(link.internal_page_url, link_url)
+                            message = "Page description is missing from &ldquo;%s&rdquo;"%(link.title)
                             link.add_warning_message(message, page_description_missing_error)
 
                         meta_tags = [
@@ -159,7 +162,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
                         if len(missing_met_tags) > 0:                        
                             social_tag_error_count += 1
                             tags = ', '.join(missing_met_tags)
-                            message = "Meta tag(s) missing from page: %s"%(tags)
+                            message = "Page &ldquo;%s&rdquo; missing meta tag(s): %s"%(link.title, tags)
                             link.add_info_message(message, missing_meta_tags)
 
                         
@@ -175,7 +178,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
                         has_js = js_indicator.lower() in link_source.lower()
                         if not has_ua and not has_asynca and not has_js:
                             analytics_missing_error_count += 1
-                            message = "Page missing google analytics."
+                            message = "Page %s missing google analytics."%(link.title)
                             link.add_warning_message(message, missing_analytics)
 
 
@@ -185,14 +188,14 @@ def test_basic_page_quality(set, recursive, verbose=False):
                                 
                                 if 'http:' in link_url:
                                     ssl_error_count += 1
-                                    message = "HTTP active mixed resource was found on HTTPS page: %s"%(link_url)
+                                    message = "HTTP active mixed resource was found on HTTPS page &ldquo;%s&rdquo;"%(link.title)
                                     link.add_warning_message(message, mixed_resources)
 
                         #6 - Verify that page has exactly one h1
                         h1_count = len(soup.findAll('h1'))
                         if h1_count != 1:
                             h1_error_count += 1
-                            message = "Page doesn't have exactly one H1, it has %s"%(h1_count)
+                            message = "Page &ldquo;%s&rdquo; doesn't have exactly one H1, it has %s"%(link.title, h1_count)
                             link.add_warning_message(message, h1_error)
 
                         #7 - Compression
@@ -204,7 +207,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
                         #8 - Robots
                         if link.accessible_to_robots == False:
                             robots_error_count += 1
-                            message = "This page is not accessible to robots.txt"
+                            message = "Page &ldquo;%s&rdquo; is not accessible to robots.txt"%(link.title)
                             link.add_warning_message(message, robots_error)
 
                         #9 - Sitemap
@@ -212,11 +215,11 @@ def test_basic_page_quality(set, recursive, verbose=False):
                             if link.is_alias == False:
                                 if link.has_sitemap_entry == False:
                                     sitemap_error_count += 1
-                                    message = "This page is not in the sitemap."
+                                    message = "Page &ldquo;%s&rdquo; is not in the sitemap"%(link.title)
                                     link.add_warning_message(message, sitemap_error)
 
                                 if len(link.referers) == 1 and link.has_sitemap_entry == True:
-                                    link.add_info_message("Page is in the sitemap, but not accessible from elsewhere in the site.", sitemap_orphan_error)
+                                    link.add_info_message("Page &ldquo;%s&rdquo; is in the sitemap, but not accessible from elsewhere in the site."%(link.title), sitemap_orphan_error)
                                     orphan_page_error_count += 1
 
 
@@ -231,7 +234,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
                         for css_domain in css_link_domains:
                             domain_count = css_link_domains[css_domain]
                             if domain_count > 1:
-                                message = "%s css files from the same domain %s. These CSS files should be combined if possible."%(domain_count, css_domain)
+                                message = "%s css files from the same domain %s."%(domain_count, css_domain)
                                 link.add_warning_message(message, multiple_stylesheets)
 
                         #10 - Are JS Files comfbined
@@ -245,7 +248,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
                         for js_domain in js_link_domains:
                             domain_count = js_link_domains[js_domain]
                             if domain_count > 1:
-                                message = "%s script files from the same domain %s. These script files should be combined if possible."%(domain_count, js_domain)
+                                message = "%s script files from the same domain %s."%(domain_count, js_domain)
                                 link.add_warning_message(message, multiple_scripts)
 
 

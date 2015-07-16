@@ -9,10 +9,10 @@ def test_w3c_compliance(set, ignore_validation_errors, max_test_count=20, verbos
 
 
     if verbose:
-        print "\n\nTesting W3C Compliance, ignoring the following errors %s\n"%(ignore_validation_errors)
+        print "\n\nTesting W3C Compliance, ignoring %s errors\n"%(len(ignore_validation_errors))
 
-    validation_error = set.get_or_create_message_category('validation-error', "Validation Errors", 'danger')
-    validation_warning = set.get_or_create_message_category('validation-warning', "Validation Warnings", 'warning')
+    validation_error = set.get_or_create_message_category('validation-error', "Validation errors", 'warning')
+    validation_warning = set.get_or_create_message_category('validation-warning', "Validation warnings", 'info')
 
     #Calculate total number of links to validate
     target_count = 0
@@ -76,11 +76,11 @@ def test_w3c_compliance(set, ignore_validation_errors, max_test_count=20, verbos
                         errors_found_count += len(actual_errors)
 
                         if len(actual_errors) > 0:
-                            message = "Found %s validation errors on page %s."%(len(actual_errors), link_url)
+                            message = "Found %s validation errors on page."%(len(actual_errors))
                             link.add_warning_message(message, validation_error)
 
                         if len(actual_warnings) > 0:
-                            message = "Found %s validation warnings on page %s."%(len(actual_warnings), link_url)
+                            message = "Found %s validation warnings on page."%(len(actual_warnings))
                             link.add_info_message(message, validation_warning)
 
                         

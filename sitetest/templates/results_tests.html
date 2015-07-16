@@ -1,0 +1,53 @@
+{% extends "results_base.html" %}
+
+{% block nav %}
+          
+<ul class="nav nav-tabs" >
+    <li><a href="./errors.html" role="presentation">Errors &amp; Warnings</a></li>
+    <li><a href="./parsed.html"  role="presentation">Parsed Pages</a></li>
+    <li><a href="./maps.html" role="presentation">Robots &amp; Sitemaps</a></li>
+    <li><a href="./loaded.html" role="presentation">Loaded Pages</a></li>
+    
+    {% if output_unloaded_links %}
+    <li><a href="./other.html" role="presentation">All Other Pages</a></li>
+    {% endif %}
+
+    {% if set.test_results %}
+    <li class="active"><a href="./tests.html" role="presentation">Test Results</a></li>
+    {% endif %}
+</ul>       
+
+{% endblock %}
+
+{% block content %}
+<h2>Test Results</h2> 
+
+<p>Ran {{set.test_results.testsRun}} test(s).</p>
+
+<h3>Failures ({{set.test_results.failures|length}})</h3>
+          
+<ul>
+    {% for failure in set.test_results.failures %}
+    <li class="alert alert-danger" role="alert"><strong>{{failure.0}}</strong> {{failure.1|safe}}</li>                                
+    {% endfor %}
+</ul>
+
+<h3>Errors ({{set.test_results.errors|length}})</h3>
+          
+<ul>
+    {% for error in set.test_results.errors %}
+    <li class="alert alert-warning" role="alert"><strong>{{error.0}}</strong> {{error.1|safe}}</li>                                
+    {% endfor %}
+</ul>
+
+<h3>Skipped ({{set.test_results.skipped|length}})</h3>
+          
+<ul>
+    {% for skip in set.test_results.skipped %}
+
+    <li class="alert alert-warning" role="alert"><strong>{{skip.0}}</strong> {{skip.1|safe}}</li>                                
+    {% endfor %}
+</ul> 
+
+{% endblock %}
+

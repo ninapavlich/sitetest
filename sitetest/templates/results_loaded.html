@@ -1,0 +1,33 @@
+{% extends "results_base.html" %}
+
+{% block nav %}
+          
+<ul class="nav nav-tabs" >
+    <li><a href="./errors.html" role="presentation">Errors &amp; Warnings</a></li>
+    <li><a href="./parsed.html"  role="presentation">Parsed Pages</a></li>
+    <li><a href="./maps.html" role="presentation">Robots &amp; Sitemaps</a></li>
+    <li class="active"><a href="./loaded.html" role="presentation">Loaded Pages</a></li>
+    
+    {% if output_unloaded_links %}
+    <li><a href="./other.html" role="presentation">All Other Pages</a></li>
+    {% endif %}
+
+    {% if set.test_results %}
+    <li><a href="./tests.html" role="presentation">Test Results</a></li>
+    {% endif %}
+</ul>       
+
+{% endblock %}
+
+{% block content %}
+<h2>Loaded Pages</h2> 
+
+{% for link_url, link in set.loaded_links|dictsort %}
+{% if link_url not in set.parsed_links %}
+{% set loop_index = loop.index %}
+{% include 'result_loaded.html' with context %}
+{% endif %}
+{% endfor %}
+
+{% endblock %}
+

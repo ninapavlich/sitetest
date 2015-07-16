@@ -46,8 +46,8 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
     if verbose:
         print "\n\nSpell check site using special_dictionary: %s\n"%(special_dictionary)
 
-    lorem_ipsum_error = set.get_or_create_message_category('lorem-ipsum-error', "Lorem Ipsum Found", 'warning')
-    spelling_error = set.get_or_create_message_category('spelling-error', "Spelling Errors", 'warning')
+    lorem_ipsum_error = set.get_or_create_message_category('lorem-ipsum-error', "Lorem ipsum found", 'warning')
+    spelling_error = set.get_or_create_message_category('spelling-error', "Spelling errors", 'info')
 
     lorem_ipsum_count = 0
     spelling_issue_count = 0
@@ -91,7 +91,7 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
 
                 if has_lorem_ipsum:
                     lorem_ipsum_count += 1
-                    message = "Lorem Ipsum found in <a href='#%s' class='alert-link'>%s</a>."%(link.internal_page_url, link_url)
+                    message = "Lorem Ipsum found in &ldquo;%s&rdquo;"%(link.title)
                     link.add_warning_message(message, lorem_ipsum_error)
 
                 #2. Check for Spelling
@@ -135,7 +135,7 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
                             try:
                                 word_exists = d.check(word) or check_special_dictionary(word, special_dictionary)
                             except Exception:        
-                                print "Error checking word on %s: %s"%(link.url, traceback.format_exc())
+                                print "Error checking word on &ldquo;%s&rdquo; %s"%(link.title, traceback.format_exc())
                                 word_exists = True
 
                             word_is_proper_noun = word[0].isupper()

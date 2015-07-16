@@ -1,0 +1,37 @@
+{% extends "results_base.html" %}
+
+{% block nav %}
+          
+<ul class="nav nav-tabs" >
+    <li><a href="./errors.html" role="presentation">Errors &amp; Warnings</a></li>
+    <li><a href="./parsed.html"  role="presentation">Parsed Pages</a></li>
+    <li class="active"><a href="./maps.html" role="presentation">Robots &amp; Sitemaps</a></li>
+    <li><a href="./loaded.html" role="presentation">Loaded Pages</a></li>
+    
+    {% if output_unloaded_links %}
+    <li><a href="./other.html" role="presentation">All Other Pages</a></li>
+    {% endif %}
+
+    {% if set.test_results %}
+    <li><a href="./tests.html" role="presentation">Test Results</a></li>
+    {% endif %}
+</ul>       
+
+{% endblock %}
+
+{% block content %}
+<h2>Robots &amp; Sitemaps</h2>  
+
+{% set link = set.robots_link %}
+{% set link_url = set.robots_url %}
+{% set loop_index = 0 %}
+{% include 'result_full.html' with context %}
+
+{% for link in set.sitemap_links %}
+{% set link_url = link.url %}
+{% set loop_index = loop.index+1 %}
+{% include 'result_full.html' with context %}
+{% endfor %}
+
+{% endblock %}
+

@@ -13,7 +13,7 @@ import boto.s3
 from ..core.models import HEADERS
 from selenium import webdriver
 
-def test_screenshots(set, credentials, options, test_id, max_test_count=20, verbose=False):
+def test_screenshots(set, credentials, options, test_category_id, batch_id, max_test_count=20, verbose=False):
 	
 
 	use_browserstack = False #True if('browserstack' in credentials and 'USERNAME' in credentials['browserstack']) else False
@@ -21,7 +21,6 @@ def test_screenshots(set, credentials, options, test_id, max_test_count=20, verb
 	if max_test_count== None:
 		max_test_count = 20
 
-	test_dir = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
 
 	use_basic_auth = False if 'use_basic_auth' not in options else truthy(options['use_basic_auth'])
 	basic_auth_username = '' if use_basic_auth==False else options['basic_auth_username']
@@ -98,7 +97,7 @@ def test_screenshots(set, credentials, options, test_id, max_test_count=20, verb
 
 						for key, screenshot in options['screenshots'].iteritems():
 							
-
+							screenshots_directory = 'screenshots'
 							width = screenshot[0]
 							height = screenshot[1]
 							browser.set_window_size(width, height)
@@ -108,15 +107,15 @@ def test_screenshots(set, credentials, options, test_id, max_test_count=20, verb
 
 							
 
-							results_dir = os.path.join(os.path.dirname(__file__), '..', 'test_results', test_id, test_dir, link.internal_page_url)
+							results_dir = os.path.join(os.path.dirname(__file__), '..', 'test_results', test_category_id, batch_id, screenshots_directory, link.page_slug)
 							if not os.path.exists(results_dir):
 								os.makedirs(results_dir)
 								
 							filename = '%s/%s-%s.png'%(results_dir, width, height)
 							browser.save_screenshot(filename)
 
-							folder = '%s/%s/%s'%(test_id, test_dir, link.internal_page_url)
-							image_url = copy_to_amazon(filename, folder, test_id, credentials, verbose)
+							folder = '%s/%s/%s/%s'%(test_category_id, batch_id, screenshots_directory, link.page_slug)
+							image_url = copy_to_amazon(filename, folder, test_category_id, batch_id, credentials, verbose)
 
 							link.screenshots[key] = image_url
 						
@@ -124,7 +123,7 @@ def test_screenshots(set, credentials, options, test_id, max_test_count=20, verb
 	browser.quit()
 
 
-def copy_to_amazon(file_name, folder, test_id, credentials, verbose):
+def copy_to_amazon(file_name, folder, test_category_id, batch_id, credentials, verbose):
 	
 
 	if 'aws' in credentials and 'AWS_ACCESS_KEY_ID' in credentials['aws']:
@@ -133,7 +132,7 @@ def copy_to_amazon(file_name, folder, test_id, credentials, verbose):
 		AWS_STORAGE_BUCKET_NAME = credentials['aws']['AWS_STORAGE_BUCKET_NAME']
 		AWS_RESULTS_PATH = credentials['aws']['AWS_RESULTS_PATH']
 
-		test_dir = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
+		
 
 		base_name = os.path.basename(file_name)
 		bucket_name = AWS_STORAGE_BUCKET_NAME    
@@ -144,7 +143,7 @@ def copy_to_amazon(file_name, folder, test_id, credentials, verbose):
 		current_dir = os.path.dirname(__file__)
 
 		if verbose:
-			print 'Uploading %s to Amazon S3 from %s' % (base_name, file_name)
+			print '\r  -- Uploading %s to Amazon S3 from %s\r' % (base_name, file_name)
 
 			def percent_cb(complete, total):
 				sys.stdout.write('.')

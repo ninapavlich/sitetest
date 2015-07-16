@@ -1,0 +1,29 @@
+{% extends "results_base.html" %}
+
+{% block nav %}
+          
+<ul class="nav nav-tabs" >
+    <li class="active"><a href="./errors.html" role="presentation">Errors &amp; Warnings</a></li>
+    <li><a href="./parsed.html"  role="presentation">Parsed Pages</a></li>
+    <li><a href="./maps.html" role="presentation">Robots &amp; Sitemaps</a></li>
+    <li><a href="./loaded.html" role="presentation">Loaded Pages</a></li>
+    
+    {% if output_unloaded_links %}
+    <li><a href="./other.html" role="presentation">All Other Pages</a></li>
+    {% endif %}
+
+    {% if set.test_results %}
+    <li><a href="./tests.html" role="presentation">Test Results</a></li>
+    {% endif %}
+</ul>       
+
+{% endblock %}
+
+{% block content %}
+<h2>Errors &amp; Warnings</h2>
+
+{% for message_category in set.message_categories %}
+{% include 'partials/result_message.html' with context %}
+{% endfor %}            
+
+{% endblock %}
