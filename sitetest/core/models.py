@@ -192,7 +192,9 @@ class LinkSet(BaseMessageable):
         self.alias_query_strings = [] if 'alias_query_strings' not in options else options['alias_query_strings']
         self.skip_test_urls = [] if 'skip_test_urls' not in options else options['skip_test_urls']
         self.skip_urls = [] if 'skip_urls' not in options else options['skip_urls']
-        self.max_parse_count = None if 'max_parse_count' not in options else int(options['max_parse_count'])
+        self.max_parse_count = None if 'max_parse_count' not in options else options['max_parse_count']
+        if self.max_parse_count:
+            self.max_parse_count = int(self.max_parse_count)
 
 
         self.use_basic_auth = False if 'use_basic_auth' not in options else truthy(options['use_basic_auth'])
