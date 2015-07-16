@@ -11,6 +11,9 @@ def test_w3c_compliance(set, ignore_validation_errors, max_test_count=20, verbos
     if verbose:
         print "\n\nTesting W3C Compliance, ignoring the following errors %s\n"%(ignore_validation_errors)
 
+    validation_error = set.get_or_create_message_category('validation-error', "Validation Errors", 'danger')
+    validation_warning = set.get_or_create_message_category('validation-warning', "Validation Warnings", 'warning')
+
     #Calculate total number of links to validate
     target_count = 0
     for link_url in set.parsed_links:
@@ -74,11 +77,11 @@ def test_w3c_compliance(set, ignore_validation_errors, max_test_count=20, verbos
 
                         if len(actual_errors) > 0:
                             message = "Found %s validation errors on page %s."%(len(actual_errors), link_url)
-                            link.add_warning_message(message)
+                            link.add_warning_message(message, validation_error)
 
                         if len(actual_warnings) > 0:
                             message = "Found %s validation warnings on page %s."%(len(actual_warnings), link_url)
-                            link.add_info_message(message)
+                            link.add_info_message(message, validation_warning)
 
                         
                     else:
@@ -87,14 +90,14 @@ def test_w3c_compliance(set, ignore_validation_errors, max_test_count=20, verbos
                         link.add_warning_message(message)
 
 
-    if warnings_found_count > 0:
-        set.add_info_message("%s validation warnings found"%(warnings_found_count), warnings_found_count)
+    # if warnings_found_count > 0:
+    #     set.add_info_message("%s validation warnings found"%(warnings_found_count), validation_warning, warnings_found_count)
 
-    if errors_found_count > 0:
-        set.add_warning_message("%s validation errors found"%(errors_found_count), errors_found_count)  
+    # if errors_found_count > 0:
+    #     set.add_warning_message("%s validation errors found"%(errors_found_count), validation_error, errors_found_count)  
 
-    if timeout_found_count > 0:
-        set.add_warning_message("%s pages were unable to validate because they timed out. Please manually check those pages using the W3C Validation link in the 'Tools' tab."%(timeout_found_count), timeout_found_count)             
+    # if timeout_found_count > 0:
+    #     set.add_warning_message("%s pages were unable to validate because they timed out. Please manually check those pages using the W3C Validation link in the 'Tools' tab."%(timeout_found_count), timeout_found_count)             
 
 
 def get_test(link_html, attempt=0):

@@ -46,6 +46,9 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
     if verbose:
         print "\n\nSpell check site using special_dictionary: %s\n"%(special_dictionary)
 
+    lorem_ipsum_error = set.get_or_create_message_category('lorem-ipsum-error', "Lorem Ipsum Found", 'warning')
+    spelling_error = set.get_or_create_message_category('spelling-error', "Spelling Errors", 'warning')
+
     lorem_ipsum_count = 0
     spelling_issue_count = 0
 
@@ -89,7 +92,7 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
                 if has_lorem_ipsum:
                     lorem_ipsum_count += 1
                     message = "Lorem Ipsum found in <a href='#%s' class='alert-link'>%s</a>."%(link.internal_page_url, link_url)
-                    link.add_warning_message(message)
+                    link.add_warning_message(message, lorem_ipsum_error)
 
                 #2. Check for Spelling
                 if has_lorem_ipsum == False:
@@ -161,7 +164,7 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
                             if not word_exists and not word_is_proper_noun and not is_numeric and not is_technological and not is_contraction and not is_prefix and not is_money:
                                 if word not in misspelled_words:
                                     message = "Word &ldquo;%s&rdquo; misspelled."%(html_escape(word))
-                                    link.add_info_message(message)
+                                    link.add_info_message(message, spelling_error)
                                     misspelled_words.append(word)
 
                                     spelling_issue_count += 1    
@@ -173,11 +176,11 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
                 # except:
                 #   pass
 
-    if lorem_ipsum_count > 0:
-        set.add_warning_message("%s pages were found to have Lorem Ipsum"%(lorem_ipsum_count), lorem_ipsum_count)
+    # if lorem_ipsum_count > 0:
+    #     set.add_warning_message("%s pages were found to have Lorem Ipsum"%(lorem_ipsum_count), lorem_ipsum_error, lorem_ipsum_count)
 
-    if spelling_issue_count > 0:
-        set.add_info_message("%s words misspelled."%(spelling_issue_count), spelling_issue_count)
+    # if spelling_issue_count > 0:
+    #     set.add_info_message("%s words misspelled."%(spelling_issue_count), spelling_error, spelling_issue_count)
 
 
 def check_special_dictionary(word, special_dictionary):

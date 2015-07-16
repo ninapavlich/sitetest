@@ -9,6 +9,8 @@ def test_basic_site_quality(site, verbose=False):
     if verbose:
         print '\n\nRunning site quality tests...'
 
+    # robots_error = site.get_or_create_message_category('robots-error', "Page is not accessible based on robots.txt", 'warning')
+
     canonical_domain = site.canonical_domain
 
     if canonical_domain.endswith("/"):
@@ -51,16 +53,16 @@ def test_basic_site_quality(site, verbose=False):
                 link_item.has_sitemap_entry = True
 
         
-    #6 - Verify that no public pages are blocked by robots.txt
-    rp = robotparser.RobotFileParser()
-    rp.set_url(site.robots_url)
-    rp.read()
-    if robots_link.response_code == 200:
-        for link_url in site.parsed_links:
-            link = site.parsed_links[link_url]
-            if link.is_internal_html:
-                accessible_to_robots = rp.can_fetch("*", link.url)
-                link.accessible_to_robots = accessible_to_robots
-                if not accessible_to_robots:
-                    link.add_info_message("Page is accessible, but not to robots.")
+    # #6 - Verify that no public pages are blocked by robots.txt
+    # rp = robotparser.RobotFileParser()
+    # rp.set_url(site.robots_url)
+    # rp.read()
+    # if robots_link.response_code == 200:
+    #     for link_url in site.parsed_links:
+    #         link = site.parsed_links[link_url]
+    #         if link.is_internal_html:
+    #             accessible_to_robots = rp.can_fetch("*", link.url)
+    #             link.accessible_to_robots = accessible_to_robots
+    #             if not accessible_to_robots:
+    #                 link.add_info_message("Page is accessible, but not to robots.", robots_error)
             

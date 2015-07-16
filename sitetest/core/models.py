@@ -52,6 +52,24 @@ HEADERS = {'User-Agent': USER_AGENT_STRING,
    'Accept-Language': 'en-US,en;q=0.8',
    'Connection': 'keep-alive'}
 
+class MessageCategory(object):
+    # __slots__ = ['success', 'error', 'warning', 'info',]
+
+    key = None
+    message = None
+    level = None
+    messages = []
+
+    def __init__(self, key, message, level):
+        self.key = key
+        self.message = message
+        self.level = level
+        self.messages = []
+
+    def add_message(self, link, message):
+        self.messages.append({'link':link, 'message':message})
+
+
 class MessageSet(object):
     # __slots__ = ['success', 'error', 'warning', 'info',]
 
@@ -79,10 +97,13 @@ class Message(object):
     __slots__ = ['message','count']
 
     message = None
+    category = None
     count = 1
+    
 
-    def __init__(self, message, count=1 ):
+    def __init__(self, message, category=None, count=1 ):
         self.message = message
+        self.category = category
         self.count = count
 
 class SuccessMessage(Message):
@@ -110,21 +131,29 @@ class BaseMessageable(object):
         return None
     
 
-    def add_error_message(self, message, count=1):
+    def add_error_message(self, message, category=None, count=1):
         if self.verbose:
             print "ERROR: %s"%(message)
-        self.messages.error.append(ErrorMessage(message, count))
+        self.messages.error.append(ErrorMessage(message, category, count))
+        if category:
+            category.add_message(self, message)
 
-    def add_warning_message(self, message, count=1):
+    def add_warning_message(self, message, category=None, count=1):
         #if self.verbose:
         #    print "WARNING: %s"%(message)
-        self.messages.warning.append(WarningMessage(message, count))
+        self.messages.warning.append(WarningMessage(message, category, count))
+        if category:
+            category.add_message(self, message)
 
-    def add_info_message(self, message, count=1):
-        self.messages.info.append(InfoMessage(message, count))
+    def add_info_message(self, message, category=None, count=1):
+        self.messages.info.append(InfoMessage(message, category, count))
+        if category:
+            category.add_message(self, message)
 
-    def add_success_message(self, message, count=1):
-        self.messages.success.append(SuccessMessage(message, count))
+    def add_success_message(self, message, category=None, count=1):
+        self.messages.success.append(SuccessMessage(message, category, count))
+        if category:
+            category.add_message(self, message)
 
 class LinkSet(BaseMessageable):
     
@@ -140,6 +169,10 @@ class LinkSet(BaseMessageable):
     parsable_links = {}
     loadable_links = {}
     test_results = None
+
+    message_categories = []
+    message_category_hash = {}
+    
     
 
     def __init__(self, options, canonical_domain, domain_aliases, verbose=False):
@@ -159,14 +192,33 @@ class LinkSet(BaseMessageable):
         self.alias_query_strings = [] if 'alias_query_strings' not in options else options['alias_query_strings']
         self.skip_test_urls = [] if 'skip_test_urls' not in options else options['skip_test_urls']
         self.skip_urls = [] if 'skip_urls' not in options else options['skip_urls']
-        self.max_parse_count = None if 'max_parse_count' not in options else options['max_parse_count']
+        self.max_parse_count = None if 'max_parse_count' not in options else int(options['max_parse_count'])
+
 
         self.use_basic_auth = False if 'use_basic_auth' not in options else truthy(options['use_basic_auth'])
         self.basic_auth_username = '' if self.use_basic_auth==False else options['basic_auth_username']
         self.basic_auth_password = '' if self.use_basic_auth==False else options['basic_auth_password']
 
+        self.loading_error = self.get_or_create_message_category('loading-error', "Loading Error", 'danger')
+        self.parsing_error = self.get_or_create_message_category('parsing-error', "Parsing Error", 'danger')
 
         super(LinkSet, self).__init__()    
+
+    def get_or_create_message_category(self, key, message, level):
+
+        if key not in self.message_category_hash:
+            category = MessageCategory(key, message, level)
+            self.message_categories.append(category)
+            self.message_category_hash[key] = category
+
+            self.message_categories.sort(key=lambda x: x.key)
+
+        else:
+            category = self.message_category_hash[key]
+
+        return category
+
+    
 
     @property
     def robots_url(self):
@@ -186,8 +238,11 @@ class LinkSet(BaseMessageable):
         
     def load_link(self, page_link, recursive, expected_code=200, force=False):
 
-        if self.max_parse_count and len(self.parsed_links) >= self.max_parse_count and force == False:
-            #print "PARSED %s PAGES, turn recursive off"%(self.max_parse_count)
+
+        should_skip = self.max_parse_count and (len(self.parsed_links) >= self.max_parse_count) and force == False
+        
+        if should_skip:
+            # print "PARSED %s PAGES, turn recursive off"%(self.max_parse_count)
             return
 
         is_loadable = page_link.is_loadable_type(self.include_media, self.include_external_links)
@@ -197,15 +252,17 @@ class LinkSet(BaseMessageable):
 
             if self.verbose:
                 #trace_memory_usage()
-                #referer_list = [link for link in page_link.referers]
+                referer_list = [link for link in page_link.referers]
                 print "\r>>> Load Link %s (parsed: %s/%s, loaded: %s/%s, total: %s)\r\r"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.loaded_links), len(self.loadable_links),  len(self.current_links))
+                if 'Halas' in page_link.__unicode__():
+                    print "\r-----  From: %s\r\r"%(referer_list)
                 
 
             load_successful, response = page_link.load(self, expected_code)
             
             if not load_successful:
                 message = "\rLoading unsuccessful on page <a href='#%s' class='pagelink alert-link'>%s</a> Expected %s Received %s"%(page_link.internal_page_url, page_link.url, 200, page_link.response_code)
-                self.add_error_message(message)
+                self.add_error_message(message, self.loading_error)
             
 
             #record that we have parsed it
@@ -236,10 +293,12 @@ class LinkSet(BaseMessageable):
 
 
     def get_or_create_link_object(self, url, referer=None):
+        
         incoming_url = url
         referer_url = None if not referer else referer.ending_url
 
         url = self.get_normalized_href(url, referer_url)
+
         slashed_url = u"%s/"%url
         deslashed_url = url.rstrip(u"/")
 
@@ -285,8 +344,6 @@ class LinkSet(BaseMessageable):
                 if regexp.search(url):
                     link.skip = True
 
-
-
         return link
 
 
@@ -318,6 +375,7 @@ class LinkSet(BaseMessageable):
 
     def get_normalized_href(self, url, normalized_parent_url=None):
         debug = False
+
         
         if debug:
             print '---> get_normalized_href for %s from %s'%(url, normalized_parent_url)
@@ -390,6 +448,8 @@ class LinkSet(BaseMessageable):
                     
             #Next remove unwanted query strings:
             normalized = clean_query_string(normalized, self.ignore_query_string_keys)
+            if debug:
+                print "---> query string cleared: %s"%(normalized)
 
         if debug:
             print '---> normalized ====> %s'%(normalized)
@@ -482,6 +542,8 @@ class LinkItem(BaseMessageable):
         self.use_basic_auth = set.use_basic_auth
         self.basic_auth_username = set.basic_auth_username
         self.basic_auth_password = set.basic_auth_password
+
+        self.set = set
 
 
         super(LinkItem, self).__init__()
@@ -643,14 +705,14 @@ class LinkItem(BaseMessageable):
             #Get any errors from the redirect path
             for response_data in self.redirect_path:
                 if response_data['error'] != None:
-                    self.add_error_message(response_data['error'])
+                    self.add_error_message(response_data['error'], self.set.loading_error)
                 if response_data['warning'] != None:
-                    self.add_warning_message(response_data['warning'])
+                    self.add_warning_message(response_data['warning'], self.set.loading_error)
 
             
         if expected_code != self.response_code:
             message = "Loading error on page <a href='#%s' class='alert-link'>%s</a> Expected %s Received %s"%(self.internal_page_url, self.url, expected_code, self.response_code)
-            self.add_error_message(message)
+            self.add_error_message(message, self.set.loading_error)
             return (False, response)
         else:
             return (True, response)
@@ -692,7 +754,7 @@ class LinkItem(BaseMessageable):
                 soup = BeautifulSoup(self.source, 'html5lib')
             except Exception:
                 soup = None
-                self.add_error_message("Error parsing HTML on page %s: %s"%(self.url, traceback.format_exc()))
+                self.add_error_message("Error parsing HTML on page %s: %s"%(self.url, traceback.format_exc()), self.set.parsing_error)
 
         
             if soup:
@@ -706,7 +768,20 @@ class LinkItem(BaseMessageable):
                 self.add_links(get_fonts_on_page(set, self), self.font_links, set)
 
                 self.add_links(get_scripts_on_page(soup), self.script_links, set)
-                self.add_links(get_hyperlinks_on_page(soup)+get_sitemap_links_on_page(soup), self.hyper_links, set)
+
+                page_links = get_hyperlinks_on_page(soup)
+
+                
+                # domained_links = []
+                # for link in page_links:
+                #     if 'dev.heron' in link and link not in ignore_urls:
+                #         domained_links.append(link)
+                # if len(domained_links) > 0:
+                #     print 'Page %s contains %s links with absolute domains:'%(self.url, len(domained_links))
+                #     for link in domained_links:
+                #         print '> %s'%(link)
+
+                self.add_links(page_links+get_sitemap_links_on_page(soup), self.hyper_links, set)
 
                 self.add_links(get_audio_on_page(soup), self.audio_links, set)
                 self.add_links(get_video_on_page(soup), self.video_links, set)
@@ -767,9 +842,9 @@ class LinkItem(BaseMessageable):
 ###########################
 
 def clean_query_string(url, ignore_query_string_keys):
-   
     url_parts = list(urlparse.urlparse(url))
-    query = dict(urlparse.parse_qsl(url_parts[4]))
+    
+    query = dict(urlparse.parse_qsl(url_parts[4], True))
     for unwanted_key in ignore_query_string_keys:
         if unwanted_key in query:
             del(query[unwanted_key])
@@ -1122,7 +1197,7 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None, auth=None,
         response_data['response'] = None
 
         redirect_url = get_ending_url(response_data['url'], response_data['ending_url'])
-        traced = trace_path(redirect_url, traced, enable_cookies, depth+1, cj, username, password)
+        traced = trace_path(redirect_url, traced, enable_cookies, depth+1, cj, auth, username, password)
 
     return traced
 
@@ -1190,8 +1265,18 @@ def url_fix(s, charset='utf-8'):
     if isinstance(s, unicode):
         s = s.encode(charset, 'ignore')
     scheme, netloc, path, qs, anchor = urlparse.urlsplit(s)
+    
     path = urllib.quote(path, '/%')
-    qs = urllib.quote_plus(qs, ':&=')
+    
+    parsed = urlparse.parse_qsl(qs, True)    
+    qs = urllib.urlencode(parsed)
+    
+    #Note -- the problem with this is that it is non-idempodent
+    #so if it's called multiple times on a URL, the URL becomes incorrect
+    #EX: http://dev.heron.org/engage/?category=&year=&author=Ryan+Halas&sort= becomes
+    #http://dev.heron.org/engage/?category=&year=&author=Ryan%2BHalas&sort=
+    # qs = urllib.quote_plus(qs, ':&=')
+    
     return urlparse.urlunsplit((scheme, netloc, path, qs, anchor)) 
 
 def store_file_locally(url):

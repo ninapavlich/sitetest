@@ -18,6 +18,9 @@ def test_ua_blocks(site, options, verbose=False):
         }
     }
     """
+
+    user_agent_error = site.get_or_create_message_category('ua-error', "User Agent incorrectly handled", 'danger')
+
     if 'ua_test_list' in options:
 
         ua_test_list = options['ua_test_list']
@@ -56,7 +59,7 @@ def test_ua_blocks(site, options, verbose=False):
             
         if error_count > 0:
             message = "%s pages incorrectly handled user agents."%(error_count)
-            site.add_error_message(message)
+            site.add_error_message(message, user_agent_error, error_count)
 
 def test_load(site, url, user_agent, expected_code, username=None, password=None):    
     

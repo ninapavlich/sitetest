@@ -1,0 +1,33 @@
+{% if message_category.messages|length > 0 %}
+<div class="panel panel-default result-message">
+    <div class="panel-heading">
+
+        <span class="label label-{{message_category.level}}">
+          {% filter upper %}{{message_category.level}}{% endfilter %}
+        </span>
+
+        &nbsp;
+
+        <a data-parent="#accordion" data-toggle="collapse" href="#load-test-result-error-{{message_category.key}}"><span class='link-container'>{{message_category.message}}</span></a>
+
+    </div>
+
+    <div class="panel-collapse collapse" id=
+    "load-test-result-error-{{message_category.key}}">
+        <div class="panel-body">
+
+          <ul>
+          {% for message in message_category.messages %}
+            <li>
+              {% set link_item=message.link %}
+              <h4>{{message.message}}</h4>
+
+              {% include 'partials/result_link.html' with context %}
+            </li>                   
+          {% endfor %}            
+          </ul>
+      
+        </div>
+    </div>
+</div>
+{% endif %}

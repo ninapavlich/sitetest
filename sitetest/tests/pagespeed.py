@@ -1,6 +1,7 @@
 import sys
 import urllib2
 import json
+import urlparse
 from ..core.models import HEADERS
 
 def test_pagespeed(set, credentials, options, max_test_count=1000, verbose=False):

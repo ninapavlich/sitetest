@@ -19,6 +19,10 @@ def test_rate_limits(site, total_count=500, verbose=False):
     url = site.canonical_domain
     #TODO --- allow urls to test to be configurable
 
+    use_basic_auth = site.use_basic_auth
+    basic_auth_username = site.basic_auth_username
+    basic_auth_password = site.basic_auth_password
+
     success_count = 0
   
     counter = {
@@ -35,8 +39,24 @@ def test_rate_limits(site, total_count=500, verbose=False):
         
         code = None
         try:
-            request = urllib2.Request(url, headers=HEADERS)        
-            response = urllib2.urlopen(request)
+
+            request = urllib2.Request(url, headers=HEADERS)
+
+            if use_basic_auth==True:
+                password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
+                password_manager.add_password(None, url, username, password)
+                password_handler = urllib2.HTTPBasicAuthHandler(password_manager)
+                opener = urllib2.build_opener(password_handler)
+
+                print 'using basic auth opener for rate limiter...'
+                
+                response = opener.open(request)
+
+
+
+            else:
+                response = urllib2.urlopen(request)
+
             code = response.code
             html = response.read()                    
             counter['success_count'] += 1
