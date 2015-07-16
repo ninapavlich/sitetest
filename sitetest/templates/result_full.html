@@ -3,173 +3,171 @@
         {% include 'partials/result_title.html' with context %}
     </div>
 
-    <div class="panel-collapse collapse" id=
-    "{{link.page_results_hash}}">
+    <div class="panel-collapse collapse" id="{{link.page_results_hash}}">
+    	
         <div class="panel-body">
 
 
             <!-- Nav tabs -->
-			<ul class="nav nav-tabs" role="tablist">
-			  	<li class="active"><a href="#{{link.page_results_hash}}-stats" role="tab" data-toggle="tab">Stats</a></li>
+				<ul class="nav nav-tabs" role="tablist">
+				  	<li class="active"><a href="#{{link.page_results_hash}}-stats" role="tab" data-toggle="tab">Stats</a></li>
 
-				{% if link.referers|length > 0 %}
-				<li><a href="#{{link.page_results_hash}}-referers" role="tab" data-toggle="tab">Referer Links</a></li>
-				{% endif %}
+					{% if link.referers|length > 0 %}
+					<li><a href="#{{link.page_results_hash}}-referers" role="tab" data-toggle="tab">Referer Links</a></li>
+					{% endif %}
 
-				{% if link.hyper_links|length > 0 %}
-				<li><a href="#{{link.page_results_hash}}-hyper_links" role="tab" data-toggle="tab">Child Links</a></li>
-				{% endif %}
+					{% if link.hyper_links|length > 0 %}
+					<li><a href="#{{link.page_results_hash}}-hyper_links" role="tab" data-toggle="tab">Child Links</a></li>
+					{% endif %}
 
-				{% if link.image_links|length > 0 %}
-				<li><a href="#{{link.page_results_hash}}-image_links" role="tab" data-toggle="tab">Images</a></li>
-				{% endif %}
+					{% if link.image_links|length > 0 %}
+					<li><a href="#{{link.page_results_hash}}-image_links" role="tab" data-toggle="tab">Images</a></li>
+					{% endif %}
 
-				{% if link.css_links|length > 0 %}
-				<li><a href="#{{link.page_results_hash}}-css_links" role="tab" data-toggle="tab">CSS</a></li>
-				{% endif %}
+					{% if link.css_links|length > 0 %}
+					<li><a href="#{{link.page_results_hash}}-css_links" role="tab" data-toggle="tab">CSS</a></li>
+					{% endif %}
 
-				{% if link.script_links|length > 0 %}
-				<li><a href="#{{link.page_results_hash}}-script_links" role="tab" data-toggle="tab">Scripts</a></li>
-				{% endif %}
+					{% if link.script_links|length > 0 %}
+					<li><a href="#{{link.page_results_hash}}-script_links" role="tab" data-toggle="tab">Scripts</a></li>
+					{% endif %}
 
-				{% if link.validation %}
-				{% if link.validation.warnings|length > 0 or link.validation.errors|length > 0 %}
-				<li><a href="#{{link.page_results_hash}}-validation" role="tab" data-toggle="tab">Validation</a></li>
-				{% endif %}
-				{% endif %}
+					{% if link.validation %}
+					{% if link.validation.warnings|length > 0 or link.validation.errors|length > 0 %}
+					<li><a href="#{{link.page_results_hash}}-validation" role="tab" data-toggle="tab">Validation</a></li>
+					{% endif %}
+					{% endif %}
 
-				{% if link.loading_score %}
-				<li><a href="#{{link.page_results_hash}}-loading-score" role="tab" data-toggle="tab">Page Speed</a></li>
-				{% endif %}
+					{% if link.loading_score %}
+					<li><a href="#{{link.page_results_hash}}-loading-score" role="tab" data-toggle="tab">Page Speed</a></li>
+					{% endif %}
 
-				{% if link.enumerated_source %}
-				<li><a href="#{{link.page_results_hash}}-source" role="tab" data-toggle="tab">Source</a></li>
-				{% endif %}
+					{% if link.enumerated_source %}
+					<li><a href="#{{link.page_results_hash}}-source" role="tab" data-toggle="tab">Source</a></li>
+					{% endif %}
 
-				<li><a href="#{{link.page_results_hash}}-tools" role="tab" data-toggle="tab">Tools</a></li>
-			  
-			</ul>
-
-
-
-			<!-- Tab panes -->
-			<div class="tab-content">
-			  	<div class="tab-pane active" id="{{link.page_results_hash}}-stats">
-				  	
-				  	{% include 'partials/result_stats.html' with context %}
-
-				</div>
-
-				  {% if link.referers|length > 0 %}
-				<div class="tab-pane" id="{{link.page_results_hash}}-referers">
-				  	<h5>There are {{link.referers|length}} links that refer
-	                to this page</h5>
-
-	                <ul>
-	                    {% for link_item_url,link_item in link.referers|dictsort %}
-	                    <li>
-	                    	{% include 'partials/result_link.html' with context %}	                        
-	                    </li>
-	                    {% endfor %}
-	                </ul>
-				</div>
-				{% endif %}
-
-				{% if link.hyper_links|length > 0 %}
-				<div class="tab-pane" id="{{link.page_results_hash}}-hyper_links">
-					<h5>There are {{link.hyper_links|length}} links within this page</h5>
-
-					<ul>
-					    {% for link_item_url,link_item in link.hyper_links|dictsort %}
-					    <li>
-					        {% include 'partials/result_link.html' with context %}
-					    </li>
-					    {% endfor %}
-					</ul>
-				</div>
-				{% endif %}
-
-				{% if link.image_links|length > 0 %}
-				<div class="tab-pane" id="{{link.page_results_hash}}-image_links">
-		            <section class="link-children">
-		                <h5>There are {{link.image_links|length}} images within this page</h5>
-
-	                	<div class='image-row' >
-	                    {% for link_item_url,link_item in link.image_links|dictsort %}
-	                	    <div class='image-cell'>
-		                        <a href="{{link_item.url}}" target="_blank">
-		                        	<p>{{link_item.url}}</p>
-		                        	<img src="{{link_item.url}}" alt="preview image" />
-		                        </a>
-		                    </div>
-	                    {% if loop_index is divisibleby 4 %}
-	                	</div>
-	                	<div class='image-row' >
-	                	{% endif %}
-
-		                {% endfor %}
-		            	</div>
-		                
-		            </section>
-				</div>
-				{% endif %}
+					<li><a href="#{{link.page_results_hash}}-tools" role="tab" data-toggle="tab">Tools</a></li>
+				  
+				</ul>
 
 
-				{% if link.css_links|length > 0 %}
-				<div class="tab-pane" id="{{link.page_results_hash}}-css_links">
-				  	<h5>There are {{link.css_links|length}} css files linked in this page</h5>
-	                <ul>
-	                    {% for link_item_url,link_item in link.css_links|dictsort %}
-	                    <li>
-	                        {% include 'partials/result_link.html' with context %}
-	                    </li>
-	                    {% endfor %}
-	                </ul>
-				</div>
-				{% endif %}
 
-				{% if link.script_links|length > 0 %}
-				<div class="tab-pane" id="{{link.page_results_hash}}-script_links">
-					<h5>There are {{link.script_links|length}} javascript files linked in this page</h5>
-					<ul>
-					    {% for link_item_url,link_item in link.script_links|dictsort %}
-					    <li>
-					        {% include 'partials/result_link.html' with context %}
-					    </li>
-					    {% endfor %}
-					</ul>
-				</div>
-				{% endif %}
+				<!-- Tab panes -->
+				<div class="tab-content">
+				  <div class="tab-pane active" id="{{link.page_results_hash}}-stats">					  	
+					  	{% include 'partials/result_stats.html' with context %}
+					</div>
 
-				{% if link.validation %}
-				{% if link.validation.warnings|length > 0 or link.validation.errors|length > 0 %}
-				<div class="tab-pane" id="{{link.page_results_hash}}-validation">
+					  {% if link.referers|length > 0 %}
+					<div class="tab-pane" id="{{link.page_results_hash}}-referers">
+					  	<h5>There are {{link.referers|length}} links that refer
+		                to this page</h5>
 
-					{% include 'partials/result_validation.html' with context %}
+		                <ul>
+		                    {% for link_item_url,link_item in link.referers|dictsort %}
+		                    <li>
+		                    	{% include 'partials/result_link.html' with context %}	                        
+		                    </li>
+		                    {% endfor %}
+		                </ul>
+					</div>
+					{% endif %}
 
-				</div>
+					{% if link.hyper_links|length > 0 %}
+					<div class="tab-pane" id="{{link.page_results_hash}}-hyper_links">
+						<h5>There are {{link.hyper_links|length}} links within this page</h5>
 
-				{% endif %}
-				{% endif %}
+						<ul>
+						    {% for link_item_url,link_item in link.hyper_links|dictsort %}
+						    <li>
+						        {% include 'partials/result_link.html' with context %}
+						    </li>
+						    {% endfor %}
+						</ul>
+					</div>
+					{% endif %}
 
-				{% if link.loading_score %}
-				<div class="tab-pane" id="{{link.page_results_hash}}-loading-score">
+					{% if link.image_links|length > 0 %}
+					<div class="tab-pane" id="{{link.page_results_hash}}-image_links">
+			            <section class="link-children">
+			                <h5>There are {{link.image_links|length}} images within this page</h5>
 
-					{% include 'partials/result_score.html' with context %}
-					
-				</div>
-				{% endif %}
+		                	<div class='image-row' >
+		                    {% for link_item_url,link_item in link.image_links|dictsort %}
+		                	    <div class='image-cell'>
+			                        <a href="{{link_item.url}}" target="_blank">
+			                        	<p>{{link_item.url}}</p>
+			                        	<img src="{{link_item.url}}" alt="preview image" />
+			                        </a>
+			                    </div>
+		                    {% if loop_index is divisibleby 4 %}
+		                	</div>
+		                	<div class='image-row' >
+		                	{% endif %}
 
-				{% if link.enumerated_source %}
-				<div class="tab-pane" id="{{link.page_results_hash}}-source">
-					<pre>{{link.enumerated_source|e}}</pre>
-				</div>
-				{% endif %}
+			                {% endfor %}
+			            	</div>
+			                
+			            </section>
+					</div>
+					{% endif %}
 
-				<div class="tab-pane" id="{{link.page_results_hash}}-tools">
-					{% include 'partials/result_tools.html' with context %}
+
+					{% if link.css_links|length > 0 %}
+					<div class="tab-pane" id="{{link.page_results_hash}}-css_links">
+					  	<h5>There are {{link.css_links|length}} css files linked in this page</h5>
+		                <ul>
+		                    {% for link_item_url,link_item in link.css_links|dictsort %}
+		                    <li>
+		                        {% include 'partials/result_link.html' with context %}
+		                    </li>
+		                    {% endfor %}
+		                </ul>
+					</div>
+					{% endif %}
+
+					{% if link.script_links|length > 0 %}
+					<div class="tab-pane" id="{{link.page_results_hash}}-script_links">
+						<h5>There are {{link.script_links|length}} javascript files linked in this page</h5>
+						<ul>
+						    {% for link_item_url,link_item in link.script_links|dictsort %}
+						    <li>
+						        {% include 'partials/result_link.html' with context %}
+						    </li>
+						    {% endfor %}
+						</ul>
+					</div>
+					{% endif %}
+
+					{% if link.validation %}
+					{% if link.validation.warnings|length > 0 or link.validation.errors|length > 0 %}
+					<div class="tab-pane" id="{{link.page_results_hash}}-validation">
+
+						{% include 'partials/result_validation.html' with context %}
+
+					</div>
+
+					{% endif %}
+					{% endif %}
+
+					{% if link.loading_score %}
+					<div class="tab-pane" id="{{link.page_results_hash}}-loading-score">
+
+						{% include 'partials/result_score.html' with context %}
+						
+					</div>
+					{% endif %}
+
+					{% if link.enumerated_source %}
+					<div class="tab-pane" id="{{link.page_results_hash}}-source">
+						<pre>{{link.enumerated_source|e}}</pre>
+					</div>
+					{% endif %}
+
+					<div class="tab-pane" id="{{link.page_results_hash}}-tools">
+						{% include 'partials/result_tools.html' with context %}
+					</div>
 				</div>
 			</div>
-		</div>
     </div>
 </div>

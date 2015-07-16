@@ -185,6 +185,8 @@
 				$(selector).trigger("click")
 			});
 
+
+
 			$( document ).ready(function() {
 				if(window.location.hash !=''){
 				
@@ -193,6 +195,12 @@
 						var isPanel = $(item).hasClass("panel-collapse");
 						if(isPanel){
 							$(item).collapse('show');
+						}else{
+							var panel_id = window.location.hash.replace("result-h", "result-body-h");
+							var isPanel = $(panel_id).hasClass("panel-collapse");
+							if(isPanel){
+								$(panel_id).collapse('show');
+							}
 						}
 					});
 				}
