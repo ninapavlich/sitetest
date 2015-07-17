@@ -30,7 +30,10 @@ from .tests.security.ua_blocks import test_ua_blocks
             
 def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_category_id, options=None):
     
-    # recursive = False
+    
+    #If http not included, add it
+    if 'http' not in canonical_domain.lower():
+        canonical_domain = 'http://%s'%(canonical_domain)
     
     #TODO: Add to python index and readthedocs
 
@@ -175,11 +178,11 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_c
             print "Error generating screenshots: %s"%(traceback.format_exc())
 
 
-    # if run_security_tests==True:
-    #     try:
-    #         test_rate_limits(set, 500, verbose)
-    #     except:
-    #         print "Error testing rate limits: %s"%(traceback.format_exc())
+    if run_security_tests==True:
+        try:
+            test_rate_limits(set, 500, verbose)
+        except:
+            print "Error testing rate limits: %s"%(traceback.format_exc())
 
     if ua_test:
         try:
@@ -211,7 +214,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_c
     results['report_url'] = report_url
     open_results(report_url)
 
-    notify_results(results, credentials)
+    # notify_results(results, credentials)
 
     return results
 
@@ -328,7 +331,7 @@ def save_results_aws(filename, test_category_id, batch_id, credentials, verbose)
         current_dir = os.path.dirname(__file__)
 
         if verbose:
-            print '\r  -- Uploading %s to Amazon S3 from %s\r' % (base_name, filename)
+            print '\r-- Uploading %s to Amazon S3 from %s\r' % (base_name, filename)
 
             def percent_cb(complete, total):
                 sys.stdout.write('.')

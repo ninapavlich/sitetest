@@ -52,24 +52,24 @@ def test_basic_site_quality(site, verbose=False):
     
 
     # #5 - Verify that sitemap matches up with the actual pages
-    # #if sitemap_link.response_code == 200:
-    # if len(sitemap_links) > 0:
-    #     for sitemap_link in sitemap_links:
-    #         for link_url in sitemap_link.hyper_links:
-    #             link_item = sitemap_link.hyper_links[link_url]
-    #             link_item.has_sitemap_entry = True
+    # if sitemap_link.response_code == 200:
+    if len(sitemap_links) > 0:
+        for sitemap_link in sitemap_links:
+            for link_url in sitemap_link.hyper_links:
+                link_item = sitemap_link.hyper_links[link_url]
+                link_item.has_sitemap_entry = True
 
         
     # #6 - Verify that no public pages are blocked by robots.txt
-    # rp = robotparser.RobotFileParser()
-    # rp.set_url(site.robots_url)
-    # rp.read()
-    # if robots_link.response_code == 200:
-    #     for link_url in site.parsed_links:
-    #         link = site.parsed_links[link_url]
-    #         if link.is_internal_html:
-    #             accessible_to_robots = rp.can_fetch("*", link.url)
-    #             link.accessible_to_robots = accessible_to_robots
+    rp = robotparser.RobotFileParser()
+    rp.set_url(site.robots_url)
+    rp.read()
+    if robots_link.response_code == 200:
+        for link_url in site.parsed_links:
+            link = site.parsed_links[link_url]
+            if link.is_internal_html:
+                accessible_to_robots = rp.can_fetch("*", link.url)
+                link.accessible_to_robots = accessible_to_robots
 
 
     if 'https' in canonical_domain:
@@ -79,7 +79,7 @@ def test_basic_site_quality(site, verbose=False):
         
         #7 -- Verify SSL Cert:
         if verbose:
-            print '\n\Verifying SSL Cert...'
+            print '\nVerifying SSL Cert...'
         try:            
             error = None
             if site.use_basic_auth:            
@@ -106,7 +106,7 @@ def test_basic_site_quality(site, verbose=False):
         #8 -- Verify SSL Security:
         try:
             if verbose:
-                print '\n\Verifying SSL Security...'
+                print '\nVerifying SSL Security...'
 
             parsed_uri = urlparse( canonical_domain )
             p = subprocess.Popen(['sslyze', '--regular', parsed_uri.netloc], stdout=subprocess.PIPE, stderr=subprocess.PIPE)

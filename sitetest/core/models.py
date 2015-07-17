@@ -267,7 +267,7 @@ class LinkSet(BaseMessageable):
         should_skip = self.max_parse_count and (len(self.parsed_links) >= self.max_parse_count) and force == False
         
         if should_skip:
-            # print "PARSED %s PAGES, turn recursive off"%(self.max_parse_count)
+            # print "Max parse count %s hit, turn recursive off"%(self.max_parse_count)
             return
 
         is_loadable = page_link.is_loadable_type(self.include_media, self.include_external_links)

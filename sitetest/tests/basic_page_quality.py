@@ -218,7 +218,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
                                     message = "Page &ldquo;%s&rdquo; is not in the sitemap"%(link.title)
                                     link.add_warning_message(message, sitemap_error)
 
-                                if len(link.referers) == 1 and link.has_sitemap_entry == True:
+                                if len(link.referers) == 1 and link.has_sitemap_entry == True and link.url != set.canonical_domain:
                                     link.add_info_message("Page &ldquo;%s&rdquo; is in the sitemap, but not accessible from elsewhere in the site."%(link.title), sitemap_orphan_error)
                                     orphan_page_error_count += 1
 

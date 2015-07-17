@@ -143,7 +143,7 @@ def copy_to_amazon(file_name, folder, test_category_id, batch_id, credentials, v
 		current_dir = os.path.dirname(__file__)
 
 		if verbose:
-			print '\r  -- Uploading %s to Amazon S3 from %s\r' % (base_name, file_name)
+			print '\r-- Uploading %s to Amazon S3 from %s\r' % (base_name, file_name)
 
 			def percent_cb(complete, total):
 				sys.stdout.write('.')
