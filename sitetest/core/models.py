@@ -712,9 +712,9 @@ class LinkItem(BaseMessageable):
         start_time = datetime.datetime.now()
         
         if self.use_basic_auth == True:
-            self.redirect_path = trace_path(self.url, [], False, 0, None, 'basic', self.basic_auth_username, self.basic_auth_password)
+            self.redirect_path = trace_path(self.url, self.is_internal, [], False, 0, None, 'basic', self.basic_auth_username, self.basic_auth_password)
         else:
-            self.redirect_path = trace_path(self.url, [])
+            self.redirect_path = trace_path(self.url, self.is_internal, [])
         
         if len(self.redirect_path) > 0:
             last_response_item = self.redirect_path[-1]
@@ -1114,14 +1114,14 @@ class TLSAV1dapter(requests.adapters.HTTPAdapter):
         proxy_kwargs['ssl_version'] = ssl.PROTOCOL_TLSv1
         return super(TLSAV1dapter, self).proxy_manager_for(proxy, **proxy_kwargs)
 
-def trace_path(url, traced, enable_cookies = False, depth=0, cj_or_session=None, auth=None, username=None, password=None):
+def trace_path(url, is_internal, traced, enable_cookies = False, depth=0, cj_or_session=None, auth=None, username=None, password=None):
     
     if USE_REQUESTS:
-        return trace_path_with_requests(url, traced, enable_cookies, depth, cj_or_session, auth, username, password)
+        return trace_path_with_requests(url, is_internal, traced, enable_cookies, depth, cj_or_session, auth, username, password)
     else:
-        return trace_path_with_urllib2(url, traced, enable_cookies, depth, cj_or_session, auth, username, password)
+        return trace_path_with_urllib2(url, is_internal, traced, enable_cookies, depth, cj_or_session, auth, username, password)
 
-def trace_path_with_requests(url, traced, enable_cookies = False, depth=0, session=None, auth=None, username=None, password=None):
+def trace_path_with_requests(url, is_internal, traced, enable_cookies = False, depth=0, session=None, auth=None, username=None, password=None):
     
 
     #Safely catch
@@ -1142,7 +1142,7 @@ def trace_path_with_requests(url, traced, enable_cookies = False, depth=0, sessi
             if enable_cookies == False:
                 #Re-try with cookies enabled   
                 first_url = traced[0]['url']
-                traced_with_cookies = trace_path(first_url, [], True, 0, None, auth, username, password)
+                traced_with_cookies = trace_path(first_url, is_internal, [], True, 0, None, auth, username, password)
                 traced_with_cookies[0]['error'] = "Cookies required to correctly navigate to: %s"%(first_url)
                 return traced_with_cookies
 
@@ -1183,7 +1183,7 @@ def trace_path_with_requests(url, traced, enable_cookies = False, depth=0, sessi
         #-- cookies
 
 
-        if auth=='basic':            
+        if auth=='basic' and is_internal:            
             auth = requests.auth.HTTPBasicAuth(username, password)
         else:
             auth = None
@@ -1217,7 +1217,7 @@ def trace_path_with_requests(url, traced, enable_cookies = False, depth=0, sessi
         
         #Try loading with the session TLS adapter
         if not enable_cookies:
-            traced_with_cookies = trace_path(url, [], True, 0, None, auth, username, password)
+            traced_with_cookies = trace_path(url, is_internal, [], True, 0, None, auth, username, password)
             return traced_with_cookies
         else:
             response_data['response_code'] = "RequestException: %s"%(e) 
@@ -1242,11 +1242,11 @@ def trace_path_with_requests(url, traced, enable_cookies = False, depth=0, sessi
         response_data['response'] = None
 
         redirect_url = get_ending_url(response_data['url'], response_data['ending_url'])
-        traced = trace_path(redirect_url, traced, enable_cookies, depth+1, session, auth, username, password)
+        traced = trace_path(redirect_url, is_internal, traced, enable_cookies, depth+1, session, auth, username, password)
 
     return traced    
 
-def trace_path_with_urllib2(url, traced, enable_cookies = False, depth=0, cj=None, auth=None, username=None, password=None):
+def trace_path_with_urllib2(url, is_internal, traced, enable_cookies = False, depth=0, cj=None, auth=None, username=None, password=None):
 
     #Safely catch
     MAX_REDIRECTS = 15
@@ -1265,7 +1265,7 @@ def trace_path_with_urllib2(url, traced, enable_cookies = False, depth=0, cj=Non
             if enable_cookies == False:
                 #Re-try with cookies enabled                
                 first_url = traced[0]['url']
-                traced_with_cookies = trace_path(first_url, [], True, 0, None, auth, username, password)
+                traced_with_cookies = trace_path(first_url, is_internal, [], True, 0, None, auth, username, password)
                 traced_with_cookies[0]['warning'] = "Cookies required to correctly navigate to: %s"%(first_url)
                 return traced_with_cookies
 
@@ -1280,7 +1280,7 @@ def trace_path_with_urllib2(url, traced, enable_cookies = False, depth=0, cj=Non
 
     
     use_password = False
-    if auth=='basic':
+    if auth=='basic' and is_internal:
         use_password = True
         password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
         password_manager.add_password(None, url, username, password)
@@ -1379,7 +1379,7 @@ def trace_path_with_urllib2(url, traced, enable_cookies = False, depth=0, cj=Non
         response_data['response'] = None
 
         redirect_url = get_ending_url(response_data['url'], response_data['ending_url'])
-        traced = trace_path(redirect_url, traced, enable_cookies, depth+1, cj, auth, username, password)
+        traced = trace_path(redirect_url, is_internal, traced, enable_cookies, depth+1, cj, auth, username, password)
 
     return traced
 
