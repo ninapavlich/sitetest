@@ -1150,10 +1150,16 @@ def trace_path_with_requests(url, is_internal, traced, enable_cookies = False, d
                 traced[-1]['error'] = "Redirect loop detected to %s"%(url)
                 return traced
 
-    if enable_cookies:
+    use_auth = (auth=='basic' and is_internal)
+    if enable_cookies or use_auth:
         if not session:
             session = requests.Session()
             session.mount('https://', TLSAV1dapter())
+
+        if use_auth:
+            auth = (username, password)
+            session.auth = auth
+            
 
 
     
@@ -1181,20 +1187,18 @@ def trace_path_with_requests(url, is_internal, traced, enable_cookies = False, d
         #-- headers
         #-- password
         #-- cookies
+        #-- authorization
 
-
-        if auth=='basic' and is_internal:            
-            auth = requests.auth.HTTPBasicAuth(username, password)
-        else:
-            auth = None
+        #Don't verify cert here if we're testing the site. We'll test that on a separate step.
+        verify_cert = !is_internal
 
         if session:
-            response = session.get(url, allow_redirects=False, headers=HEADERS, auth=auth, verify=False, timeout=10)        
+            response = session.get(url, headers=HEADERS, allow_redirects=False, verify=verify_cert, timeout=10)        
         else:
-            response = requests.get(url, allow_redirects=False, headers=HEADERS, auth=auth, verify=False, timeout=10)        
+            response = requests.get(url, headers=HEADERS, allow_redirects=False, verify=verify_cert, timeout=10)        
 
         try:
-            code = response.status_code
+            code = response.status_code            
         except Exception:            
             print "Error parsing code: %s"%(traceback.format_exc())
             code = 'Unknown'
