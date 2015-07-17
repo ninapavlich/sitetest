@@ -175,11 +175,11 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_c
             print "Error generating screenshots: %s"%(traceback.format_exc())
 
 
-    if run_security_tests==True:
-        try:
-            test_rate_limits(set, 500, verbose)
-        except:
-            print "Error testing rate limits: %s"%(traceback.format_exc())
+    # if run_security_tests==True:
+    #     try:
+    #         test_rate_limits(set, 500, verbose)
+    #     except:
+    #         print "Error testing rate limits: %s"%(traceback.format_exc())
 
     if ua_test:
         try:
@@ -211,7 +211,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_c
     results['report_url'] = report_url
     open_results(report_url)
 
-    notify_results(results, credentials)
+    # notify_results(results, credentials)
 
     return results
 
@@ -219,8 +219,8 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_c
 def render_and_save_results(results, test_category_id, batch_id, credentials, verbose):
     
     error_tab_url   = render_tab(results, 'errors.html', 'results_errors.html', test_category_id, batch_id, credentials, verbose)
+    site_tab_url    = render_tab(results, 'site.html', 'results_site.html', test_category_id, batch_id, credentials, verbose)
     parsed_tab_url  = render_tab(results, 'parsed.html', 'results_parsed.html', test_category_id, batch_id, credentials, verbose)
-    maps_tab_url    = render_tab(results, 'maps.html', 'results_maps.html', test_category_id, batch_id, credentials, verbose)
     loaded_tab_url  = render_tab(results, 'loaded.html', 'results_loaded.html', test_category_id, batch_id, credentials, verbose)
     other_tab_url   = render_tab(results, 'other.html', 'results_other.html', test_category_id, batch_id, credentials, verbose)
     tests_tab_url   = render_tab(results, 'tests.html', 'results_tests.html', test_category_id, batch_id, credentials, verbose)

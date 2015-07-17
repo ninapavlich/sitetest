@@ -8,6 +8,9 @@ to an AWS bucket as static HTML and notifications are sent to a Slack channel.
 ```
 #enchant is required for spelling
 brew install enchant
+
+#sslyze is required for testing SSL
+brew install sslyze
 ```
 
 **Example Report:** http://s3.amazonaws.com/cgp-dev/test_results/fw-django-prod-01/2015-04-10_15-01.html

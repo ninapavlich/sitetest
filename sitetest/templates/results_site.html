@@ -4,8 +4,8 @@
           
 <ul class="nav nav-tabs" >
     <li><a href="./errors.html" role="presentation">Errors &amp; Warnings</a></li>
+    <li class="active"><a href="./site.html" role="presentation">Site Info</a></li>
     <li><a href="./parsed.html"  role="presentation">Parsed Pages</a></li>
-    <li class="active"><a href="./maps.html" role="presentation">Robots &amp; Sitemaps</a></li>
     <li><a href="./loaded.html" role="presentation">Loaded Pages</a></li>
     
     {% if output_unloaded_links %}
@@ -20,7 +20,11 @@
 {% endblock %}
 
 {% block content %}
-<h2>Robots &amp; Sitemaps</h2>  
+<h2>Site Info</h2>
+
+{% if set.ssl_security_output %}
+<pre>{{set.ssl_security_output|safe}}</pre>
+{% endif %}
 
 {% set link = set.robots_link %}
 {% set link_url = set.robots_url %}
@@ -33,5 +37,5 @@
 {% include 'result_full.html' with context %}
 {% endfor %}
 
-{% endblock %}
 
+{% endblock %}

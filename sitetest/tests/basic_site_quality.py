@@ -1,5 +1,8 @@
 from bs4 import BeautifulSoup
+import traceback  
 import robotparser
+from urlparse import urlparse
+import subprocess
 
 def test_basic_site_quality(site, verbose=False):
     """
@@ -12,6 +15,7 @@ def test_basic_site_quality(site, verbose=False):
     # robots_error = site.get_or_create_message_category('robots-error', "Page is not accessible based on robots.txt", 'warning')
 
     canonical_domain = site.canonical_domain
+    homepage_link = site.get_or_create_link_object(canonical_domain, None)
 
     if canonical_domain.endswith("/"):
         favicon_url = "%sfavicon.ico"%(canonical_domain)
@@ -53,16 +57,35 @@ def test_basic_site_quality(site, verbose=False):
                 link_item.has_sitemap_entry = True
 
         
-    # #6 - Verify that no public pages are blocked by robots.txt
-    # rp = robotparser.RobotFileParser()
-    # rp.set_url(site.robots_url)
-    # rp.read()
-    # if robots_link.response_code == 200:
-    #     for link_url in site.parsed_links:
-    #         link = site.parsed_links[link_url]
-    #         if link.is_internal_html:
-    #             accessible_to_robots = rp.can_fetch("*", link.url)
-    #             link.accessible_to_robots = accessible_to_robots
-    #             if not accessible_to_robots:
-    #                 link.add_info_message("Page is accessible, but not to robots.", robots_error)
-            
+    #6 - Verify that no public pages are blocked by robots.txt
+    rp = robotparser.RobotFileParser()
+    rp.set_url(site.robots_url)
+    rp.read()
+    if robots_link.response_code == 200:
+        for link_url in site.parsed_links:
+            link = site.parsed_links[link_url]
+            if link.is_internal_html:
+                accessible_to_robots = rp.can_fetch("*", link.url)
+                link.accessible_to_robots = accessible_to_robots
+
+    #7 -- Verify SSL Security:
+
+    try:
+        if 'https' in canonical_domain:
+            parsed_uri = urlparse( canonical_domain )
+            p = subprocess.Popen(['sslyze', '--regular', parsed_uri.netloc], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = p.communicate()
+            site.ssl_security_output = out
+
+            server_has_poodle_vulnerability_error = site.get_or_create_message_category('server-poodle-vulnerability', "Server Allows SSL3.0; has POODLE vulnerability", 'danger')
+            server_has_heartbleed_vulnerability_error = site.get_or_create_message_category('server-heartbleed-vulnerability', "Server has heartbleed vulnerability", 'danger')
+            server_has_heartbleed_vulnerability = 'Not vulnerable to Heartbleed' not in out
+            if server_has_heartbleed_vulnerability:
+                homepage_link.add_error_message("Server has heartbleed vulnerability. See &ldquo;Site Info&rdquo; Tab for more info.", server_has_heartbleed_vulnerability_error)
+
+            server_has_poodle_vulnerability = 'SSLV3 Cipher Suites:\n      Server rejected all cipher suites.' not in out
+            if server_has_poodle_vulnerability:
+                homepage_link.add_error_message("Server has POODLE vulnerability. See &ldquo;Site Info&rdquo; Tab for more info.", server_has_poodle_vulnerability_error)
+    except Exception:        
+        print "Error testing SSL. Ensure sslyze is installed. %s"%(traceback.format_exc())        
+    

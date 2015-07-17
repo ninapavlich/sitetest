@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
-
-import traceback     
+import cgi
+import cookielib
 import datetime
 import gzip
 import httplib
 import html5lib
+import os
+import re
+import requests
+import ssl
+import sys
+import traceback    
 import urllib2, cookielib
 import urllib
 import urlparse
-import cgi
-import re
-import os
-import sys
 import zlib
+
 from slugify import slugify
 from bs4 import BeautifulSoup
 
@@ -51,6 +54,19 @@ HEADERS = {'User-Agent': USER_AGENT_STRING,
    'Accept-Encoding': 'gzip, deflate', #TODO: gzip, deflate, sdch
    'Accept-Language': 'en-US,en;q=0.8',
    'Connection': 'keep-alive'}
+
+USE_REQUESTS = True
+
+import ssl
+from functools import wraps
+def sslwrap(func):
+    @wraps(func)
+    def bar(*args, **kw):
+        kw['ssl_version'] = ssl.PROTOCOL_TLSv1
+        return func(*args, **kw)
+    return bar
+
+ssl.wrap_socket = sslwrap(ssl.wrap_socket)
 
 class MessageCategory(object):
     # __slots__ = ['success', 'error', 'warning', 'info',]
@@ -188,6 +204,8 @@ class LinkSet(BaseMessageable):
 
         self.verbose = verbose
         self.messages = MessageSet(verbose)
+
+        
 
         self.include_media = True if 'test_media' not in options else truthy(options['test_media'])
         self.include_external_links = True if 'test_external_links' not in options else truthy(options['test_external_links'])
@@ -705,9 +723,9 @@ class LinkItem(BaseMessageable):
 
             self.response_code = last_response_item['response_code']
             self.response_encoding = last_response_item['response_encoding']
-            self.ending_url = get_ending_url(last_response_item['url'], last_response_item['ending_url'])
-
-
+            
+            #SET CANONICAL URL TO ENDING URL
+            self.url = self.ending_url = get_ending_url(last_response_item['url'], last_response_item['ending_url'])
 
             self.ending_type = set.get_link_type(self.ending_url)   
 
@@ -740,7 +758,11 @@ class LinkItem(BaseMessageable):
         
 
     def parse_response(self, response, set):
-        raw_response = None if response==None else response.read()
+        
+        if USE_REQUESTS:
+            raw_response = None if response==None else response.text
+        else:
+            raw_response = None if response==None else response.read()
         self.source = raw_response
 
         #DETECT COMPRESSION
@@ -754,7 +776,7 @@ class LinkItem(BaseMessageable):
                         decompressed = zlib.decompress(raw_response, 16+zlib.MAX_WBITS)
                         self.source = decompressed
                     except Exception:
-                        print raw_response
+                        # print raw_response
                         self.source = raw_response
 
                 elif self.response_encoding == 'deflate':
@@ -1078,7 +1100,132 @@ class NoRedirection(urllib2.HTTPErrorProcessor):
 
     https_response = http_response  
 
-def trace_path(url, traced, enable_cookies = False, depth=0, cj=None, auth=None, username=None, password=None):
+def trace_path(url, traced, enable_cookies = False, depth=0, cj_or_session=None, auth=None, username=None, password=None):
+    
+    if USE_REQUESTS:
+        return trace_path_with_requests(url, traced, enable_cookies, depth, cj_or_session, auth, username, password)
+    else:
+        return trace_path_with_urllib2(url, traced, enable_cookies, depth, cj_or_session, auth, username, password)
+
+def trace_path_with_requests(url, traced, enable_cookies = False, depth=0, session=None, auth=None, username=None, password=None):
+    
+
+    #Safely catch
+    MAX_REDIRECTS = 15
+    if depth > MAX_REDIRECTS:
+        traced[-1]['error'] = "Max redirects (%s) reached"%(MAX_REDIRECTS)
+        return traced
+
+
+    #Check for redirect loop
+    for trace_history in traced:
+        #If we are using cookies, then a redirect would consist of the same url and the same cookies
+        #If cookies are not enabled, then a redirect consists merely of the same url
+        is_same_url = trace_history['url'] == url
+        is_same_cookies = True if enable_cookies == False else trace_history['pickled_cookies'] == pickle.dumps(session.cookies._cookies)
+                
+        if is_same_url and is_same_cookies:
+            if enable_cookies == False:
+                #Re-try with cookies enabled   
+                first_url = traced[0]['url']
+                traced_with_cookies = trace_path(first_url, [], True, 0, None, auth, username, password)
+                traced_with_cookies[0]['error'] = "Cookies required to correctly navigate to: %s"%(first_url)
+                return traced_with_cookies
+
+            else:
+                traced[-1]['error'] = "Redirect loop detected to %s"%(url)
+                return traced
+
+    if enable_cookies:
+        if not session:
+            session = requests.Session()
+
+
+    
+    response = None
+    response_data = {
+        'url':url,
+        'ending_url':None,
+        'response_code':None,
+        'response_content_type':None,
+        'response_encoding':None,
+        'redirect':None,
+        'response_load_time':None,
+        'error':None,
+        'warning':None,
+        'response':None
+    }
+    has_redirect = False
+    start_time = datetime.datetime.now()
+    #print '---> [%s] Trace path %s'%(depth, url)
+
+
+    try:
+        #Cases:
+        #-- no redirect
+        #-- headers
+        #-- password
+        #-- cookies
+
+
+        if auth=='basic':            
+            auth = requests.auth.HTTPBasicAuth(username, password)
+        else:
+            auth = None
+
+        if session:
+            response = session.get(url, allow_redirects=False, headers=HEADERS, auth=auth)        
+        else:
+            response = requests.get(url, allow_redirects=False, headers=HEADERS, auth=auth)        
+
+        try:
+            code = response.status_code
+        except Exception:            
+            print "Error parsing code: %s"%(traceback.format_exc())
+            code = 'Unknown'
+
+        response_header = response.headers
+
+        parse_trace_response(response, response_data,  code, response_header, start_time)       
+        response_data['response'] = response
+
+    except requests.exceptions.Timeout:
+        # Maybe set up for a retry, or continue in a retry loop
+        response_data['response_code'] = "Timeout"
+
+    except requests.exceptions.TooManyRedirects:
+        # Tell the user their URL was bad and try a different one
+        response_data['response_code'] = "TooManyRedirects"
+
+    except requests.exceptions.RequestException as e:
+        # catastrophic error. bail.
+        response_data['response_code'] = "RequestException: %s"%(e) 
+
+    except Exception:
+        
+        print "Unkown Exception: %s"%(traceback.format_exc())
+        response_data['response_code'] = "Unknown Exception: %s"%(traceback.format_exc())    
+
+
+    if enable_cookies:
+        response_data['pickled_cookies'] = pickle.dumps(session.cookies._cookies)  
+
+        
+        
+
+    traced.append(response_data)
+
+    has_redirect = response_data['redirect']!=None        
+    if has_redirect:
+        #Delete last response object
+        response_data['response'] = None
+
+        redirect_url = get_ending_url(response_data['url'], response_data['ending_url'])
+        traced = trace_path(redirect_url, traced, enable_cookies, depth+1, session, auth, username, password)
+
+    return traced    
+
+def trace_path_with_urllib2(url, traced, enable_cookies = False, depth=0, cj=None, auth=None, username=None, password=None):
 
     #Safely catch
     MAX_REDIRECTS = 15
@@ -1091,7 +1238,7 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None, auth=None,
         #If we are using cookies, then a redirect would consist of the same url and the same cookies
         #If cookies are not enabled, then a redirect consists merely of the same url
         is_same_url = trace_history['url'] == url
-        is_same_cookies = True if enable_cookies == False else trace_history['picked_cookies'] == pickle.dumps(cj._cookies)
+        is_same_cookies = True if enable_cookies == False else trace_history['pickled_cookies'] == pickle.dumps(cj._cookies)
         
         if is_same_url and is_same_cookies:
             if enable_cookies == False:
@@ -1108,10 +1255,8 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None, auth=None,
     
     if enable_cookies:
         if not cj:
-            cj = cookielib.CookieJar()
+            cj = cookielib.CookieJar()  
 
-
-   
     
     use_password = False
     if auth=='basic':
@@ -1134,12 +1279,7 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None, auth=None,
         else:
             opener = urllib2.build_opener(NoRedirection)
 
-
-
     request = urllib2.Request(url, headers=HEADERS)
-
-
-
     
     response = None
     response_data = {
@@ -1177,7 +1317,7 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None, auth=None,
             print "Error parsing code: %s"%(traceback.format_exc())
             code = 'Unknown'
 
-        parse_trace_response(response_data,  code, response_header, start_time)       
+        parse_trace_response(response, response_data,  code, response_header, start_time)       
         response_data['response'] = response
 
     except urllib2.HTTPError, e:
@@ -1185,7 +1325,7 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None, auth=None,
         # print '---> urllib2.HTTPError %s - %s'%(e.code, e.headers)
         try:
             
-            parse_trace_response(response_data, e.code, e.headers, start_time)
+            parse_trace_response(response, response_data, e.code, e.headers, start_time)
 
         except Exception:
             
@@ -1208,7 +1348,7 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None, auth=None,
 
 
     if enable_cookies:
-        response_data['picked_cookies'] = pickle.dumps(cj._cookies)        
+        response_data['pickled_cookies'] = pickle.dumps(cj._cookies)        
 
     traced.append(response_data)
 
@@ -1222,7 +1362,34 @@ def trace_path(url, traced, enable_cookies = False, depth=0, cj=None, auth=None,
 
     return traced
 
-def parse_trace_response(response_data, code, response_header, start_time):
+def parse_trace_response(response, response_data, code, response_header, start_time):
+    
+    if USE_REQUESTS:
+        parse_trace_response_with_requests(response, response_data, code, response_header, start_time)
+    else:
+        parse_trace_response_with_urllib2(response, response_data, code, response_header, start_time)
+
+def parse_trace_response_with_requests(response, response_data, code, response_header, start_time):
+
+    end_time = datetime.datetime.now()
+    response_data['response_code'] = code    
+    response_data['response_content_type'] = response_header.get('Content-Type')
+    response_data['response_encoding'] = response_header.get('Content-Encoding')
+    response_data['error'] = None
+     
+    response_data['cookies'] = response_header.get("Set-Cookie")
+
+    load_time = end_time - start_time
+    milliseconds = timedelta_milliseconds(load_time)
+    response_data['response_load_time'] = milliseconds     
+
+    response_data['ending_url'] = response_header.get('Location') or response_data['url']
+    has_redirect = response_data['url'] != response_data['ending_url']
+
+    if has_redirect:
+        response_data['redirect'] = response_data['ending_url']
+
+def parse_trace_response_with_urllib2(response, response_data, code, response_header, start_time):
 
     end_time = datetime.datetime.now()
     response_data['response_code'] = code    
