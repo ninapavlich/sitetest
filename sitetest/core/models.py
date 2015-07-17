@@ -1100,6 +1100,20 @@ class NoRedirection(urllib2.HTTPErrorProcessor):
 
     https_response = http_response  
 
+class TLSAV1dapter(requests.adapters.HTTPAdapter):
+    def init_poolmanager(self, connections, maxsize, block=False):
+        # This method gets called when there's no proxy.
+        self.poolmanager = requests.packages.urllib3.poolmanager.PoolManager(
+            num_pools=connections,
+           maxsize=maxsize,
+           block=block,
+           ssl_version=ssl.PROTOCOL_TLSv1)
+
+    def proxy_manager_for(self, proxy, **proxy_kwargs):
+        # This method is called when there is a proxy.
+        proxy_kwargs['ssl_version'] = ssl.PROTOCOL_TLSv1
+        return super(TLSAV1dapter, self).proxy_manager_for(proxy, **proxy_kwargs)
+
 def trace_path(url, traced, enable_cookies = False, depth=0, cj_or_session=None, auth=None, username=None, password=None):
     
     if USE_REQUESTS:
@@ -1139,6 +1153,7 @@ def trace_path_with_requests(url, traced, enable_cookies = False, depth=0, sessi
     if enable_cookies:
         if not session:
             session = requests.Session()
+            session.mount('https://', TLSAV1dapter())
 
 
     
@@ -1174,9 +1189,9 @@ def trace_path_with_requests(url, traced, enable_cookies = False, depth=0, sessi
             auth = None
 
         if session:
-            response = session.get(url, allow_redirects=False, headers=HEADERS, auth=auth)        
+            response = session.get(url, allow_redirects=False, headers=HEADERS, auth=auth, verify=False, timeout=10)        
         else:
-            response = requests.get(url, allow_redirects=False, headers=HEADERS, auth=auth)        
+            response = requests.get(url, allow_redirects=False, headers=HEADERS, auth=auth, verify=False, timeout=10)        
 
         try:
             code = response.status_code
@@ -1199,7 +1214,13 @@ def trace_path_with_requests(url, traced, enable_cookies = False, depth=0, sessi
 
     except requests.exceptions.RequestException as e:
         # catastrophic error. bail.
-        response_data['response_code'] = "RequestException: %s"%(e) 
+        
+        #Try loading with the session TLS adapter
+        if not enable_cookies:
+            traced_with_cookies = trace_path(url, [], True, 0, None, auth, username, password)
+            return traced_with_cookies
+        else:
+            response_data['response_code'] = "RequestException: %s"%(e) 
 
     except Exception:
         
