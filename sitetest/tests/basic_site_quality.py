@@ -52,12 +52,12 @@ def test_basic_site_quality(site, verbose=False):
     
 
     # #5 - Verify that sitemap matches up with the actual pages
-    # if sitemap_link.response_code == 200:
     if len(sitemap_links) > 0:
         for sitemap_link in sitemap_links:
             for link_url in sitemap_link.hyper_links:
                 link_item = sitemap_link.hyper_links[link_url]
                 link_item.has_sitemap_entry = True
+
 
         
     # #6 - Verify that no public pages are blocked by robots.txt

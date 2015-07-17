@@ -55,7 +55,7 @@ HEADERS = {'User-Agent': USER_AGENT_STRING,
    'Accept-Language': 'en-US,en;q=0.8',
    'Connection': 'keep-alive'}
 
-USE_REQUESTS = True
+USE_REQUESTS = False
 
 import ssl
 from functools import wraps
@@ -545,7 +545,7 @@ class LinkItem(BaseMessageable):
         self.iframe_links = {}
         self.screenshots = {}
         # self.xhr_links = {}
-        self.url = self.ending_url = url
+        self.url = self.starting_url = self.ending_url = url
         parsed = urlparse.urlparse(url)
         name, extension = os.path.splitext(parsed.path)
         self.starting_type = self.ending_type = set.get_link_type(url)
@@ -558,6 +558,7 @@ class LinkItem(BaseMessageable):
         self.html = None
         self.title = url
         self.redirect_path = None
+        self.has_sitemap_entry = False
         self.dequeried_url = clear_query_string(self.url)
 
         self.use_basic_auth = set.use_basic_auth
@@ -701,7 +702,7 @@ class LinkItem(BaseMessageable):
 
     @property
     def is_redirect_page(self):
-        return (self.url != self.ending_url)
+        return (self.starting_url != self.ending_url)
 
     
 
@@ -1190,7 +1191,7 @@ def trace_path_with_requests(url, is_internal, traced, enable_cookies = False, d
         #-- authorization
 
         #Don't verify cert here if we're testing the site. We'll test that on a separate step.
-        verify_cert = !is_internal
+        verify_cert = not is_internal
 
         if session:
             response = session.get(url, headers=HEADERS, allow_redirects=False, verify=verify_cert, timeout=10)        
@@ -1235,7 +1236,7 @@ def trace_path_with_requests(url, is_internal, traced, enable_cookies = False, d
     if enable_cookies:
         response_data['pickled_cookies'] = pickle.dumps(session.cookies._cookies)  
 
-        
+    response_data['request_headers'] = response.request.headers
         
 
     traced.append(response_data)
@@ -1277,34 +1278,31 @@ def trace_path_with_urllib2(url, is_internal, traced, enable_cookies = False, de
                 traced[-1]['error'] = "Redirect loop detected to %s"%(url)
                 return traced
 
-    
-    if enable_cookies:
+    use_auth = (auth=='basic' and is_internal)
+    if enable_cookies or use_auth:
         if not cj:
-            cj = cookielib.CookieJar()  
-
+            cj = cookielib.CookieJar()
     
-    use_password = False
-    if auth=='basic' and is_internal:
-        use_password = True
+    if use_auth:
         password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
         password_manager.add_password(None, url, username, password)
         password_handler = urllib2.HTTPBasicAuthHandler(password_manager)
         
 
-    if enable_cookies:
-        if use_password:
+    if cj:
+        if use_auth:
             opener = urllib2.build_opener(NoRedirection, urllib2.HTTPCookieProcessor(cj), password_handler)
         else:
             opener = urllib2.build_opener(NoRedirection, urllib2.HTTPCookieProcessor(cj))
     else:
     
-        if use_password:
-            
+        if use_auth:            
             opener = urllib2.build_opener(NoRedirection, password_handler)
         else:
             opener = urllib2.build_opener(NoRedirection)
 
     request = urllib2.Request(url, headers=HEADERS)
+
     
     response = None
     response_data = {
@@ -1375,6 +1373,8 @@ def trace_path_with_urllib2(url, is_internal, traced, enable_cookies = False, de
     if enable_cookies:
         response_data['pickled_cookies'] = pickle.dumps(cj._cookies)        
 
+    response_data['request_headers'] = request.headers
+
     traced.append(response_data)
 
     has_redirect = response_data['redirect']!=None        
@@ -1397,6 +1397,7 @@ def parse_trace_response(response, response_data, code, response_header, start_t
 def parse_trace_response_with_requests(response, response_data, code, response_header, start_time):
 
     end_time = datetime.datetime.now()
+    response_data['response_headers'] = response_header
     response_data['response_code'] = code    
     response_data['response_content_type'] = response_header.get('Content-Type')
     response_data['response_encoding'] = response_header.get('Content-Encoding')
@@ -1415,8 +1416,9 @@ def parse_trace_response_with_requests(response, response_data, code, response_h
         response_data['redirect'] = response_data['ending_url']
 
 def parse_trace_response_with_urllib2(response, response_data, code, response_header, start_time):
-
+    
     end_time = datetime.datetime.now()
+    response_data['response_headers'] = dict(response_header)
     response_data['response_code'] = code    
     response_data['response_content_type'] = response_header.getheader('Content-Type')
     response_data['response_encoding'] = response_header.getheader('Content-Encoding')

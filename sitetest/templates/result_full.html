@@ -160,6 +160,37 @@
 
 					{% if link.enumerated_source %}
 					<div class="tab-pane" id="{{link.page_results_hash}}-source">
+
+						
+				    {% for item in link.redirect_path %}
+
+				    	<h4>{{item.response_code}} {{item.url}} [{{item.response_content_type}}] - <em>{{item.response_load_time}} ms</em></h4>
+				    	<div class="box">
+					    	<div class="inner">
+						    	<h5>Request Headers</h5>
+						    	<dl>
+							      {% for key, value in item.request_headers.iteritems() %}
+							            <dt>{{ key }}</dt>
+							            <dd>{{ value }}</dd>
+							      {% endfor %}
+									</dl>
+								</div>
+								<div class="inner">
+						    	<h5>Response Headers</h5>			    	
+					    		<dl>
+							      {% for key, value in item.response_headers.iteritems() %}
+							            <dt>{{ key }}</dt>
+							            <dd>{{ value }}</dd>
+							      {% endfor %}
+									</dl>
+								</div>
+							</div>
+
+				    	<hr />
+
+				    {% endfor %}
+						
+
 						<pre>{{link.enumerated_source|e}}</pre>
 					</div>
 					{% endif %}

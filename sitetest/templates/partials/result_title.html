@@ -1,7 +1,7 @@
 <h4 class="panel-title clearfix" id="{{link.page_hash}}">
 	<span class="pull-left">
 
-		{% if link.response_code %} 
+		  {% if link.response_code %} 
         {% if link.response_code == 200 %}
         <span class="label label-success">{{link.response_code}}</span> 
         {% elif link.response_code == "Unknown" %} 
@@ -9,12 +9,15 @@
         {% else %} 
         <span class= "label label-danger">{{link.response_code}}</span>
         {% endif %} 
-        {% else %}
+      {% else %}
         <span class="label label-default">N/A</span> 
-        {% endif %}
+      {% endif %}
+        
+      {% if link.is_redirect_page %}&nbsp;<span class="label label-default">Redirected</span> {% endif %}
+
         &nbsp;
-    	<a data-parent="#accordion" data-toggle="collapse" href="#{{link.page_results_hash}}">{% if link.is_redirect_page %}<span class="label label-default">Redirected</span> {% endif %}{% if link.title %}{{link.title}}<br /><br />{% endif %}
-    	<span class='link-container'>{{link.url|truncate(100, True)}}{% if link.url != link.ending_url %} > {{link.ending_url|truncate(100, True)}} {% endif %}</span></a>
+    	<a data-parent="#accordion" data-toggle="collapse" href="#{{link.page_results_hash}}">{% if link.title %}{{link.title}}<br /><br />{% endif %}
+    	<span class='link-container'>{{link.starting_url|truncate(100, True)}}{% if link.starting_url != link.ending_url %} > {{link.ending_url|truncate(100, True)}} {% endif %}</span></a>
 
         
     </span>

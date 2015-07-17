@@ -59,6 +59,7 @@ class SiteMaps(object):
         if not sitemap_link.content:
             return
 
+
         xml = sitemap_link.content.encode('utf-8')
         parser = lxml.etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
         tree = lxml.etree.fromstring(xml, parser=parser)
@@ -75,6 +76,6 @@ class SiteMaps(object):
 
                 url = loc.text.strip()
                 self.urls.append(url)
-                # print 'Found url %s'%(url)
+                # print 'Found url (%s)'%(url)
                 link = self.set.get_or_create_link_object(url, sitemap_link)
     
