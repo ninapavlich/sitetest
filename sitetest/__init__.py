@@ -110,9 +110,9 @@ def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, star
     set = LinkSet(options, canonical_domain, domain_aliases, legacy_domains, test_category_id, batch_id, verbose)
     homepage_link = set.get_or_create_link_object(canonical_domain, None)
 
-    # if recursive == True:
-    #     sitemap = SiteMaps(canonical_domain, set, recursive)
-    #     sitemap.run()
+    if recursive == True:
+        sitemap = SiteMaps(canonical_domain, set, recursive)
+        sitemap.run()
     
     starting_link = set.get_or_create_link_object(starting_url, None)
     if starting_link:
