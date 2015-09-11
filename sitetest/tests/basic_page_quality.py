@@ -81,7 +81,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
 
                         
                         if page_title == '':
-                            message = "Page title is missing from %s"%(link_url)
+                            message = "Page title is missing from <mark>%s</mark>"%(link_url)
                             link.add_warning_message(message, self.page_title_missing_error)
                             link.title = link_url
 
@@ -94,7 +94,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
                                 unique_titles[page_title] = link.path
 
                             if link.path.strip('/') != unique_titles[page_title].strip('/') and (is_redirected_page == False) and (is_alias_page == False):
-                                message = "Page title &ldquo;%s&rdquo; is not unique."%(page_title)
+                                message = "Page title <mark>&ldquo;%s&rdquo;</mark> is not unique."%(page_title)
                                 link.add_warning_message(message, page_title_unique_error)
                                 unique_title_error_count += 1
                             
@@ -115,12 +115,12 @@ def test_basic_page_quality(set, recursive, verbose=False):
                                 unique_descriptions[page_description] = link.path
                             else:               
                                 if link.path.strip('/') != unique_descriptions[page_description].strip('/') and not is_redirected_page and not is_alias_page:
-                                    message = "Page description in &ldquo;%s&rdquo; (%s) is not unique."%(link.title, page_description)
+                                    message = "Page description in <mark>&ldquo;%s&rdquo;</mark> &ldquo;%s&rdquo; </mark> is not unique."%(link.title, page_description)
                                     link.add_warning_message(message, page_description_unique_error)
                                     unique_description_error_count += 1
 
                         else:                       
-                            message = "Page description is missing from &ldquo;%s&rdquo;"%(link.title)
+                            message = "Page description is missing from <mark>&ldquo;%s&rdquo;</mark>"%(link.title)
                             link.add_warning_message(message, page_description_missing_error)
 
                         meta_tags = [
@@ -178,7 +178,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
                         has_js = js_indicator.lower() in link_source.lower()
                         if not has_ua and not has_asynca and not has_js:
                             analytics_missing_error_count += 1
-                            message = "Page %s missing google analytics."%(link.title)
+                            message = "Page <mark>&ldquo;%s&rdquo;</mark> missing google analytics."%(link.title)
                             link.add_warning_message(message, missing_analytics)
 
 
@@ -188,14 +188,14 @@ def test_basic_page_quality(set, recursive, verbose=False):
                                 
                                 if 'http:' in link_url:
                                     ssl_error_count += 1
-                                    message = "HTTP active mixed resource was found on HTTPS page &ldquo;%s&rdquo;"%(link.title)
+                                    message = "HTTP active mixed resource was found on HTTPS page <mark>&ldquo;%s&rdquo;</mark>"%(link.title)
                                     link.add_warning_message(message, mixed_resources)
 
                         #6 - Verify that page has exactly one h1
                         h1_count = len(soup.findAll('h1'))
                         if h1_count != 1:
                             h1_error_count += 1
-                            message = "Page &ldquo;%s&rdquo; doesn't have exactly one H1, it has %s"%(link.title, h1_count)
+                            message = "Page <mark>&ldquo;%s&rdquo;</mark> doesn't have exactly one H1, it has <mark>%s</mark>"%(link.title, h1_count)
                             link.add_warning_message(message, h1_error)
 
                         #7 - Compression
@@ -207,7 +207,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
                         #8 - Robots
                         if link.accessible_to_robots == False:
                             robots_error_count += 1
-                            message = "Page &ldquo;%s&rdquo; is not accessible to robots.txt"%(link.title)
+                            message = "Page <mark>&ldquo;%s&rdquo;</mark> is not accessible to robots.txt"%(link.title)
                             link.add_warning_message(message, robots_error)
 
                         #9 - Sitemap
@@ -215,11 +215,11 @@ def test_basic_page_quality(set, recursive, verbose=False):
                             if link.is_alias == False:
                                 if link.has_sitemap_entry == False:
                                     sitemap_error_count += 1
-                                    message = "Page &ldquo;%s&rdquo; is not in the sitemap"%(link.title)
+                                    message = "Page <mark>&ldquo;%s&rdquo;</mark> is not in the sitemap"%(link.title)
                                     link.add_warning_message(message, sitemap_error)
 
                                 if len(link.referers) == 1 and link.has_sitemap_entry == True and link.url != set.canonical_domain:
-                                    link.add_info_message("Page &ldquo;%s&rdquo; is in the sitemap, but not accessible from elsewhere in the site."%(link.title), sitemap_orphan_error)
+                                    link.add_info_message("Page <mark>&ldquo;%s&rdquo;</mark> is in the sitemap, but not accessible from elsewhere in the site."%(link.title), sitemap_orphan_error)
                                     orphan_page_error_count += 1
 
 
@@ -234,7 +234,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
                         for css_domain in css_link_domains:
                             domain_count = css_link_domains[css_domain]
                             if domain_count > 1:
-                                message = "%s css files from the same domain %s."%(domain_count, css_domain)
+                                message = "<mark>%s</mark> css files from the same domain <mark>%s</mark>."%(domain_count, css_domain)
                                 link.add_warning_message(message, multiple_stylesheets)
 
                         #10 - Are JS Files comfbined
@@ -248,7 +248,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
                         for js_domain in js_link_domains:
                             domain_count = js_link_domains[js_domain]
                             if domain_count > 1:
-                                message = "%s script files from the same domain %s."%(domain_count, js_domain)
+                                message = "<mark>%s</mark> script files from the same domain <mark>%s</mark>."%(domain_count, js_domain)
                                 link.add_warning_message(message, multiple_scripts)
 
 

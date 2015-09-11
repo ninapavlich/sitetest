@@ -1,1 +1,7 @@
-<a href="{{link_item.page_url|safe}}#{{link_item.page_hash|safe}}" class='pagelink'>{{link_item.url|truncate(100, True)}}</a> - <a class="fa fa-external-link" href="{{link_item.url}}" target="_blank">&nbsp;</a>
+<a href="{{link_item.page_url|safe}}#{{link_item.page_hash|safe}}" class='pagelink' title="More info about: {{link_item.url}}">
+  <strong><small>MORE INFO</small></strong> 
+  ({{link_item.title|truncate(70, True)}})
+</a>&nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+<a href="{{link_item.url}}" target="_blank" title="Open in new tab: {{link_item.url}}">
+  <strong><small>VISIT</small></strong> <i class="fa fa-external-link"></i>
+</a>

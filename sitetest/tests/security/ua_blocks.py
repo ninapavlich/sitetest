@@ -71,7 +71,7 @@ def test_load(site, url, user_agent, expected_code, username=None, password=None
     code = load_ua(url, user_agent, username, password)
     if code != expected_code:
         
-        message = "Page %s incorrectly handled user agent %s. Expected %s received %s"%\
+        message = "Page <mark>%s</mark> incorrectly handled user agent %s. Expected <mark>%s</mark> received <mark>%s</mark>"%\
         (link.url, user_agent, expected_code, code)
 
         if link:

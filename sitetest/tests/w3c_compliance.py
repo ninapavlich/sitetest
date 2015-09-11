@@ -76,11 +76,11 @@ def test_w3c_compliance(set, ignore_validation_errors, max_test_count=20, verbos
                         errors_found_count += len(actual_errors)
 
                         if len(actual_errors) > 0:
-                            message = "Found %s validation errors on page."%(len(actual_errors))
+                            message = "Found %s validation errors on page <mark>&ldquo;%s&rdquo;</mark>."%(len(actual_errors), link.title)
                             link.add_warning_message(message, validation_error)
 
                         if len(actual_warnings) > 0:
-                            message = "Found %s validation warnings on page."%(len(actual_warnings))
+                            message = "Found %s validation warnings on page <mark>&ldquo;%s&rdquo;</mark>."%(len(actual_warnings), link.title)
                             link.add_info_message(message, validation_warning)
 
                         

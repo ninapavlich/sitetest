@@ -5,7 +5,7 @@
         {% if link.response_code == 200 %}
         <span class="label label-success">{{link.response_code}}</span> 
         {% elif link.response_code == "Unknown" %} 
-        <span class="label label-warning">Response Code {{link.response_code}}</span> 
+        <span class="label label-warning">Unknown [See &ldquo;Redirect Path&rdquo; section below]</span> 
         {% else %} 
         <span class= "label label-danger">{{link.response_code}}</span>
         {% endif %} 

@@ -91,7 +91,7 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
 
                 if has_lorem_ipsum:
                     lorem_ipsum_count += 1
-                    message = "Lorem Ipsum found in &ldquo;%s&rdquo;"%(link.title)
+                    message = "Lorem Ipsum found in <mark>&ldquo;%s&rdquo;</mark>"%(link.title)
                     link.add_warning_message(message, lorem_ipsum_error)
 
                 #2. Check for Spelling

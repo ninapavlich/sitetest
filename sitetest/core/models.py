@@ -77,10 +77,11 @@ class MessageCategory(object):
     level = None
     messages = []
 
-    def __init__(self, key, message, level, info=''):
+    def __init__(self, key, message, level, label, info=''):
         self.key = key
         self.message = message
         self.level = level
+        self.label = label
         self.info = info
         self.messages = []
 
@@ -228,14 +229,19 @@ class LinkSet(BaseMessageable):
 
         self.loading_error = self.get_or_create_message_category('loading-error', "Loading error", 'danger')
         self.parsing_error = self.get_or_create_message_category('parsing-error', "Parsing error", 'danger')
-        self.legacy_domain_error = self.get_or_create_message_category('legacy-domain-error', "Legacy domain error", 'warning')
+        self.legacy_domain_error = self.get_or_create_message_category('legacy-domain-error', "Legacy domain warning", 'warning')
 
         super(LinkSet, self).__init__()    
 
     def get_or_create_message_category(self, key, message, level, info=''):
+        labels = {
+            'danger':"Error",
+            'warning':"Warning",
+            'info':"Info"
+        }
 
         if key not in self.message_category_hash:
-            category = MessageCategory(key, message, level, info)
+            category = MessageCategory(key, message, level, labels[level], info)
             self.message_categories.append(category)
             self.message_category_hash[key] = category
 
@@ -353,7 +359,7 @@ class LinkSet(BaseMessageable):
                 self.loadable_links[link.url] = link
 
             if has_legacy_domain:
-                legacy_error_message = "Legacy url %s found on url %s"%(incoming_url, referer_url)
+                legacy_error_message = "Legacy url <mark>%s</mark> found on url <mark>%s</mark>"%(incoming_url, referer_url)
                 referer.add_error_message(legacy_error_message, link.set.legacy_domain_error)
                 
             #print ">>> Create Link %s (<<< %s)"%(link.__unicode__(), referer_url)
@@ -743,6 +749,10 @@ class LinkItem(BaseMessageable):
 
     def load(self, set, expected_code=200):
 
+        #TODO: Known SSL ERRORS:
+        #_ssl.c:504: error:14094410:SSL routines:SSL3_READ_BYTES:sslv3 alert handshake failure
+        #_ssl.c:504: error:14094438:SSL routines:SSL3_READ_BYTES:tlsv1 alert internal error
+        ignore_errors = ['_ssl.c:504']
 
         response = None
         start_time = datetime.datetime.now()
@@ -786,9 +796,20 @@ class LinkItem(BaseMessageable):
 
             
         if expected_code != self.response_code:
-            message = "Loading error on page %s Expected %s Received %s"%(self.title, expected_code, self.response_code)
-            self.add_error_message(message, self.set.loading_error)
-            return (False, response)
+
+            #Ignore some known errors:
+            ignore_error = False
+            for ignore_code in ignore_errors:
+                if ignore_code.lower() in str(self.response_code).lower():
+                    ignore_error = True
+
+            if ignore_error:
+                self.response_code = "Unknown"
+                return (True, response)
+            else:
+                message = "Loading error on page <mark>%s</mark> Expected <mark>%s</mark> Received <mark>%s</mark>"%(self.title, expected_code, self.response_code)
+                self.add_error_message(message, self.set.loading_error)
+                return (False, response)
         else:
             return (True, response)
         
@@ -833,7 +854,7 @@ class LinkItem(BaseMessageable):
                 soup = BeautifulSoup(self.source, 'html5lib') #TODO -- should I convert to UTF-8? .decode('utf-8', 'ignore')
             except Exception:
                 soup = None
-                self.add_error_message("Error parsing HTML on page &ldquo;%s&rdquo; %s"%(self.url, traceback.format_exc()), self.set.parsing_error)
+                self.add_error_message("Error parsing HTML on page <mark>%s</mark> %s"%(self.url, traceback.format_exc()), self.set.parsing_error)
 
         
             if soup:
