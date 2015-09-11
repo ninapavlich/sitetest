@@ -161,13 +161,13 @@ def test_basic_spell_check(set, special_dictionary, verbose=False):
 
                             is_contraction = word.lower().replace(u"’",u"'") in CONTRACTION_LIST     
 
-                            if not word_exists and not word_is_proper_noun and not is_numeric and not is_technological and not is_contraction and not is_prefix and not is_money:
-                                if word not in misspelled_words:
-                                    message = "Word &ldquo;%s&rdquo; misspelled."%(html_escape(word))
-                                    link.add_info_message(message, spelling_error)
-                                    misspelled_words.append(word)
+                            # if not word_exists and not word_is_proper_noun and not is_numeric and not is_technological and not is_contraction and not is_prefix and not is_money:
+                            #     if word not in misspelled_words:
+                            #         message = "Word &ldquo;%s&rdquo; misspelled."%(html_escape(word))
+                            #         link.add_info_message(message, spelling_error)
+                            #         misspelled_words.append(word)
 
-                                    spelling_issue_count += 1    
+                            #         spelling_issue_count += 1    
                 else:
                     message = "Spell check skipped on this page because Lorem Ipsum was found"
                     link.add_info_message(message)

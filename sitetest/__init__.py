@@ -27,8 +27,10 @@ from .tests.security.rate_limits import test_rate_limits
 from .tests.security.ua_blocks import test_ua_blocks
 
 
+reload(sys)
+sys.setdefaultencoding('utf-8')
             
-def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_category_id, options=None):
+def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, starting_url, test_category_id, options=None):
     
     
     #If http not included, add it
@@ -105,12 +107,12 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_c
 
 
     #Load pages, starting with homepage    
-    set = LinkSet(options, canonical_domain, domain_aliases, test_category_id, batch_id, verbose)
+    set = LinkSet(options, canonical_domain, domain_aliases, legacy_domains, test_category_id, batch_id, verbose)
     homepage_link = set.get_or_create_link_object(canonical_domain, None)
 
-    if recursive == True:
-        sitemap = SiteMaps(canonical_domain, set, recursive)
-        sitemap.run()
+    # if recursive == True:
+    #     sitemap = SiteMaps(canonical_domain, set, recursive)
+    #     sitemap.run()
     
     starting_link = set.get_or_create_link_object(starting_url, None)
     if starting_link:
@@ -214,7 +216,7 @@ def testSite(credentials, canonical_domain, domain_aliases, starting_url, test_c
     results['report_url'] = report_url
     open_results(report_url)
 
-    # notify_results(results, credentials)
+    notify_results(results, credentials)
 
     return results
 

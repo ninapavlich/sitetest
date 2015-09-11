@@ -159,11 +159,11 @@ def test_basic_page_quality(set, recursive, verbose=False):
                             if not value:
                                 missing_met_tags.append("%s:%s"%(prop_type, property_name))
 
-                        if len(missing_met_tags) > 0:                        
-                            social_tag_error_count += 1
-                            tags = ', '.join(missing_met_tags)
-                            message = "Page &ldquo;%s&rdquo; missing meta tag(s): %s"%(link.title, tags)
-                            link.add_info_message(message, missing_meta_tags)
+                        # if len(missing_met_tags) > 0:                        
+                        #     social_tag_error_count += 1
+                        #     tags = ', '.join(missing_met_tags)
+                        #     message = "Page &ldquo;%s&rdquo; missing meta tag(s): %s"%(link.title, tags)
+                        #     link.add_info_message(message, missing_meta_tags)
 
                         
 

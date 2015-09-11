@@ -3,3 +3,4 @@
 * Requires Cookies: http://www.juilliard.edu/ - otherwise goes into infinite redirect loop
 * 404: http://cgpartnersllc.com/thisShouldNotExist
 * Redirection: www.cgpartnersllc.com/about/people
+* UTF-8 Encoding: http://www.helmsleytrust.org.Â (around link 140)

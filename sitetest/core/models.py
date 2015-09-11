@@ -178,6 +178,7 @@ class LinkSet(BaseMessageable):
     include_media = False
     canonical_domain = None
     domain_aliases = None
+    legacy_domains = None
     ignore_query_string_keys = []
     alias_query_strings = []
 
@@ -193,7 +194,7 @@ class LinkSet(BaseMessageable):
     
     
 
-    def __init__(self, options, canonical_domain, domain_aliases, test_category_id, test_batch_id, verbose=False):
+    def __init__(self, options, canonical_domain, domain_aliases, legacy_domains, test_category_id, test_batch_id, verbose=False):
 
     
         if verbose:
@@ -211,6 +212,7 @@ class LinkSet(BaseMessageable):
         self.include_external_links = True if 'test_external_links' not in options else truthy(options['test_external_links'])
         self.canonical_domain = canonical_domain
         self.domain_aliases = domain_aliases
+        self.legacy_domains = legacy_domains
         self.ignore_query_string_keys = [] if 'ignore_query_string_keys' not in options else options['ignore_query_string_keys']
         self.alias_query_strings = [] if 'alias_query_strings' not in options else options['alias_query_strings']
         self.skip_test_urls = [] if 'skip_test_urls' not in options else options['skip_test_urls']
@@ -226,6 +228,7 @@ class LinkSet(BaseMessageable):
 
         self.loading_error = self.get_or_create_message_category('loading-error', "Loading error", 'danger')
         self.parsing_error = self.get_or_create_message_category('parsing-error', "Parsing error", 'danger')
+        self.legacy_domain_error = self.get_or_create_message_category('legacy-domain-error', "Legacy domain error", 'warning')
 
         super(LinkSet, self).__init__()    
 
@@ -279,7 +282,7 @@ class LinkSet(BaseMessageable):
                 #trace_memory_usage()
                 referer_list = [link for link in page_link.referers]
                 print "\r>>> Load Link %s (parsed: %s/%s, loaded: %s/%s, total: %s)\r\r"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.loaded_links), len(self.loadable_links),  len(self.current_links))
-                if 'Halas' in page_link.__unicode__():
+                if '#' in page_link.__unicode__():
                     print "\r-----  From: %s\r\r"%(referer_list)
                 
 
@@ -316,12 +319,18 @@ class LinkSet(BaseMessageable):
     def get_or_create_link_object(self, url, referer=None):
         
         incoming_url = url
-        referer_url = None if not referer else referer.ending_url
+        referer_url = None if not referer else referer.ending_url        
+
+        has_legacy_domain = False
+        for legacy_domain in self.legacy_domains:
+            if legacy_domain.lower() in url.lower():
+                has_legacy_domain = True
 
         url = self.get_normalized_href(url, referer_url)
 
-        slashed_url = u"%s/"%url
-        deslashed_url = url.rstrip(u"/")
+        
+        slashed_url = "%s/"%(url)
+        deslashed_url = url.rstrip("/")
 
         if not url or url == '':
             return None
@@ -343,6 +352,10 @@ class LinkSet(BaseMessageable):
             if link.is_loadable_type(self.include_media, self.include_external_links):
                 self.loadable_links[link.url] = link
 
+            if has_legacy_domain:
+                legacy_error_message = "Legacy url %s found on url %s"%(incoming_url, referer_url)
+                referer.add_error_message(legacy_error_message, link.set.legacy_domain_error)
+                
             #print ">>> Create Link %s (<<< %s)"%(link.__unicode__(), referer_url)
 
         if referer and referer.url != url and referer.ending_url != url:
@@ -389,6 +402,12 @@ class LinkSet(BaseMessageable):
                 for domain in self.domain_aliases:
                     if domain.lower() in url.lower():
                         return TYPE_INTERNAL
+
+                for domain in self.legacy_domains:
+                    if domain.lower() in url.lower():
+                        return TYPE_INTERNAL
+
+                
                 return TYPE_EXTERNAL
 
 
@@ -397,17 +416,18 @@ class LinkSet(BaseMessageable):
     def get_normalized_href(self, url, normalized_parent_url=None):
         debug = False
 
-        
+
         if debug:
+            print '--------------------------'
             print '---> get_normalized_href for %s from %s'%(url, normalized_parent_url)
         
 
         normalized = url
         if normalized.startswith('//'):
             if self.canonical_domain.startswith('https'):
-                normalized = u"https:%s"%(normalized)
+                normalized = "https:%s"%(normalized)
             else:
-                normalized = u"http:%s"%(normalized)
+                normalized = "http:%s"%(normalized)
 
         #Remove invalid bits
         normalized = url_fix(normalized)
@@ -437,7 +457,12 @@ class LinkSet(BaseMessageable):
                 for alias in self.domain_aliases:
                     if alias.lower() in normalized.lower():
                         normalized = normalized.lower().replace(alias.lower(), self.canonical_domain)
-                        #print "Replace alias domain in %s with canonical: %s"%(url, normalized)
+                        if debug:
+                            print "---> Replace alias domain in %s with canonical: %s"%(url, normalized)
+
+                for legacy_domain in self.legacy_domains:
+                    if legacy_domain.lower() in url.lower():
+                        normalized = normalized.lower().replace(legacy_domain.lower(), self.canonical_domain)
                         
 
                 #Next, does it use an absolute path?
@@ -446,8 +471,14 @@ class LinkSet(BaseMessageable):
                         normalized = "%s%s"%(self.canonical_domain, normalized[1:])
                     else:
                         normalized = "%s%s"%(self.canonical_domain, normalized)
-                    #print "relative from root, replacd %s with %s"%(url, normalized)
-                    
+                    if debug:
+                        print "---> relative from root, replacd %s with %s"%(url, normalized)
+                
+                elif normalized.startswith('http'):
+
+
+                    if debug:
+                        print "---> absolute url %s"%(normalized)
 
                 #if not, it must be relative to the parent
                 elif normalized_parent_url:
@@ -465,7 +496,8 @@ class LinkSet(BaseMessageable):
                         else:
                             normalized = "%s/%s"%(dequeried_parent_url, normalized)
 
-                    #print "relative from parent, replaced %s with %s"%(url, normalized)
+                    if debug:
+                        print "---> relative from parent, replaced %s with %s"%(url, normalized)
                     
             #Next remove unwanted query strings:
             normalized = clean_query_string(normalized, self.ignore_query_string_keys)
@@ -498,6 +530,9 @@ class LinkSet(BaseMessageable):
             if debug:
                 print '%s ---> condensed ====> %s'%(pre_condensed, normalized)
 
+
+        if '#' in normalized:
+            print "QQQ NOT SURE HOW # has stayed in URL %s (original: %s)"%(normalized, url)
         return normalized
 
 
@@ -572,10 +607,10 @@ class LinkItem(BaseMessageable):
 
 
     def __unicode__(self):
-        url = (u"%s-%s")%(self.url, self.ending_url) if self.url != self.ending_url else self.url
-        type = (u"%s-%s")%(self.starting_type, self.ending_type) if self.starting_type != self.ending_type else self.starting_type
+        url = ("%s-%s")%(self.url, self.ending_url) if self.url != self.ending_url else self.url
+        type = ("%s-%s")%(self.starting_type, self.ending_type) if self.starting_type != self.ending_type else self.starting_type
 
-        return (u"%s [%s]")%(url, type)
+        return ("%s [%s]")%(url, type)
 
 
 
@@ -795,7 +830,7 @@ class LinkItem(BaseMessageable):
         if self.has_response==True and (self.is_html == True or self.is_xml == True):
 
             try:
-                soup = BeautifulSoup(self.source, 'html5lib')
+                soup = BeautifulSoup(self.source, 'html5lib') #TODO -- should I convert to UTF-8? .decode('utf-8', 'ignore')
             except Exception:
                 soup = None
                 self.add_error_message("Error parsing HTML on page &ldquo;%s&rdquo; %s"%(self.url, traceback.format_exc()), self.set.parsing_error)
@@ -838,12 +873,12 @@ class LinkItem(BaseMessageable):
         #Create enumerated source
         if self.content:
             try:
-                enumerated_source_list = self.content.split(u"\n")
+                enumerated_source_list = self.content.split("\n")
                 counter = 0
-                enumerated_source = u''
+                enumerated_source = ""
                 for line in enumerated_source_list:
-                    new_line = (u"%s: %s"%(counter, line))
-                    enumerated_source += (u"%s\n"%(new_line))
+                    new_line = ("%s: %s"%(counter, line))
+                    enumerated_source += ("%s\n"%(new_line))
                     counter += 1
                 self.enumerated_source = enumerated_source
             except Exception:
