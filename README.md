@@ -13,7 +13,7 @@ brew install enchant
 brew install sslyze
 ```
 
-**Example Report:** http://s3.amazonaws.com/cgp-dev/test_results/fw-django-prod-01/2015-04-10_15-01.html
+**Example Report:** http://s3.amazonaws.com/cgp-dev/test_results/cgp-django-dev-01/2016-01-05_19-14/errors.html
 
 ##Example Usage:
 ```python
