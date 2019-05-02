@@ -636,15 +636,15 @@ class LinkItem(BaseMessageable):
 
     @property
     def page_hash(self):
-        return slugify("result-%s"%(self.page_slug))
+        return slugify(u"result-%s"%(self.page_slug))
 
     @property
     def page_results_hash(self):
-        return slugify("result-body-%s"%(self.page_slug))
+        return slugify(u"result-body-%s"%(self.page_slug))
 
     @property
     def page_slug(self):
-        return slugify(self.url)
+        return slugify(u'%s'%(self.url))
 
 
     @property
