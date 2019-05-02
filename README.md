@@ -1,29 +1,47 @@
-sitetest
-========
+# sitetest
 
 Sitetest is a python utility for testing websites. The test results are uploaded
 to an AWS bucket as static HTML and notifications are sent to a Slack channel.
 
-##Requirements:
+## Requirements:
+
 ```
-#enchant is required for spelling
+# enchant is required for spelling
 brew install enchant
 
-#sslyze is required for testing SSL
+# sslyze is required for testing SSL
 brew install sslyze
+
+# Virtual env - to run stand alone environment:
+pip install virtualenv
+
 ```
 
 **Example Report:** http://site-test-runner.s3.amazonaws.com/test_results/ninalp-django-prod-01/2016-05-04_12-12/errors.html
 
-##Example Usage:
+## To set up environment:
+
+```
+> git clone git@github.com:ninapavlich/sitetest.git
+> cd sitetest
+> virtualenv venv -p python3
+> source venv/bin/activate
+> pip install -r requirements.txt
+# Create my_test.py based on example below:
+> python my_test.py
+```
+
+## Example Usage:
+
 ```python
+
+# my_test.py
 
 from sitetest import testSite
 
 canonical_domain = 'https://www.example.com'
 starting_url = 'https://www.example.com'
 test_id = "example-site-test-recursive"
-recursive = True
 
 
 credentials = {
@@ -87,32 +105,31 @@ options = {
 testSite(credentials, canonical_domain, domain_aliases, starting_url, test_id, options)
 ```
 
-
 ##Options:
 
 **If recursive == False,** the test will test only the canonical_domain
-**if recursive == True,** the test will recursively test all links found within 
-the canonical_domain. It will also test /robots.txt, /sitemap.xml, /favicon.ico 
+**if recursive == True,** the test will recursively test all links found within
+the canonical_domain. It will also test /robots.txt, /sitemap.xml, /favicon.ico
 and /thisShouldNotExist returns a 404
 
-**if test_media == True,** the test will ALSO verify that media files (images, 
+**if test_media == True,** the test will ALSO verify that media files (images,
 docs, zips, etc) return 404s.
 
-**if test_external_links == True,** the test will ALSO verify that external 
+**if test_external_links == True,** the test will ALSO verify that external
 links return 404s.
 
-**if run_third_party_tests == True,** the test will validate W3C Compliance for 
-up to 20 urls (the W3C has relatively strict limits for API usage), run Google 
+**if run_third_party_tests == True,** the test will validate W3C Compliance for
+up to 20 urls (the W3C has relatively strict limits for API usage), run Google
 PageSpeed tests for up to 1000 urls.
 
-**if run_security_tests == True,** the test will test rate limits and someday 
+**if run_security_tests == True,** the test will test rate limits and someday
 other tests too.
 
-**if ua_test_list** is set, this will verify that the specified User Agents 
-receive the expected code. This test will be run on the test_urls list if 
+**if ua_test_list** is set, this will verify that the specified User Agents
+receive the expected code. This test will be run on the test_urls list if
 specified, or the canonical domain if not specified.
 
-**If verbose == True,** you will see log output of the urls as they're parsed 
+**If verbose == True,** you will see log output of the urls as they're parsed
 and the overall test status
 
 **If output_unloaded_links == True,** a list of all links will be included in
@@ -127,16 +144,18 @@ The screenshots are generated using the Firefox driver for Selenium.
 basic_auth_password if the URLs being tested are password protected with basic
 auth.
 
-**canonical_domain** is the domain that we're testing. If you're running a 
+**canonical_domain** is the domain that we're testing. If you're running a
 non-recursive test on a single url, then canonical_domain should be the single
 url that you're testing, e.g. 'https://www.example.com/subfolder/testme/'
+
 ```python
 canonical_domain = 'https://www.example.com'
 ```
 
-**domain_aliases** are domains that should be considered equivalent to the 
-canonical domain. If a domain alias is found, it will be replaced with the 
+**domain_aliases** are domains that should be considered equivalent to the
+canonical domain. If a domain alias is found, it will be replaced with the
 canonical domain for testing
+
 ```python
 domain_aliases = [
 	'http://www.example.com',
@@ -144,61 +163,63 @@ domain_aliases = [
 	'http://example.com'
 ]
 ```
-**test_id** is a unique identifier for this test. Tests will be uploaded to AWS 
-at this url: 
-	
-	"http://s3.amazonaws.com/AWS_STORAGE_BUCKET_NAME
-	/AWS_RESULTS_PATH/test_id/time-and-date-of-test.html"
+
+**test_id** is a unique identifier for this test. Tests will be uploaded to AWS
+at this url:
+
+    "http://s3.amazonaws.com/AWS_STORAGE_BUCKET_NAME
+    /AWS_RESULTS_PATH/test_id/time-and-date-of-test.html"
 
 ```python
 test_id = "example-site-test-full"
 ```
 
-
-
 **special_dictionary** is a list of words to ignore in the spelling test
+
 ```python
 special_dictionary = ['yolo',]
 
 ```
 
-
 **ignore_query_string_keys** is a list of query strings to ignore in the urls.
+
 ```python
 ignore_query_string_keys = ['next',]
 
 ```
 
-**alias_query_strings** is a list of query strings to ignore as unique urls. 
+**alias_query_strings** is a list of query strings to ignore as unique urls.
 These urls will be loaded and tested, but not subjected to 'unique' tests.
+
 ```python
 alias_query_strings = ['page',]
 ```
 
-
 **ignore_validation_errors** is a list of validation messages from w3c to ignore
+
 ```python
-ignore_validation_errors = ['Bad value X-UA-Compatible for attribute http-equiv 
+ignore_validation_errors = ['Bad value X-UA-Compatible for attribute http-equiv
 on element meta.', ]
 
 ```
 
-
-skip_urls is a list of url fragments that, if matched using regex, will not be 
+skip_urls is a list of url fragments that, if matched using regex, will not be
 loaded or tested.
+
 ```python
 skip_urls = ['blog' ]
 
 ```
 
-skip_test_urls is a list of url fragments that, if matched using regex, it will 
+skip_test_urls is a list of url fragments that, if matched using regex, it will
 be loaded but not undergo any further testing.
+
 ```python
 skip_test_urls = ['comments/reply','comments/flag' ]
 
 ```
 
-**credentials** allow you to integrate with third party tools for tests and 
-notification. Result notifications are sent to slack. Test results are uploaded 
-to Amazon S3. Google Pagespeed is run on each URL for "Full" tests; only the 
+**credentials** allow you to integrate with third party tools for tests and
+notification. Result notifications are sent to slack. Test results are uploaded
+to Amazon S3. Google Pagespeed is run on each URL for "Full" tests; only the
 API_KEY is needed for that.

@@ -57,3 +57,5 @@ target/
 
 #test folders
 test_results/
+venv/
+test_prod.py

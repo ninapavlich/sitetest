@@ -1,16 +1,16 @@
 import os
 import sys
 import datetime
-import traceback        
+import traceback
 import shutil
 
 from boto.s3.key import Key
 import boto.s3
 from bs4 import BeautifulSoup
-import codecs    
+import codecs
 import htmlmin
 from jinja2 import Template, FileSystemLoader, Environment
-from pyslack import SlackClient
+# from pyslack import SlackClient
 import webbrowser
 
 from .core.sitemap import SiteMaps
@@ -29,14 +29,14 @@ from .tests.security.ua_blocks import test_ua_blocks
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
-            
+
 def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, starting_url, test_category_id, options=None):
-    
-    
+
+
     #If http not included, add it
     if 'http' not in canonical_domain.lower():
         canonical_domain = 'http://%s'%(canonical_domain)
-    
+
     #TODO: Add to python index and readthedocs
 
     start_time = datetime.datetime.now()
@@ -63,7 +63,7 @@ def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, star
                 'mobile':[375, 667]
             }
         }
-    
+
 
     recursive = True if 'recursive' not in options else truthy(options['recursive'])
 
@@ -78,7 +78,7 @@ def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, star
     verbose = True if 'verbose' not in options else truthy(options['verbose'])
 
     output_unloaded_links = True if 'output_unloaded_links' not in options else truthy(options['output_unloaded_links'])
-    
+
     special_dictionary = [] if 'special_dictionary' not in options else options['special_dictionary']
 
     ignore_query_string_keys = [] if 'ignore_query_string_keys' not in options else options['ignore_query_string_keys']
@@ -106,20 +106,20 @@ def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, star
 
 
 
-    #Load pages, starting with homepage    
+    #Load pages, starting with homepage
     set = LinkSet(options, canonical_domain, domain_aliases, legacy_domains, test_category_id, batch_id, verbose)
     homepage_link = set.get_or_create_link_object(canonical_domain, None)
 
     if recursive == True:
         sitemap = SiteMaps(canonical_domain, set, recursive)
         sitemap.run()
-    
+
     starting_link = set.get_or_create_link_object(starting_url, None)
     if starting_link:
         set.load_link(starting_link, recursive, 200, True)
 
 
-    
+
     #if recursive:
     # Site quality test
     try:
@@ -130,30 +130,30 @@ def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, star
     # #Page quality test
     try:
         test_basic_page_quality(set, recursive, verbose)
-    except Exception:        
+    except Exception:
         print "Error running page quality check: %s"%(traceback.format_exc())
 
 
     # Spell Check test
     try:
         test_basic_spell_check(set, special_dictionary, verbose)
-    except Exception:        
+    except Exception:
         print "Error running spellcheck: %s"%(traceback.format_exc())
 
     """
     # Lint JS
     try:
         test_lint_js(set, verbose)
-    except Exception:        
+    except Exception:
         print "Error linting JS: %s"%(traceback.format_exc())
     """
-    
+
 
     # Automated Selenium Tests
     if automated_tests_dir:
         try:
             test_selenium(set, automated_tests_dir, verbose)
-        except Exception:        
+        except Exception:
             print "Error running Selenium tests: %s"%(traceback.format_exc())
 
 
@@ -162,13 +162,13 @@ def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, star
         # Page Speed
         try:
             test_pagespeed(set, credentials, options, 1000, verbose)
-        except Exception:        
+        except Exception:
            print "Error testing site loading optimization: %s"%(traceback.format_exc())
 
         # W3C Compliance test
         try:
             test_w3c_compliance(set, ignore_validation_errors, 20, verbose)
-        except Exception:        
+        except Exception:
             print "Error validating with w3c: %s"%(traceback.format_exc())
 
 
@@ -176,7 +176,7 @@ def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, star
     if generate_screenshots==True:
         try:
             test_screenshots(set, credentials, options, test_category_id, batch_id, 100, verbose)
-        except Exception:        
+        except Exception:
             print "Error generating screenshots: %s"%(traceback.format_exc())
 
 
@@ -190,9 +190,9 @@ def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, star
         try:
             test_ua_blocks(set, options, verbose)
         except:
-            print "Error testing ua blocks: %s"%(traceback.format_exc())            
-    
-        
+            print "Error testing ua blocks: %s"%(traceback.format_exc())
+
+
 
 
     end_time = datetime.datetime.now()
@@ -222,7 +222,7 @@ def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, star
 
 
 def render_and_save_results(results, test_category_id, batch_id, credentials, verbose):
-    
+
     error_tab_url   = render_tab(results, 'errors.html', 'results_errors.html', test_category_id, batch_id, credentials, verbose)
     site_tab_url    = render_tab(results, 'site.html', 'results_site.html', test_category_id, batch_id, credentials, verbose)
     parsed_tab_url  = render_tab(results, 'parsed.html', 'results_parsed.html', test_category_id, batch_id, credentials, verbose)
@@ -232,7 +232,7 @@ def render_and_save_results(results, test_category_id, batch_id, credentials, ve
 
     return error_tab_url
 
-def render_tab(results, filename, template_file, test_category_id, batch_id, credentials, verbose):   
+def render_tab(results, filename, template_file, test_category_id, batch_id, credentials, verbose):
 
     html = render_results(results, template_file)
 
@@ -241,12 +241,12 @@ def render_tab(results, filename, template_file, test_category_id, batch_id, cre
     except Exception:
         print "Error minifying html: %s"%(traceback.format_exc())
         html_minified = html
-    
-    report_url = save_results(html_minified, filename, test_category_id, batch_id, credentials, verbose) 
+
+    report_url = save_results(html_minified, filename, test_category_id, batch_id, credentials, verbose)
     return report_url
 
 def render_results(results, template_file = 'results.html'):
-    
+
     templateLoader = FileSystemLoader( [os.path.join(os.path.dirname(__file__), 'templates/')] )
     templateEnv = Environment( loader=templateLoader )
 
@@ -269,13 +269,13 @@ def save_results(html, filename, test_category_id, batch_id, credentials, verbos
     if not os.path.exists(batch_dir):
         os.makedirs(batch_dir)
 
-    
+
     results_file = os.path.join(batch_dir, filename)
 
     save_results_local(html, results_file, verbose)
     try:
         report_url = save_results_aws(results_file, test_category_id, batch_id, credentials, verbose)
-    except Exception:        
+    except Exception:
         print "Error posting results to AWS: %s"%(traceback.format_exc())
         report_url = None
 
@@ -284,8 +284,8 @@ def save_results(html, filename, test_category_id, batch_id, credentials, verbos
         delete_results_local(batch_dir, verbose)
         delete_results_local(test_category_dir, verbose)
     else:
-        report_url = "file://%s"%results_file       
-    
+        report_url = "file://%s"%results_file
+
 
 
     return report_url
@@ -295,16 +295,16 @@ def delete_results_local(output_path, verbose):
     try:
         #First try removing as if it was a file
         os.remove(output_path)
-    except Exception:   
+    except Exception:
         try:
             #Next try removing as if it was a directory
             shutil.rmtree(output_path)
-        except Exception:        
+        except Exception:
 
-            print "Error deleting: %s - %s"%(output_path, traceback.format_exc())        
+            print "Error deleting: %s - %s"%(output_path, traceback.format_exc())
 
 
-def save_results_local(html, output_path, verbose):        
+def save_results_local(html, output_path, verbose):
 
     # process Unicode text
     with codecs.open(output_path,'w',encoding='utf8') as file:
@@ -316,7 +316,7 @@ def save_results_local(html, output_path, verbose):
     file.close()
 
 def save_results_aws(filename, test_category_id, batch_id, credentials, verbose):
-    
+
 
     if 'aws' in credentials and 'AWS_ACCESS_KEY_ID' in credentials['aws']:
         AWS_ACCESS_KEY_ID = credentials['aws']['AWS_ACCESS_KEY_ID']
@@ -325,7 +325,7 @@ def save_results_aws(filename, test_category_id, batch_id, credentials, verbose)
         AWS_RESULTS_PATH = credentials['aws']['AWS_RESULTS_PATH']
 
         base_name = os.path.basename(filename)
-        bucket_name = AWS_STORAGE_BUCKET_NAME    
+        bucket_name = AWS_STORAGE_BUCKET_NAME
 
         conn = boto.connect_s3(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
         bucket = conn.get_bucket(bucket_name)
@@ -339,7 +339,7 @@ def save_results_aws(filename, test_category_id, batch_id, credentials, verbose)
                 sys.stdout.write('.')
                 sys.stdout.flush()
 
-        
+
         k = Key(bucket)
         k.key = u"%s/%s/%s/%s"%(AWS_RESULTS_PATH, test_category_id, batch_id, base_name)
         k.set_contents_from_filename(filename, cb=percent_cb, num_cb=10)
@@ -349,12 +349,12 @@ def save_results_aws(filename, test_category_id, batch_id, credentials, verbose)
         return url
 
     else:
-        print "Warning: AWS API credentials not supplied." 
+        print "Warning: AWS API credentials not supplied."
         return None
 
 def open_results(path):
 
-    
+
     new = 2 # open in a new tab, if possible
 
     # open an HTML file on my own (Windows) computer
@@ -374,10 +374,10 @@ def notify_results(results, credentials):
 
             client = SlackClient(SLACK_TOKEN)
 
-            
+
             message_output = "Score %s for Test of \"%s\"\n\n"%(results['set'].get_score(), results['site'].title)
 
-            message_output += "Full Report: %s\n\n"%(results['report_url'])        
+            message_output += "Full Report: %s\n\n"%(results['report_url'])
 
             # for message in results['messages']['success']:
             #     message_output += (message+'\n\n')
@@ -388,11 +388,11 @@ def notify_results(results, credentials):
             # for message in results['messages']['info']:
             #     message_output += (message+'\n\n')
 
-            
+
             stripped = stripHtmlTags(message_output)
-            client.chat_post_message(SLACK_CHANNEL, stripped, username=SLACK_USERNAME) 
+            client.chat_post_message(SLACK_CHANNEL, stripped, username=SLACK_USERNAME)
         else:
-            print "Warning: Slack API credentials not supplied." 
+            print "Warning: Slack API credentials not supplied."
     except Exception:
         print "Error sending notification to Slack: %s"%(traceback.format_exc())
 
@@ -400,7 +400,7 @@ def stripHtmlTags(htmlTxt):
     if htmlTxt is None:
         return None
     else:
-        return ''.join(BeautifulSoup(htmlTxt).findAll(text=True)) 
+        return ''.join(BeautifulSoup(htmlTxt).findAll(text=True))
 
 def truthy(value):
     if value == 'True':
