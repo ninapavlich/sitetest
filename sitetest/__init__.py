@@ -3,6 +3,7 @@ import sys
 import datetime
 import traceback
 import shutil
+import logging
 
 from boto.s3.key import Key
 import boto.s3
@@ -10,7 +11,7 @@ from bs4 import BeautifulSoup
 import codecs
 import htmlmin
 from jinja2 import Template, FileSystemLoader, Environment
-# from pyslack import SlackClient
+from pyslack import SlackClient
 import webbrowser
 
 from .core.sitemap import SiteMaps
@@ -26,6 +27,7 @@ from .tests.selenium_tests import test_selenium
 from .tests.security.rate_limits import test_rate_limits
 from .tests.security.ua_blocks import test_ua_blocks
 
+logger = logging.getLogger('sitetest')
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -101,8 +103,17 @@ def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, star
 
     batch_id = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
 
+    # Validate
+    if not isinstance(legacy_domains, list):
+        raise Exception("legacy_domains argument should be a list")
+
+    if canonical_domain in legacy_domains:
+        raise Exception("canonical_domain should not be included in the legacy domain list")
+
+
+
     if verbose:
-        print "SITE TEST [%s %s] :: %s Recursive:%s Media:%s External Links:%s 3rd Party:%s Screenshots: %s MAX:%s"%(test_category_id, batch_id, canonical_domain, recursive, test_media, test_external_links, run_third_party_tests, generate_screenshots, max_parse_count)
+        logger.info("SITE TEST [%s %s] :: %s Recursive:%s Media:%s External Links:%s 3rd Party:%s Screenshots: %s MAX:%s"%(test_category_id, batch_id, canonical_domain, recursive, test_media, test_external_links, run_third_party_tests, generate_screenshots, max_parse_count))
 
 
 
@@ -125,27 +136,27 @@ def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, star
     try:
         test_basic_site_quality(set, verbose)
     except:
-        print "Error running site quality check: %s"%(traceback.format_exc())
+        logger.error("Error running site quality check: %s"%(traceback.format_exc()))
 
     # #Page quality test
     try:
         test_basic_page_quality(set, recursive, verbose)
     except Exception:
-        print "Error running page quality check: %s"%(traceback.format_exc())
+        logger.error("Error running page quality check: %s"%(traceback.format_exc()))
 
 
     # Spell Check test
     try:
         test_basic_spell_check(set, special_dictionary, verbose)
     except Exception:
-        print "Error running spellcheck: %s"%(traceback.format_exc())
+        logger.error("Error running spellcheck: %s"%(traceback.format_exc()))
 
     """
     # Lint JS
     try:
         test_lint_js(set, verbose)
     except Exception:
-        print "Error linting JS: %s"%(traceback.format_exc())
+        logger.error("Error linting JS: %s"%(traceback.format_exc()))
     """
 
 
@@ -154,7 +165,7 @@ def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, star
         try:
             test_selenium(set, automated_tests_dir, verbose)
         except Exception:
-            print "Error running Selenium tests: %s"%(traceback.format_exc())
+            logger.error("Error running Selenium tests: %s"%(traceback.format_exc()))
 
 
     if run_third_party_tests==True:
@@ -163,13 +174,13 @@ def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, star
         try:
             test_pagespeed(set, credentials, options, 1000, verbose)
         except Exception:
-           print "Error testing site loading optimization: %s"%(traceback.format_exc())
+           logger.error("Error testing site loading optimization: %s"%(traceback.format_exc()))
 
         # W3C Compliance test
         try:
             test_w3c_compliance(set, ignore_validation_errors, 20, verbose)
         except Exception:
-            print "Error validating with w3c: %s"%(traceback.format_exc())
+            logger.error("Error validating with w3c: %s"%(traceback.format_exc()))
 
 
     # Browser Screenshots
@@ -177,20 +188,20 @@ def testSite(credentials, canonical_domain, domain_aliases, legacy_domains, star
         try:
             test_screenshots(set, credentials, options, test_category_id, batch_id, 100, verbose)
         except Exception:
-            print "Error generating screenshots: %s"%(traceback.format_exc())
+            logger.error("Error generating screenshots: %s"%(traceback.format_exc()))
 
 
     if run_security_tests==True:
         try:
             test_rate_limits(set, 500, verbose)
         except:
-            print "Error testing rate limits: %s"%(traceback.format_exc())
+            logger.error("Error testing rate limits: %s"%(traceback.format_exc()))
 
     if ua_test:
         try:
             test_ua_blocks(set, options, verbose)
         except:
-            print "Error testing ua blocks: %s"%(traceback.format_exc())
+            logger.error("Error testing ua blocks: %s"%(traceback.format_exc()))
 
 
 
@@ -239,7 +250,7 @@ def render_tab(results, filename, template_file, test_category_id, batch_id, cre
     try:
         html_minified = htmlmin.minify(html, True, True)
     except Exception:
-        print "Error minifying html: %s"%(traceback.format_exc())
+        logger.error("Error minifying html: %s"%(traceback.format_exc()))
         html_minified = html
 
     report_url = save_results(html_minified, filename, test_category_id, batch_id, credentials, verbose)
@@ -276,7 +287,7 @@ def save_results(html, filename, test_category_id, batch_id, credentials, verbos
     try:
         report_url = save_results_aws(results_file, test_category_id, batch_id, credentials, verbose)
     except Exception:
-        print "Error posting results to AWS: %s"%(traceback.format_exc())
+        logger.error("Error posting results to AWS: %s"%(traceback.format_exc()))
         report_url = None
 
     if report_url:
@@ -301,7 +312,7 @@ def delete_results_local(output_path, verbose):
             shutil.rmtree(output_path)
         except Exception:
 
-            print "Error deleting: %s - %s"%(output_path, traceback.format_exc())
+            logger.error("Error deleting: %s - %s"%(output_path, traceback.format_exc()))
 
 
 def save_results_local(html, output_path, verbose):
@@ -333,8 +344,7 @@ def save_results_aws(filename, test_category_id, batch_id, credentials, verbose)
         current_dir = os.path.dirname(__file__)
 
         if verbose:
-            print '\r-- Uploading %s to Amazon S3 from %s\r' % (base_name, filename)
-
+            logger.info('\r-- Uploading %s to Amazon S3 from %s\r' % (base_name, filename))
             def percent_cb(complete, total):
                 sys.stdout.write('.')
                 sys.stdout.flush()
@@ -349,7 +359,7 @@ def save_results_aws(filename, test_category_id, batch_id, credentials, verbose)
         return url
 
     else:
-        print "Warning: AWS API credentials not supplied."
+        logger.warn("Warning: AWS API credentials not supplied.")
         return None
 
 def open_results(path):
@@ -392,9 +402,9 @@ def notify_results(results, credentials):
             stripped = stripHtmlTags(message_output)
             client.chat_post_message(SLACK_CHANNEL, stripped, username=SLACK_USERNAME)
         else:
-            print "Warning: Slack API credentials not supplied."
+            logger.warn("Warning: Slack API credentials not supplied.")
     except Exception:
-        print "Error sending notification to Slack: %s"%(traceback.format_exc())
+        logger.error("Error sending notification to Slack: %s"%(traceback.format_exc()))
 
 def stripHtmlTags(htmlTxt):
     if htmlTxt is None:

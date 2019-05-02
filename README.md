@@ -69,6 +69,9 @@ domain_aliases = [
     'https://example.com',
     'http://example.com'
 ]
+legacy_domains = [
+  'http://www.oldsite.com',
+]
 
 options = {
     'recursive':True,
@@ -102,7 +105,7 @@ options = {
     'basic_auth_password':'p@ssw0rd!'
 }
 
-testSite(credentials, canonical_domain, domain_aliases, starting_url, test_id, options)
+testSite(credentials, canonical_domain, domain_aliases, legacy_domains, starting_url, test_id, options)
 ```
 
 ##Options:

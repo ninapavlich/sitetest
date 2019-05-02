@@ -10,7 +10,7 @@ import re
 import requests
 import ssl
 import sys
-import traceback    
+import traceback
 import urllib2, cookielib
 import urllib
 import urlparse
@@ -38,7 +38,7 @@ FONT_SUFFIXES = [
     '.otf','.ttf','.eot', '.cff','.afm','.lwfn','.ffil','.fon','.pfm','.woff','.std','.pro','.xsf'
 ]
 MEDIA_SUFFIXES = IMAGE_SUFFIXES + FONT_SUFFIXES + [
-    '.doc', '.pdf', '.ppt', '.zip', '.gzip', '.mp3', '.rar', '.exe', 
+    '.doc', '.pdf', '.ppt', '.zip', '.gzip', '.mp3', '.rar', '.exe',
     '.avi', '.mpg', '.tif', '.wav', '.mov', '.psd', '.ai', '.wma',
     '.eps','.mp4','.bmp','.indd','.swf','.jar','.dmg','.iso','.flv',
     '.gz','.fla','.ogg','.sql'
@@ -118,7 +118,7 @@ class Message(object):
     message = None
     category = None
     count = 1
-    
+
 
     def __init__(self, message, category=None, count=1 ):
         self.message = message
@@ -148,7 +148,7 @@ class BaseMessageable(object):
         if self.messages:
             return self.messages.get_score()
         return None
-    
+
 
     def add_error_message(self, message, category=None, count=1):
         if self.verbose:
@@ -175,7 +175,7 @@ class BaseMessageable(object):
             category.add_message(self, message)
 
 class LinkSet(BaseMessageable):
-    
+
     include_media = False
     canonical_domain = None
     domain_aliases = None
@@ -192,12 +192,12 @@ class LinkSet(BaseMessageable):
 
     message_categories = []
     message_category_hash = {}
-    
-    
+
+
 
     def __init__(self, options, canonical_domain, domain_aliases, legacy_domains, test_category_id, test_batch_id, verbose=False):
 
-    
+
         if verbose:
             print '\n\nLoading link set...\n'
 
@@ -207,13 +207,14 @@ class LinkSet(BaseMessageable):
         self.verbose = verbose
         self.messages = MessageSet(verbose)
 
-        
+
 
         self.include_media = True if 'test_media' not in options else truthy(options['test_media'])
         self.include_external_links = True if 'test_external_links' not in options else truthy(options['test_external_links'])
         self.canonical_domain = canonical_domain
         self.domain_aliases = domain_aliases
         self.legacy_domains = legacy_domains
+
         self.ignore_query_string_keys = [] if 'ignore_query_string_keys' not in options else options['ignore_query_string_keys']
         self.alias_query_strings = [] if 'alias_query_strings' not in options else options['alias_query_strings']
         self.skip_test_urls = [] if 'skip_test_urls' not in options else options['skip_test_urls']
@@ -231,7 +232,7 @@ class LinkSet(BaseMessageable):
         self.parsing_error = self.get_or_create_message_category('parsing-error', "Parsing error", 'danger')
         self.legacy_domain_error = self.get_or_create_message_category('legacy-domain-error', "Legacy domain warning", 'warning')
 
-        super(LinkSet, self).__init__()    
+        super(LinkSet, self).__init__()
 
     def get_or_create_message_category(self, key, message, level, info=''):
         labels = {
@@ -252,7 +253,7 @@ class LinkSet(BaseMessageable):
 
         return category
 
-    
+
 
     @property
     def robots_url(self):
@@ -269,12 +270,12 @@ class LinkSet(BaseMessageable):
     @property
     def sitemap_links(self):
         return [self.current_links[url] for url in self.current_links if self.current_links[url].is_sitemap==True]
-        
+
     def load_link(self, page_link, recursive, expected_code=200, force=False):
 
 
         should_skip = self.max_parse_count and (len(self.parsed_links) >= self.max_parse_count) and force == False
-        
+
         if should_skip:
             # print "Max parse count %s hit, turn recursive off"%(self.max_parse_count)
             return
@@ -290,10 +291,10 @@ class LinkSet(BaseMessageable):
                 print "\r>>> Load Link %s (parsed: %s/%s, loaded: %s/%s, total: %s)\r\r"%(page_link.__unicode__(), len(self.parsed_links), len(self.parsable_links), len(self.loaded_links), len(self.loadable_links),  len(self.current_links))
                 if '#' in page_link.__unicode__():
                     print "\r-----  From: %s\r\r"%(referer_list)
-                
+
 
             load_successful, response = page_link.load(self, expected_code)
-            
+
 
             #record that we have parsed it
             if page_link.url not in self.loaded_links:
@@ -312,20 +313,20 @@ class LinkSet(BaseMessageable):
                 #record that we have parsed it
                 if page_link.url not in self.parsed_links:
                     self.parsed_links[page_link.url] = page_link
-            
+
         #Let's do it again!
         if recursive==True and page_link.is_parseable_type:
             for child_link_url in page_link.links:
-                if child_link_url not in self.parsed_links:                                                              
+                if child_link_url not in self.parsed_links:
                     self.load_link(page_link.links[child_link_url], recursive, 200)
-       
+
 
 
 
     def get_or_create_link_object(self, url, referer=None):
-        
+
         incoming_url = url
-        referer_url = None if not referer else referer.ending_url        
+        referer_url = None if not referer else referer.ending_url
 
         has_legacy_domain = False
         for legacy_domain in self.legacy_domains:
@@ -334,7 +335,7 @@ class LinkSet(BaseMessageable):
 
         url = self.get_normalized_href(url, referer_url)
 
-        
+
         slashed_url = "%s/"%(url)
         deslashed_url = url.rstrip("/")
 
@@ -351,7 +352,7 @@ class LinkSet(BaseMessageable):
         else:
             link = LinkItem(url, self, self.verbose)
             self.current_links[url] = link
-            
+
             if link.likely_parseable_type == True:
                 self.parsable_links[link.url] = link
 
@@ -360,8 +361,10 @@ class LinkSet(BaseMessageable):
 
             if has_legacy_domain:
                 legacy_error_message = "Legacy url <mark>%s</mark> found on url <mark>%s</mark>"%(incoming_url, referer_url)
-                referer.add_error_message(legacy_error_message, link.set.legacy_domain_error)
-                
+                if referer:
+                    referer.add_error_message(legacy_error_message, link.set.legacy_domain_error)
+
+
             #print ">>> Create Link %s (<<< %s)"%(link.__unicode__(), referer_url)
 
         if referer and referer.url != url and referer.ending_url != url:
@@ -413,7 +416,7 @@ class LinkSet(BaseMessageable):
                     if domain.lower() in url.lower():
                         return TYPE_INTERNAL
 
-                
+
                 return TYPE_EXTERNAL
 
 
@@ -426,7 +429,7 @@ class LinkSet(BaseMessageable):
         if debug:
             print '--------------------------'
             print '---> get_normalized_href for %s from %s'%(url, normalized_parent_url)
-        
+
 
         normalized = url
         if normalized.startswith('//'):
@@ -456,7 +459,7 @@ class LinkSet(BaseMessageable):
         if debug:
             print "---> link type is %s"%(link_type)
 
-        if link_type == TYPE_INTERNAL:            
+        if link_type == TYPE_INTERNAL:
 
             if self.canonical_domain not in normalized:
                 #First see if it has an alias domain
@@ -469,7 +472,7 @@ class LinkSet(BaseMessageable):
                 for legacy_domain in self.legacy_domains:
                     if legacy_domain.lower() in url.lower():
                         normalized = normalized.lower().replace(legacy_domain.lower(), self.canonical_domain)
-                        
+
 
                 #Next, does it use an absolute path?
                 if normalized.startswith('/'):
@@ -479,7 +482,7 @@ class LinkSet(BaseMessageable):
                         normalized = "%s%s"%(self.canonical_domain, normalized)
                     if debug:
                         print "---> relative from root, replacd %s with %s"%(url, normalized)
-                
+
                 elif normalized.startswith('http'):
 
 
@@ -504,7 +507,7 @@ class LinkSet(BaseMessageable):
 
                     if debug:
                         print "---> relative from parent, replaced %s with %s"%(url, normalized)
-                    
+
             #Next remove unwanted query strings:
             normalized = clean_query_string(normalized, self.ignore_query_string_keys)
             if debug:
@@ -542,13 +545,13 @@ class LinkSet(BaseMessageable):
         return normalized
 
 
-           
 
 
-    
+
+
 
 class LinkItem(BaseMessageable):
-    
+
 
     # __slots__ = ['_set', 'referers', 'image_links', 'hyper_links', 'css_links',
     # 'script_links', 'url', 'ending_url', 'starting_type', 'ending_type', 'path',
@@ -558,7 +561,7 @@ class LinkItem(BaseMessageable):
 
     has_response = False
     response_code = None
-    response_content_type = None    
+    response_content_type = None
     alias_to = None
     skip_test = False
     skip = False
@@ -566,7 +569,7 @@ class LinkItem(BaseMessageable):
     accessible_to_robots = False
     is_sitemap = False
     is_robots = False
-    
+
 
 
     def __init__(self, url, set, verbose=False):
@@ -622,7 +625,7 @@ class LinkItem(BaseMessageable):
 
     @property
     def page_url(self):
-        
+
         if self.url in self.set.parsed_links:
             path = "parsed.html"
         elif self.url in self.set.loaded_links:
@@ -641,8 +644,8 @@ class LinkItem(BaseMessageable):
 
     @property
     def page_slug(self):
-        return slugify(self.url)        
-            
+        return slugify(self.url)
+
 
     @property
     def encoded_url(self):
@@ -683,7 +686,7 @@ class LinkItem(BaseMessageable):
         is_internal = (self.starting_type == TYPE_INTERNAL and not self.is_media)
         is_allowed_external = (self.starting_type == TYPE_EXTERNAL and include_external_links)
         is_allowed_media = (self.is_media and include_media)
-        
+
         is_loadable = is_internal or is_allowed_external or is_allowed_media
 
         return is_loadable
@@ -745,7 +748,7 @@ class LinkItem(BaseMessageable):
     def is_redirect_page(self):
         return (self.starting_url != self.ending_url)
 
-    
+
 
     def load(self, set, expected_code=200):
 
@@ -756,12 +759,12 @@ class LinkItem(BaseMessageable):
 
         response = None
         start_time = datetime.datetime.now()
-        
+
         if self.use_basic_auth == True:
             self.redirect_path = trace_path(self.url, self.is_internal, [], False, 0, None, 'basic', self.basic_auth_username, self.basic_auth_password)
         else:
             self.redirect_path = trace_path(self.url, self.is_internal, [])
-        
+
         if len(self.redirect_path) > 0:
             last_response_item = self.redirect_path[-1]
 
@@ -769,15 +772,15 @@ class LinkItem(BaseMessageable):
 
             self.response_code = last_response_item['response_code']
             self.response_encoding = last_response_item['response_encoding']
-            
+
             #SET CANONICAL URL TO ENDING URL
             self.url = self.ending_url = get_ending_url(last_response_item['url'], last_response_item['ending_url'])
 
-            self.ending_type = set.get_link_type(self.ending_url)   
+            self.ending_type = set.get_link_type(self.ending_url)
 
             load_time = datetime.datetime.now() - start_time
             milliseconds = timedelta_milliseconds(load_time)
-            self.response_load_time = milliseconds    
+            self.response_load_time = milliseconds
 
             if self.response_code == 200:
                 #Retrieve last response object and clear it from the object
@@ -786,7 +789,7 @@ class LinkItem(BaseMessageable):
                 self.has_response = True
             else:
                 self.has_response = False
-        
+
             #Get any errors from the redirect path
             for response_data in self.redirect_path:
                 if response_data['error'] != None:
@@ -794,7 +797,7 @@ class LinkItem(BaseMessageable):
                 if response_data['warning'] != None:
                     self.add_warning_message(response_data['warning'], self.set.loading_error)
 
-            
+
         if expected_code != self.response_code:
 
             #Ignore some known errors:
@@ -812,10 +815,10 @@ class LinkItem(BaseMessageable):
                 return (False, response)
         else:
             return (True, response)
-        
+
 
     def parse_response(self, response, set):
-        
+
         if USE_REQUESTS:
             raw_response = None if response==None else response.text
         else:
@@ -856,7 +859,7 @@ class LinkItem(BaseMessageable):
                 soup = None
                 self.add_error_message("Error parsing HTML on page <mark>%s</mark> %s"%(self.url, traceback.format_exc()), self.set.parsing_error)
 
-        
+
             if soup:
 
                 page_html = soup.prettify()
@@ -871,7 +874,7 @@ class LinkItem(BaseMessageable):
 
                 page_links = get_hyperlinks_on_page(soup)
 
-                
+
                 # domained_links = []
                 # for link in page_links:
                 #     if 'dev.heron' in link and link not in ignore_urls:
@@ -888,8 +891,8 @@ class LinkItem(BaseMessageable):
                 #TODO: self.add_links(get_video_on_page(soup), self.object_links, set)
                 self.add_links(get_iframes_on_page(soup), self.iframe_links, set)
                 #self.add_links(get_xhr_links_on_page(soup), self.xhr_links, set)
-        
-        
+
+
 
         #Create enumerated source
         if self.content:
@@ -903,11 +906,11 @@ class LinkItem(BaseMessageable):
                     counter += 1
                 self.enumerated_source = enumerated_source
             except Exception:
-                self.enumerated_source = "Error enumerating source: %s"%(traceback.format_exc())  
+                self.enumerated_source = "Error enumerating source: %s"%(traceback.format_exc())
 
         # if 'css' in self.url:
         #     print "CSS %s is_css? %s: %s"%(self.url, self.is_css, self.content)
-        
+
 
 
     def add_links(self, input_links, list, set):
@@ -922,17 +925,17 @@ class LinkItem(BaseMessageable):
 
         if is_same_url==False and list_has_link==False:
             list[link_item.url] = link_item
-        
+
 
     def add_referer(self, link_item):
         #print 'add referer to %s from %s'%(self.url, link_item.url)
         self.add_link(link_item, self.referers)
-   
 
 
 
-    
-        
+
+
+
 
 
 
@@ -943,7 +946,7 @@ class LinkItem(BaseMessageable):
 
 def clean_query_string(url, ignore_query_string_keys):
     url_parts = list(urlparse.urlparse(url))
-    
+
     query = dict(urlparse.parse_qsl(url_parts[4], True))
     for unwanted_key in ignore_query_string_keys:
         if unwanted_key in query:
@@ -952,7 +955,7 @@ def clean_query_string(url, ignore_query_string_keys):
     url_parts[4] = urllib.urlencode(query)
     new_url = urlparse.urlunparse(url_parts)
 
-   
+
     return new_url
 
 def clear_query_string(url):
@@ -964,24 +967,24 @@ def clear_query_string(url):
     url_parts[4] = urllib.urlencode({})
     new_url = urlparse.urlunparse(url_parts)
 
-    return new_url 
+    return new_url
 
 def get_hyperlinks_on_page(soup):
-    output = []  
+    output = []
 
     #Traditional hyperlinks
     for a in soup.findAll('a'):
 
         try:
-            href = a['href']  
-            output.append(href)      
+            href = a['href']
+            output.append(href)
         except:
             href = None
 
     return output
 
 def get_sitemap_links_on_page(soup):
-    output = []  
+    output = []
 
     #Sitemap links
     for url in soup.findAll('url'):
@@ -993,30 +996,30 @@ def get_sitemap_links_on_page(soup):
     return output
 
 def get_css_on_page(soup):
-    output = []  
+    output = []
 
     #CSS Links
     for a in soup.findAll('link'):
         try:
-            href = a['href']  
+            href = a['href']
             rel = a['rel'][0].strip()
             if rel == 'stylesheet':
-                output.append(href)      
+                output.append(href)
         except:
-            href = None 
+            href = None
 
-    return output 
+    return output
 
 def get_scripts_on_page(soup):
-    output = []  
+    output = []
 
     #JS Links
     for a in soup.findAll('script'):
         try:
-            src = a['src']  
-            output.append(src)      
+            src = a['src']
+            output.append(src)
         except:
-            href = None 
+            href = None
 
     return output
 
@@ -1028,8 +1031,8 @@ def get_images_on_page(soup):
     for img in soup.findAll('img'):
 
         try:
-            src = img['src']  
-            output.append(src)      
+            src = img['src']
+            output.append(src)
         except:
             src = None
 
@@ -1041,15 +1044,15 @@ def get_audio_on_page(soup):
     for audio in soup.findAll('audio'):
 
         try:
-            src = audio['src']  
-            output.append(src)      
+            src = audio['src']
+            output.append(src)
         except:
             src = None
 
         for source in audio.findAll('source'):
             try:
-                src = source['src']  
-                output.append(src)      
+                src = source['src']
+                output.append(src)
             except:
                 src = None
 
@@ -1063,15 +1066,15 @@ def get_video_on_page(soup):
     for video in soup.findAll('video'):
 
         try:
-            src = video['src']  
-            output.append(src)      
+            src = video['src']
+            output.append(src)
         except:
             src = None
 
         for source in video.findAll('source'):
             try:
-                src = source['src']  
-                output.append(src)      
+                src = source['src']
+                output.append(src)
             except:
                 src = None
 
@@ -1083,8 +1086,8 @@ def get_iframes_on_page(soup):
     for iframe in soup.findAll('iframe'):
 
         try:
-            src = iframe['src']  
-            output.append(src)      
+            src = iframe['src']
+            output.append(src)
         except:
             src = None
 
@@ -1127,11 +1130,11 @@ def get_fonts_on_page(set, link):
                     if is_font:
                         output.append(full_url)
 
-    
+
     return output
 
 def timedelta_milliseconds(td):
-    return td.days*86400000 + td.seconds*1000 + td.microseconds/1000    
+    return td.days*86400000 + td.seconds*1000 + td.microseconds/1000
 
 # Recursively follow redirects until there isn't a location header
 class NoRedirection(urllib2.HTTPErrorProcessor):
@@ -1141,13 +1144,13 @@ class NoRedirection(urllib2.HTTPErrorProcessor):
     # def http_response(self, request, response):
     #     return response
 
-    # https_response = http_response 
+    # https_response = http_response
 
     def http_response(self, request, response):
         code, msg, hdrs = response.code, response.msg, response.info()
 
         # only add this line to stop redirection.
-        if int(code) in REDIRECT_CODES: 
+        if int(code) in REDIRECT_CODES:
             return response
 
         if not (200 <= code < 300):
@@ -1155,7 +1158,7 @@ class NoRedirection(urllib2.HTTPErrorProcessor):
 
         return response
 
-    https_response = http_response  
+    https_response = http_response
 
 class TLSAV1dapter(requests.adapters.HTTPAdapter):
     def init_poolmanager(self, connections, maxsize, block=False):
@@ -1172,14 +1175,14 @@ class TLSAV1dapter(requests.adapters.HTTPAdapter):
         return super(TLSAV1dapter, self).proxy_manager_for(proxy, **proxy_kwargs)
 
 def trace_path(url, is_internal, traced, enable_cookies = False, depth=0, cj_or_session=None, auth=None, username=None, password=None):
-    
+
     if USE_REQUESTS:
         return trace_path_with_requests(url, is_internal, traced, enable_cookies, depth, cj_or_session, auth, username, password)
     else:
         return trace_path_with_urllib2(url, is_internal, traced, enable_cookies, depth, cj_or_session, auth, username, password)
 
 def trace_path_with_requests(url, is_internal, traced, enable_cookies = False, depth=0, session=None, auth=None, username=None, password=None):
-    
+
 
     #Safely catch
     MAX_REDIRECTS = 15
@@ -1194,10 +1197,10 @@ def trace_path_with_requests(url, is_internal, traced, enable_cookies = False, d
         #If cookies are not enabled, then a redirect consists merely of the same url
         is_same_url = trace_history['url'] == url
         is_same_cookies = True if enable_cookies == False else trace_history['pickled_cookies'] == pickle.dumps(session.cookies._cookies)
-                
+
         if is_same_url and is_same_cookies:
             if enable_cookies == False:
-                #Re-try with cookies enabled   
+                #Re-try with cookies enabled
                 first_url = traced[0]['url']
                 traced_with_cookies = trace_path(first_url, is_internal, [], True, 0, None, auth, username, password)
                 traced_with_cookies[0]['error'] = "Cookies required to correctly navigate to: %s"%(first_url)
@@ -1216,10 +1219,10 @@ def trace_path_with_requests(url, is_internal, traced, enable_cookies = False, d
         if use_auth:
             auth = (username, password)
             session.auth = auth
-            
 
 
-    
+
+
     response = None
     response_data = {
         'url':url,
@@ -1250,19 +1253,19 @@ def trace_path_with_requests(url, is_internal, traced, enable_cookies = False, d
         verify_cert = not is_internal
 
         if session:
-            response = session.get(url, headers=HEADERS, allow_redirects=False, verify=verify_cert, timeout=10)        
+            response = session.get(url, headers=HEADERS, allow_redirects=False, verify=verify_cert, timeout=10)
         else:
-            response = requests.get(url, headers=HEADERS, allow_redirects=False, verify=verify_cert, timeout=10)        
+            response = requests.get(url, headers=HEADERS, allow_redirects=False, verify=verify_cert, timeout=10)
 
         try:
-            code = response.status_code            
-        except Exception:            
+            code = response.status_code
+        except Exception:
             print "Error parsing code: %s"%(traceback.format_exc())
             code = 'Unknown'
 
         response_header = response.headers
 
-        parse_trace_response(response, response_data,  code, response_header, start_time)       
+        parse_trace_response(response, response_data,  code, response_header, start_time)
         response_data['response'] = response
 
     except requests.exceptions.Timeout:
@@ -1275,29 +1278,29 @@ def trace_path_with_requests(url, is_internal, traced, enable_cookies = False, d
 
     except requests.exceptions.RequestException as e:
         # catastrophic error. bail.
-        
+
         #Try loading with the session TLS adapter
         if not enable_cookies:
             traced_with_cookies = trace_path(url, is_internal, [], True, 0, None, auth, username, password)
             return traced_with_cookies
         else:
-            response_data['response_code'] = "RequestException: %s"%(e) 
+            response_data['response_code'] = "RequestException: %s"%(e)
 
     except Exception:
-        
+
         print "Unkown Exception: %s"%(traceback.format_exc())
-        response_data['response_code'] = "Unknown Exception: %s"%(traceback.format_exc())    
+        response_data['response_code'] = "Unknown Exception: %s"%(traceback.format_exc())
 
 
     if enable_cookies:
-        response_data['pickled_cookies'] = pickle.dumps(session.cookies._cookies)  
+        response_data['pickled_cookies'] = pickle.dumps(session.cookies._cookies)
 
     response_data['request_headers'] = response.request.headers
-        
+
 
     traced.append(response_data)
 
-    has_redirect = response_data['redirect']!=None        
+    has_redirect = response_data['redirect']!=None
     if has_redirect:
         #Delete last response object
         response_data['response'] = None
@@ -1305,7 +1308,7 @@ def trace_path_with_requests(url, is_internal, traced, enable_cookies = False, d
         redirect_url = get_ending_url(response_data['url'], response_data['ending_url'])
         traced = trace_path(redirect_url, is_internal, traced, enable_cookies, depth+1, session, auth, username, password)
 
-    return traced    
+    return traced
 
 def trace_path_with_urllib2(url, is_internal, traced, enable_cookies = False, depth=0, cj=None, auth=None, username=None, password=None):
 
@@ -1321,10 +1324,10 @@ def trace_path_with_urllib2(url, is_internal, traced, enable_cookies = False, de
         #If cookies are not enabled, then a redirect consists merely of the same url
         is_same_url = trace_history['url'] == url
         is_same_cookies = True if enable_cookies == False else trace_history['pickled_cookies'] == pickle.dumps(cj._cookies)
-        
+
         if is_same_url and is_same_cookies:
             if enable_cookies == False:
-                #Re-try with cookies enabled                
+                #Re-try with cookies enabled
                 first_url = traced[0]['url']
                 traced_with_cookies = trace_path(first_url, is_internal, [], True, 0, None, auth, username, password)
                 traced_with_cookies[0]['warning'] = "Cookies required to correctly navigate to: %s"%(first_url)
@@ -1338,12 +1341,12 @@ def trace_path_with_urllib2(url, is_internal, traced, enable_cookies = False, de
     if enable_cookies or use_auth:
         if not cj:
             cj = cookielib.CookieJar()
-    
+
     if use_auth:
         password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
         password_manager.add_password(None, url, username, password)
         password_handler = urllib2.HTTPBasicAuthHandler(password_manager)
-        
+
 
     if cj:
         if use_auth:
@@ -1351,15 +1354,15 @@ def trace_path_with_urllib2(url, is_internal, traced, enable_cookies = False, de
         else:
             opener = urllib2.build_opener(NoRedirection, urllib2.HTTPCookieProcessor(cj))
     else:
-    
-        if use_auth:            
+
+        if use_auth:
             opener = urllib2.build_opener(NoRedirection, password_handler)
         else:
             opener = urllib2.build_opener(NoRedirection)
 
     request = urllib2.Request(url, headers=HEADERS)
 
-    
+
     response = None
     response_data = {
         'url':url,
@@ -1388,29 +1391,29 @@ def trace_path_with_urllib2(url, is_internal, traced, enable_cookies = False, de
 
             request = urllib2.Request(url)
             response = urllib2.urlopen(request)
-        
+
 
         try:
             code = response.code
-        except Exception:            
+        except Exception:
             print "Error parsing code: %s"%(traceback.format_exc())
             code = 'Unknown'
 
-        parse_trace_response(response, response_data,  code, response_header, start_time)       
+        parse_trace_response(response, response_data,  code, response_header, start_time)
         response_data['response'] = response
 
     except urllib2.HTTPError, e:
-        
+
         # print '---> urllib2.HTTPError %s - %s'%(e.code, e.headers)
         try:
-            
+
             parse_trace_response(response, response_data, e.code, e.headers, start_time)
 
         except Exception:
-            
+
             print "Error parsing trace: %s"%(traceback.format_exc())
 
-            response_data['response_code'] = "Unknown HTTPError"            
+            response_data['response_code'] = "Unknown HTTPError"
 
     except urllib2.URLError, e:
         #checksLogger.error('URLError = ' + str(e.reason))
@@ -1421,19 +1424,19 @@ def trace_path_with_urllib2(url, is_internal, traced, enable_cookies = False, de
 
 
     except Exception:
-        
+
         print "Unkown Exception: %s"%(traceback.format_exc())
-        response_data['response_code'] = "Unknown Exception: %s"%(traceback.format_exc())    
+        response_data['response_code'] = "Unknown Exception: %s"%(traceback.format_exc())
 
 
     if enable_cookies:
-        response_data['pickled_cookies'] = pickle.dumps(cj._cookies)        
+        response_data['pickled_cookies'] = pickle.dumps(cj._cookies)
 
     response_data['request_headers'] = request.headers
 
     traced.append(response_data)
 
-    has_redirect = response_data['redirect']!=None        
+    has_redirect = response_data['redirect']!=None
     if has_redirect:
         #Delete last response object
         response_data['response'] = None
@@ -1444,7 +1447,7 @@ def trace_path_with_urllib2(url, is_internal, traced, enable_cookies = False, de
     return traced
 
 def parse_trace_response(response, response_data, code, response_header, start_time):
-    
+
     if USE_REQUESTS:
         parse_trace_response_with_requests(response, response_data, code, response_header, start_time)
     else:
@@ -1454,16 +1457,16 @@ def parse_trace_response_with_requests(response, response_data, code, response_h
 
     end_time = datetime.datetime.now()
     response_data['response_headers'] = response_header
-    response_data['response_code'] = code    
+    response_data['response_code'] = code
     response_data['response_content_type'] = response_header.get('Content-Type')
     response_data['response_encoding'] = response_header.get('Content-Encoding')
     response_data['error'] = None
-     
+
     response_data['cookies'] = response_header.get("Set-Cookie")
 
     load_time = end_time - start_time
     milliseconds = timedelta_milliseconds(load_time)
-    response_data['response_load_time'] = milliseconds     
+    response_data['response_load_time'] = milliseconds
 
     response_data['ending_url'] = response_header.get('Location') or response_data['url']
     has_redirect = response_data['url'] != response_data['ending_url']
@@ -1472,19 +1475,19 @@ def parse_trace_response_with_requests(response, response_data, code, response_h
         response_data['redirect'] = response_data['ending_url']
 
 def parse_trace_response_with_urllib2(response, response_data, code, response_header, start_time):
-    
+
     end_time = datetime.datetime.now()
     response_data['response_headers'] = dict(response_header)
-    response_data['response_code'] = code    
+    response_data['response_code'] = code
     response_data['response_content_type'] = response_header.getheader('Content-Type')
     response_data['response_encoding'] = response_header.getheader('Content-Encoding')
     response_data['error'] = None
-     
-    response_data['cookies'] = response_header.getheader("Set-Cookie")  
+
+    response_data['cookies'] = response_header.getheader("Set-Cookie")
 
     load_time = end_time - start_time
     milliseconds = timedelta_milliseconds(load_time)
-    response_data['response_load_time'] = milliseconds     
+    response_data['response_load_time'] = milliseconds
 
     response_data['ending_url'] = response_header.getheader('Location') or response_data['url']
     has_redirect = response_data['url'] != response_data['ending_url']
@@ -1536,19 +1539,19 @@ def url_fix(s, charset='utf-8'):
     if isinstance(s, unicode):
         s = s.encode(charset, 'ignore')
     scheme, netloc, path, qs, anchor = urlparse.urlsplit(s)
-    
+
     path = urllib.quote(path, '/%')
-    
-    parsed = urlparse.parse_qsl(qs, True)    
+
+    parsed = urlparse.parse_qsl(qs, True)
     qs = urllib.urlencode(parsed)
-    
+
     #Note -- the problem with this is that it is non-idempodent
     #so if it's called multiple times on a URL, the URL becomes incorrect
     #EX: http://dev.heron.org/engage/?category=&year=&author=Ryan+Halas&sort= becomes
     #http://dev.heron.org/engage/?category=&year=&author=Ryan%2BHalas&sort=
     # qs = urllib.quote_plus(qs, ':&=')
-    
-    return urlparse.urlunsplit((scheme, netloc, path, qs, anchor)) 
+
+    return urlparse.urlunsplit((scheme, netloc, path, qs, anchor))
 
 def store_file_locally(url):
 
@@ -1571,7 +1574,7 @@ def store_file_locally(url):
     except urllib2.URLError, e:
         print "URL Error:", e.reason, url
 
-    return local_path   
+    return local_path
 
 def trace_memory_usage():
     print 'Memory usage: %s' % memory_usage_resource()
@@ -1588,7 +1591,7 @@ def memory_usage_resource():
         # ... it seems that in OSX the output is different units ...
         rusage_denom = rusage_denom * rusage_denom
     mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / rusage_denom
-    return mem    
+    return mem
 
 def truthy(value):
     if value == 'True':
