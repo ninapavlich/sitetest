@@ -24,8 +24,9 @@ pip install virtualenv
 ```
 > git clone git@github.com:ninapavlich/sitetest.git
 > cd sitetest
-> virtualenv venv -p python3
+> virtualenv venv
 > source venv/bin/activate
+> curl https://bootstrap.pypa.io/get-pip.py | python
 > pip install -r requirements.txt
 # Create my_test.py based on example below:
 > python my_test.py

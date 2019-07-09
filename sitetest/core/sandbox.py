@@ -1,9 +1,12 @@
+import logging
 import urllib2
-def reload_url(url, USER_AGENT_STRING):
-	
-	request = urllib2.Request(url)
-	request.add_header('User-agent',USER_AGENT_STRING)
-	response = urllib2.urlopen(request)
-	print "RESPONSE:"
-	print response.code
-	return response
+
+logger = logging.getLogger('sitetest')
+
+
+def reload_url(url, user_agent_string):
+
+    request = urllib2.Request(url)
+    request.add_header('User-agent', user_agent_string)
+    response = urllib2.urlopen(request)
+    logger.info("Response: %s: %s" % (response.code, response))
