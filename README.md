@@ -79,7 +79,7 @@ options = {
     'test_external_links':True,
     'run_third_party_tests':True,
     'run_security_tests':True,
-    'ua_test_list' = {
+    'ua_test_list': {
         'A1 Website Download/5.1.0 (+http://www.microsystools.com/products/website-download/) miggibot':{
             'expected_code':403,
             'test_urls':[
