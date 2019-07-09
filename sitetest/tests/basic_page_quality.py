@@ -55,7 +55,7 @@ def test_basic_page_quality(set, recursive, verbose=False):
 
         link = set.parsed_links[link_url]
 
-        if link.is_internal_html and not link.skip_test == True:
+        if link.is_internal_html and not link.skip_test:
 
             link_html = link.html
             if link_html:
@@ -70,25 +70,25 @@ def test_basic_page_quality(set, recursive, verbose=False):
                     link.title = page_title.strip()
 
                     is_redirected_page = link.is_redirect_page
-                    is_alias_page = link.alias_to != None
-                    is_skip_test = link.skip_test == True
+                    is_alias_page = link.alias_to is not None
+                    is_skip_test = link.skip_test
                     is_https = 'https' in link.url
 
                     if not is_skip_test:
 
                         if page_title == '':
                             message = "Page title is missing from <mark>%s</mark>" % (link_url)
-                            link.add_warning_message(message, self.page_title_missing_error)
+                            link.add_warning_message(message, page_title_missing_error)
                             link.title = link_url
 
-                        elif (page_title not in unique_titles) and (is_redirected_page == False) and (is_alias_page == False):
+                        elif (page_title not in unique_titles) and (not is_redirected_page) and (not is_alias_page):
                             unique_titles[page_title] = link.path
                         else:
 
                             if page_title not in unique_titles:
                                 unique_titles[page_title] = link.path
 
-                            if link.path.strip('/') != unique_titles[page_title].strip('/') and (is_redirected_page == False) and (is_alias_page == False):
+                            if link.path.strip('/') != unique_titles[page_title].strip('/') and (not is_redirected_page) and (not is_alias_page):
                                 message = "Page title <mark>&ldquo;%s&rdquo;</mark> is not unique." % (page_title)
                                 link.add_warning_message(message, page_title_unique_error)
                                 unique_title_error_count += 1
@@ -153,11 +153,11 @@ def test_basic_page_quality(set, recursive, verbose=False):
                             if not value:
                                 missing_met_tags.append("%s:%s" % (prop_type, property_name))
 
-                        # if len(missing_met_tags) > 0:
-                        #     social_tag_error_count += 1
-                        #     tags = ', '.join(missing_met_tags)
-                        #     message = "Page &ldquo;%s&rdquo; missing meta tag(s): %s"%(link.title, tags)
-                        #     link.add_info_message(message, missing_meta_tags)
+                        if len(missing_met_tags) > 0:
+                            social_tag_error_count += 1
+                            tags = ', '.join(missing_met_tags)
+                            message = "Page &ldquo;%s&rdquo; missing meta tag(s): %s" % (link.title, tags)
+                            link.add_info_message(message, missing_meta_tags)
 
                         # 4 - Test Analytics
                         # TODO: Sometimes this gives a false positive
@@ -189,27 +189,27 @@ def test_basic_page_quality(set, recursive, verbose=False):
                             message = "Page <mark>&ldquo;%s&rdquo;</mark> doesn't have exactly one H1, it has <mark>%s</mark>" % (link.title, h1_count)
                             link.add_warning_message(message, h1_error)
 
-                        #7 - Compression
-                        if link.response_encoding == None:
+                        # 7 - Compression
+                        if link.response_encoding is None:
                             compression_error_count += 1
                             message = "Content is not compressed"
                             link.add_warning_message(message, compressed_error)
 
-                        #8 - Robots
-                        if link.accessible_to_robots == False:
+                        # 8 - Robots
+                        if not link.accessible_to_robots:
                             robots_error_count += 1
                             message = "Page <mark>&ldquo;%s&rdquo;</mark> is not accessible to robots.txt" % (link.title)
                             link.add_warning_message(message, robots_error)
 
-                        #9 - Sitemap
+                        # 9 - Sitemap
                         if recursive:
-                            if link.is_alias == False:
-                                if link.has_sitemap_entry == False:
+                            if not link.is_alias:
+                                if not link.has_sitemap_entry:
                                     sitemap_error_count += 1
                                     message = "Page <mark>&ldquo;%s&rdquo;</mark> is not in the sitemap" % (link.title)
                                     link.add_warning_message(message, sitemap_error)
 
-                                if len(link.referers) == 1 and link.has_sitemap_entry == True and link.url != set.canonical_domain:
+                                if len(link.referers) == 1 and link.has_sitemap_entry and link.url != set.canonical_domain:
                                     link.add_info_message("Page <mark>&ldquo;%s&rdquo;</mark> is in the sitemap, but not accessible from elsewhere in the site." % (link.title), sitemap_orphan_error)
                                     orphan_page_error_count += 1
 

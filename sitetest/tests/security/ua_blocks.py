@@ -31,7 +31,7 @@ def test_ua_blocks(site, options, verbose=False):
         # basic_auth_password = '' if use_basic_auth == False else options['basic_auth_password']
 
         if verbose:
-            print '\n\nRunning User Agent tests...\n'
+            logger.debug('Running User Agent tests...')
 
         default_url = site.canonical_domain
         error_count = 0

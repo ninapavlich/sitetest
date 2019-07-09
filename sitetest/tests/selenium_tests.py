@@ -1,13 +1,13 @@
-import os
-import sys
+import logging
 import unittest
-import importlib
+
+logger = logging.getLogger('sitetest')
+
 
 def test_selenium(site, automated_test_dir, verbose=False):
-    
+
     if verbose:
-        print "\n\nTesting from dir %s\n"%(automated_test_dir)
-    classes = []
+        logger.debug("Testing from dir %s" % (automated_test_dir))
 
     selenium_errors = site.get_or_create_message_category('selenium-error', "Selenium Errors", 'danger')
 
@@ -15,8 +15,6 @@ def test_selenium(site, automated_test_dir, verbose=False):
     site.test_results = unittest.TextTestRunner(verbosity=1).run(all_tests)
 
     if len(site.test_results.errors) > 0:
-        site.add_warning_message('%s Errors found when running tests'%(len(site.test_results.errors)), selenium_errors, len(site.test_results.errors))
+        site.add_warning_message('%s Errors found when running tests' % (len(site.test_results.errors)), selenium_errors, len(site.test_results.errors))
     if len(site.test_results.failures) > 0:
-        site.add_error_message('%s Failures found when running tests'%(len(site.test_results.failures)), selenium_errors, len(site.test_results.failures))
-                
-    # print classes
+        site.add_error_message('%s Failures found when running tests' % (len(site.test_results.failures)), selenium_errors, len(site.test_results.failures))
