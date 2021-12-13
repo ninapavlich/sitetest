@@ -10,7 +10,7 @@ htmlmin==0.1.12
 idna==2.8
 Jinja2==2.10.1
 jsbeautifier==1.10.0
-lxml==4.3.3
+lxml==4.6.5
 MarkupSafe==1.1.1
 pbr==5.2.0
 pyenchant==2.0.0
